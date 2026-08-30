@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>考研进度看板 · 2027考研</title>
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --border: #e8ecf1;
+    --text: #374151;
+    --text-dim: #9ca3af;
+    --text-bright: #111827;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --yellow: #ca8a04;
+    --yellow-bg: #fefce8;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --blue: #2563eb;
+    --blue-bg: #eff6ff;
+    --cyan: #0891b2;
+    --cyan-bg: #ecfeff;
+    --purple: #7c3aed;
+    --purple-bg: #f5f3ff;
+    --orange: #ea580c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'SF Pro Display', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+
+  /* Tabs */
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 14px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-dim); border-bottom: 2px solid transparent; transition: all 0.2s; user-select: none; white-space: nowrap; flex-shrink: 0; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .tab-countdown { margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-dim); padding: 10px 0 10px 12px; flex-shrink: 0; white-space: nowrap; }
+  .tab-countdown .num { font-size: 18px; font-weight: 700; color: var(--orange); }
+
+  .page { display: none; max-width: 1100px; margin: 0 auto; padding: 16px; }
+  .page.active { display: block; }
+
+  .grid { display: grid; gap: 12px; margin-bottom: 12px; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-1 { grid-template-columns: 1fr; }
+  @media (max-width: 768px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-2 { grid-template-columns: 1fr; } .page { padding: 12px; } }
+  @media (max-width: 400px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); overflow: hidden; }
+  .card-title { font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+  .card-title-lg { font-size: 14px; font-weight: 600; color: var(--text-bright); letter-spacing: 0; text-transform: none; margin-bottom: 10px; }
+
+  .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 2px; letter-spacing: -0.5px; }
+  .stat-label { font-size: 10px; color: var(--text-dim); }
+  .stat-sub { font-size: 9px; color: #b0b8c4; margin-top: 1px; }
+
+  .bar-track { background: #f1f5f9; border-radius: 4px; height: 5px; overflow: hidden; margin: 5px 0; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+  .subject-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .subject-row:last-child { margin-bottom: 0; }
+  .subject-label { font-size: 11px; min-width: 72px; flex-shrink: 0; color: var(--text); }
+  .subject-bar-wrap { flex: 1; min-width: 0; }
+  .subject-pct { font-size: 12px; font-weight: 600; min-width: 36px; text-align: right; }
+
+  /* Heatmap */
+  .heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 5px; }
+  .heat-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 6px 3px; text-align: center; }
+  .heat-cell .hn { font-size: 9px; color: var(--text-dim); margin-bottom: 1px; }
+  .heat-cell .hv { font-size: 13px; font-weight: 700; }
+  .heat-cell .hl { font-size: 8px; color: #b0b8c4; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bl-green { border-left: 3px solid var(--green); }
+  .bl-yellow { border-left: 3px solid var(--yellow); }
+  .bl-red { border-left: 3px solid var(--red); }
+  .bl-gray { border-left: 3px solid #d1d5db; }
+
+  /* Queue */
+  .q-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 5px; font-size: 11px; }
+  .q-today { background: var(--blue-bg); border: 1px solid #bfdbfe; }
+  .q-date { min-width: 30px; font-weight: 600; font-size: 10px; flex-shrink: 0; }
+  .q-content { flex: 1; line-height: 1.4; min-width: 0; }
+  .q-count { font-size: 9px; color: var(--text-dim); margin-left: 3px; white-space: nowrap; }
+  .tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600; margin-left: 3px; }
+  .tag-g { background: var(--green-bg); color: var(--green); border: 1px solid #bbf7d0; }
+
+  /* Rows */
+  .w-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
+  .w-row:last-child { border-bottom: none; }
+  .w-info { flex: 1; min-width: 0; }
+  .w-name { font-size: 11px; }
+
+  /* R1 list */
+  .r1-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f1f5f9; font-size: 11px; flex-wrap: wrap; }
+  .r1-row:last-child { border-bottom: none; }
+  .r1-name { min-width: 120px; font-weight: 500; font-size: 11px; }
+  .r1-bar { flex: 1; min-width: 80px; }
+  .r1-count { min-width: 40px; text-align: right; font-weight: 600; font-size: 11px; }
+  .r1-items { width: 100%; font-size: 9px; color: var(--text-dim); padding-left: 2px; line-height: 1.4; }
+
+  /* Chapter table */
+  .ch-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .ch-table td { padding: 5px 6px; border-bottom: 1px solid #f3f4f6; }
+  .badge-sm { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600; }
+  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid #bbf7d0; }
+  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid #fde68a; }
+  .badge-gray { background: #f9fafb; color: #b0b8c4; border: 1px solid var(--border); }
+  .badge-red { background: var(--red-bg); color: var(--red); border: 1px solid #fecaca; }
+  .badge-cyan { background: var(--cyan-bg); color: var(--cyan); border: 1px solid #a5f3fc; }
+
+  /* Timeline */
+  .tl { position: relative; padding-left: 18px; }
+  .tl::before { content: ''; position: absolute; left: 5px; top: 2px; bottom: 0; width: 1px; background: #e5e7eb; }
+  .tl-item { position: relative; margin-bottom: 10px; }
+  .tl-item::before { content: ''; position: absolute; left: -15px; top: 2px; width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; border: 2px solid var(--surface); }
+  .tl-item.done::before { background: var(--green); }
+  .tl-item.active::before { background: var(--orange); box-shadow: 0 0 0 3px rgba(234,179,8,0.15); }
+  .tl-date { font-size: 9px; color: var(--text-dim); }
+  .tl-title { font-size: 11px; color: var(--text); font-weight: 500; }
+  .tl-desc { font-size: 9px; color: #b0b8c4; }
+
+  /* Knowledge map */
+  .km-section { margin-bottom: 12px; }
+  .km-title { font-size: 11px; font-weight: 600; color: var(--text-bright); margin-bottom: 4px; }
+  .km-item { font-size: 10px; color: #6b7280; padding: 2px 0 2px 12px; line-height: 1.5; }
+
+  .tip { font-size: 9px; color: #b0b8c4; margin-top: 5px; }
+  .tip-warn { font-size: 9px; color: var(--red); margin-top: 5px; }
+</style>
+</head>
+<body>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('overview')">总览</div>
+  <div class="tab" onclick="switchTab('math')">数学</div>
+  <div class="tab" onclick="switchTab('four8')">408</div>
+  <div class="tab" onclick="switchTab('engpol')">英语·政治</div>
+  <div class="tab" onclick="switchTab('r1')">R1清单</div>
+  <div class="tab-countdown"><span class="num" id="daysLeft">--</span><span>天</span></div>
+</div>
+
+<!-- ========== 总览 ========== -->
+<div id="page-overview" class="page active">
+  <div class="grid grid-4" id="ovCards"></div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">各科进度</div>
+      <div id="overviewProgress"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">当前优先级</div>
+      <div id="priorities"></div>
+    </div>
+  </div>
+  <div class="grid grid-1">
+    <div class="card">
+      <div class="card-title" id="r1BarTitle"></div>
+      <div id="r1Bar"></div>
+      <div id="r1Queue" style="max-height:240px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 数学 ========== -->
+<div id="page-math" class="page">
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">高数各讲正确率</div>
+      <div class="heatmap" id="mathHeatmap"></div>
+      <div class="tip">绿≥60% · 黄≥50% · 红<50%</div>
+    </div>
+    <div class="card">
+      <div class="card-title">板块分析</div>
+      <div id="mathGroups"></div>
+    </div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">知识点薄弱地图</div>
+      <div id="knowledgeMap"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">线性代数</div>
+      <div id="linearAlg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 408 ========== -->
+<div id="page-four8" class="page">
+  <div class="grid grid-4" id="f8Cards"></div>
+  <div class="grid grid-2">
+    <div class="card"><div class="card-title">计算机组成原理</div><div id="coopChapters"></div></div>
+    <div class="card"><div class="card-title">数据结构</div><div id="dsChapters"></div></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card"><div class="card-title">操作系统</div><div id="osChapters"></div></div>
+    <div class="card"><div class="card-title">计算机网络</div><div id="netChapters"></div></div>
+  </div>
+</div>
+
+<!-- ========== R1清单 ========== -->
+<div id="page-r1" class="page">
+  <div class="grid grid-4" id="r1Cards"></div>
+  <div class="grid grid-1">
+    <div class="card">
+      <div class="card-title">R1待做清单</div>
+      <div id="r1List"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 英语·政治 ========== -->
+<div id="page-engpol" class="page">
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title-lg">英语（英二）</div>
+      <div class="card-title">单词</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--green);"></div></div></div>
+        <div style="font-size:13px;font-weight:700;color:var(--green);">完成</div>
+      </div>
+      <div class="card-title">阅读（40分）</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:3%;background:var(--red);"></div></div></div>
+        <div style="font-size:13px;font-weight:700;color:var(--red);">极少</div>
+      </div>
+      <div class="tip-warn">严重落后 · 需每天1篇精做</div>
+    </div>
+    <div class="card">
+      <div class="card-title-lg">政治</div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-dim);">未开始</div>
+        <div class="tip-warn">需尽快启动</div>
+      </div>
+      <div class="card-title">规划</div>
+      <div class="tl">
+        <div class="tl-item active"><div class="tl-date">8月中−9月底</div><div class="tl-title">基础</div><div class="tl-desc">徐涛强化课+肖1000一刷</div></div>
+        <div class="tl-item"><div class="tl-date">10月</div><div class="tl-title">强化</div><div class="tl-desc">二刷错题+背诵手册</div></div>
+        <div class="tl-item"><div class="tl-date">11月</div><div class="tl-title">冲刺</div><div class="tl-desc">肖八+时政</div></div>
+        <div class="tl-item"><div class="tl-date">12月</div><div class="tl-title">押题</div><div class="tl-desc">肖四背诵</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==== DATA:GENERATED-BEGIN（此区块由 生成看板.py 自动生成，勿手改） ====
+const DATA = {
+  "lectures": [
+    {
+      "num": 1,
+      "name": "函数极限与连续",
+      "pct": 65,
+      "cat": "极限"
+    },
+    {
+      "num": 2,
+      "name": "数列极限",
+      "pct": 68,
+      "cat": "极限"
+    },
+    {
+      "num": 3,
+      "name": "微分学的概念",
+      "pct": 55,
+      "cat": "微分"
+    },
+    {
+      "num": 4,
+      "name": "微分学的计算",
+      "pct": 63,
+      "cat": "微分"
+    },
+    {
+      "num": 5,
+      "name": "微分学应用·几何应用",
+      "pct": 63,
+      "cat": "微分"
+    },
+    {
+      "num": 6,
+      "name": "微分学应用·中值定理、微分等式与不等式",
+      "pct": 55,
+      "cat": "微分"
+    },
+    {
+      "num": 7,
+      "name": "微分学应用·物理应用与经济应用",
+      "pct": 100,
+      "cat": "微分",
+      "skip": true
+    },
+    {
+      "num": 8,
+      "name": "积分学的概念与性质",
+      "pct": 69,
+      "cat": "积分"
+    },
+    {
+      "num": 9,
+      "name": "积分学的计算",
+      "pct": 52,
+      "cat": "积分"
+    },
+    {
+      "num": 10,
+      "name": "积分学应用·几何应用",
+      "pct": 52,
+      "cat": "积分"
+    },
+    {
+      "num": 11,
+      "name": "积分学应用·积分等式与不等式",
+      "pct": 41,
+      "cat": "积分"
+    },
+    {
+      "num": 12,
+      "name": "积分学应用·物理应用与经济应用",
+      "pct": 60,
+      "cat": "积分"
+    },
+    {
+      "num": 13,
+      "name": "多元函数微分学",
+      "pct": 36,
+      "cat": "多元"
+    },
+    {
+      "num": 14,
+      "name": "二重积分",
+      "pct": 41,
+      "cat": "多元"
+    },
+    {
+      "num": 15,
+      "name": "微分方程",
+      "pct": 0,
+      "cat": "方程",
+      "fail": true
+    }
+  ],
+  "subjects": [
+    {
+      "name": "高数一轮",
+      "pct": 100,
+      "color": "var(--green)",
+      "note": "15/15讲，R1 252/305道"
+    },
+    {
+      "name": "线代",
+      "pct": 100,
+      "color": "var(--green)",
+      "note": "第19-24讲完成"
+    },
+    {
+      "name": "数据结构",
+      "pct": 86,
+      "color": "var(--green)",
+      "note": "缺排序"
+    },
+    {
+      "name": "计组",
+      "pct": 100,
+      "color": "var(--green)",
+      "note": "6章完成（第4章略）"
+    },
+    {
+      "name": "操作系统",
+      "pct": 90,
+      "color": "var(--green)",
+      "note": "4章完成+1章进行中"
+    },
+    {
+      "name": "计网",
+      "pct": 0,
+      "color": "var(--text-dim)",
+      "note": "未启动"
+    },
+    {
+      "name": "英语",
+      "pct": 10,
+      "color": "var(--red)",
+      "note": "单词完成，阅读4篇"
+    },
+    {
+      "name": "政治",
+      "pct": 0,
+      "color": "var(--red)",
+      "note": "未开始"
+    }
+  ],
+  "priorities": [
+    {
+      "text": "OS一轮收尾：5.2设备独立性软件(49题) + 5.3磁盘与固态硬盘(43题)",
+      "urgent": true
+    },
+    {
+      "text": "数学错题R1收尾：剩53道（13讲21 + 14讲17 + 15讲习10 + 11/12讲5），9/10前完成",
+      "urgent": true
+    },
+    {
+      "text": "计网启动：9月内过完一轮（当前最大短板）",
+      "urgent": true
+    },
+    {
+      "text": "DS排序：第7章补完 + 王道选择题",
+      "urgent": true
+    },
+    {
+      "text": "数学强化收尾：高数积分(9讲52%)、多元微分(13讲36%)仍是弱项，随后进真题",
+      "urgent": true
+    },
+    {
+      "text": "英语：阅读每天1篇精做（2011英二已完成，~60%），单词二轮启动",
+      "urgent": false
+    },
+    {
+      "text": "政治：徐涛强化课 + 1000题一刷启动",
+      "urgent": false
+    }
+  ],
+  "r1Queue": [
+    {
+      "date": "8/31",
+      "txt": "第11讲: 习2,习3,习4 + 第12讲: 例2,习3",
+      "n": 5
+    },
+    {
+      "date": "9/1",
+      "txt": "第13讲: 例2,例4,例5,例6,例7",
+      "n": 5
+    },
+    {
+      "date": "9/2",
+      "txt": "第13讲: 例8,例9,例11,例12,例13",
+      "n": 5
+    },
+    {
+      "date": "9/3",
+      "txt": "第13讲: 例17,例18,例19,例20,例21",
+      "n": 5
+    },
+    {
+      "date": "9/4",
+      "txt": "第13讲: 例22,习1,习3,习5,习9",
+      "n": 5
+    },
+    {
+      "date": "9/5",
+      "txt": "第13讲: 习13 + 第14讲: 例2,例4,例6,例7",
+      "n": 5
+    },
+    {
+      "date": "9/6",
+      "txt": "第14讲: 例8,例9,例11,例12,例13",
+      "n": 5
+    },
+    {
+      "date": "9/7",
+      "txt": "第14讲: 例14,例17,习1,习5,习6",
+      "n": 5
+    },
+    {
+      "date": "9/8",
+      "txt": "第14讲: 习7,习10,习12 + 第15讲: 习1,习2",
+      "n": 5
+    },
+    {
+      "date": "9/9",
+      "txt": "第15讲: 习3,习4,习5,习6,习7",
+      "n": 5
+    },
+    {
+      "date": "9/10",
+      "txt": "第15讲: 习10,习12,习13",
+      "n": 3
+    }
+  ],
+  "coop": [
+    {
+      "name": "第1章 计算机系统概述",
+      "status": "done",
+      "note": "已完成+王道选择题"
+    },
+    {
+      "name": "第2章 数据的表示和运算",
+      "status": "done",
+      "note": "浮点数加减法收尾完成"
+    },
+    {
+      "name": "第3章 存储系统",
+      "status": "done",
+      "note": "期末重合度高，已完成"
+    },
+    {
+      "name": "第4章 指令系统",
+      "status": "skip",
+      "note": "本科已学AT&T/Intel机器级表"
+    },
+    {
+      "name": "第5章 中央处理器(CPU)",
+      "status": "done",
+      "note": "5-4+5-6+5-7王道选择题完成"
+    },
+    {
+      "name": "第6章 总线",
+      "status": "done",
+      "note": "6-1+6-2王道选择题完成"
+    },
+    {
+      "name": "第7章 输入/输出系统",
+      "status": "done",
+      "note": "7-1+7-2+7-3王道选择题完成"
+    }
+  ],
+  "ds": [
+    {
+      "name": "第1章 绪论",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "name": "第2章 线性表",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "name": "第3章 栈和队列",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "name": "第4章 树与二叉树",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "name": "第5章 图",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "name": "第6章 查找",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "name": "第7章 排序",
+      "status": "todo",
+      "note": "7月内补完"
+    }
+  ],
+  "os": [
+    {
+      "name": "第1章 操作系统概述",
+      "status": "done",
+      "note": "1.1+1.2+1.3+1.6完成（"
+    },
+    {
+      "name": "第2章 进程管理",
+      "status": "done",
+      "note": "2.1-2.4完成（服务端224/2"
+    },
+    {
+      "name": "第3章 内存管理",
+      "status": "done",
+      "note": "3.1(70/83)+3.2(58/"
+    },
+    {
+      "name": "第4章 文件管理",
+      "status": "done",
+      "note": "4.1(5/5)+4.2(67/85"
+    },
+    {
+      "name": "第5章 I/O管理",
+      "status": "progress",
+      "note": "5.1完成(26/28)，5.2/5"
+    }
+  ],
+  "net": [
+    {
+      "name": "第1章 计算机网络概述",
+      "status": "todo",
+      "note": ""
+    },
+    {
+      "name": "第2章 物理层",
+      "status": "todo",
+      "note": ""
+    },
+    {
+      "name": "第3章 数据链路层",
+      "status": "todo",
+      "note": ""
+    },
+    {
+      "name": "第4章 网络层",
+      "status": "todo",
+      "note": ""
+    },
+    {
+      "name": "第5章 传输层",
+      "status": "todo",
+      "note": ""
+    },
+    {
+      "name": "第6章 应用层",
+      "status": "todo",
+      "note": ""
+    }
+  ],
+  "la": [
+    {
+      "name": "第0讲 零基础课程",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "name": "第19讲 行列式",
+      "status": "done",
+      "note": "~58%"
+    },
+    {
+      "name": "第20讲 矩阵",
+      "status": "done",
+      "note": "~55%"
+    },
+    {
+      "name": "第21讲 向量组",
+      "status": "done",
+      "note": "~42%"
+    },
+    {
+      "name": "第22讲 线性方程组",
+      "status": "done",
+      "note": "~33%"
+    },
+    {
+      "name": "第23讲 特征值与特征向量",
+      "status": "done",
+      "note": "~42%"
+    },
+    {
+      "name": "第24讲 二次型",
+      "status": "done",
+      "note": "~60%"
+    }
+  ],
+  "r1": [
+    {
+      "ch": "第1讲 函数极限与连续",
+      "total": 26,
+      "done": 26,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第2讲 数列极限",
+      "total": 12,
+      "done": 12,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第3讲 一元函数微分学的概念",
+      "total": 12,
+      "done": 12,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第4讲 一元函数微分学的计算",
+      "total": 15,
+      "done": 15,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第5讲 微分学应用(一)——几何应用",
+      "total": 21,
+      "done": 21,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第6讲 微分学应用(二)——中值定理、微分等式与不等式",
+      "total": 16,
+      "done": 16,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第7讲 微分学应用(三)——物理应用与经济应用",
+      "total": 0,
+      "done": 0,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第8讲 一元函数积分学的概念与性质",
+      "total": 8,
+      "done": 8,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第9讲 一元函数积分学的计算",
+      "total": 22,
+      "done": 22,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第10讲 积分学应用(一)——几何应用",
+      "total": 11,
+      "done": 11,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第11讲 积分学应用(二)——积分等式与不等式",
+      "total": 10,
+      "done": 7,
+      "items": "习2,习3,习4"
+    },
+    {
+      "ch": "第12讲 积分学应用(三)——物理应用与经济应用",
+      "total": 2,
+      "done": 0,
+      "items": "例2,习3"
+    },
+    {
+      "ch": "第13讲 多元函数微分学",
+      "total": 21,
+      "done": 0,
+      "items": "例2,例4,例5,例6,例7,例8,例9,例11,例12,例13,例17,例18,例19,例20,例21,例22,习1,习3,习5,习9,习13"
+    },
+    {
+      "ch": "第14讲 二重积分",
+      "total": 17,
+      "done": 0,
+      "items": "例2,例4,例6,例7,例8,例9,例11,例12,例13,例14,例17,习1,习5,习6,习7,习10,习12"
+    },
+    {
+      "ch": "第15讲 微分方程",
+      "total": 33,
+      "done": 23,
+      "items": "习1,习2,习3,习4,习5,习6,习7,习10,习12,习13"
+    },
+    {
+      "ch": "第19讲 行列式",
+      "total": 14,
+      "done": 14,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第20讲 矩阵",
+      "total": 13,
+      "done": 13,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第21讲 向量组",
+      "total": 15,
+      "done": 15,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第22讲 线性方程组",
+      "total": 10,
+      "done": 10,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第23讲 特征值与特征向量",
+      "total": 17,
+      "done": 17,
+      "items": "全部完成"
+    },
+    {
+      "ch": "第24讲 二次型",
+      "total": 10,
+      "done": 10,
+      "items": "全部完成"
+    }
+  ],
+  "cards": {
+    "overview": [
+      {
+        "value": "15/15",
+        "label": "高数一轮",
+        "sub": "R1: 252/305道(83%)",
+        "color": "var(--green)"
+      },
+      {
+        "value": "6/6",
+        "label": "线代",
+        "sub": "第19-24讲完成",
+        "color": "var(--green)"
+      },
+      {
+        "value": "7/7",
+        "label": "计组",
+        "sub": "选择题完成（第4章略）",
+        "color": "var(--green)"
+      }
+    ],
+    "four8": [
+      {
+        "value": "6/7",
+        "label": "数据结构",
+        "sub": "缺排序",
+        "color": "var(--green)"
+      },
+      {
+        "value": "7/7",
+        "label": "计算机组成",
+        "sub": "选择题完成（第4章略）",
+        "color": "var(--green)"
+      },
+      {
+        "value": "4.5/5",
+        "label": "操作系统",
+        "sub": "4章完成+1章进行中",
+        "color": "var(--green)"
+      },
+      {
+        "value": "0/6",
+        "label": "计算机网络",
+        "sub": "未启动",
+        "color": "var(--text-dim)"
+      }
+    ],
+    "r1": [
+      {
+        "value": "53",
+        "label": "R1待做",
+        "sub": "17%",
+        "color": "var(--red)"
+      },
+      {
+        "value": "252",
+        "label": "R1已过手",
+        "sub": "83%",
+        "color": "var(--green)"
+      },
+      {
+        "value": "~11天",
+        "label": "预计完成",
+        "sub": "每天5道",
+        "color": "var(--orange)"
+      },
+      {
+        "value": "5",
+        "label": "待做章节",
+        "sub": "第11/12/13/14/15讲",
+        "color": "var(--purple)"
+      }
+    ]
+  },
+  "r1Summary": {
+    "title": "R1错题进度 · 252/305道(83%)",
+    "pct": 83
+  }
+};
+// ==== DATA:GENERATED-END ====
+
+const catColors = { 极限:'var(--blue)', 微分:'var(--purple)', 积分:'var(--yellow)', 多元:'var(--red)', 方程:'var(--cyan)' };
+function switchTab(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+function updateCountdown() {
+  const diff=Math.max(0,Math.ceil((new Date('2026-12-19')-new Date())/86400000));
+  document.getElementById('daysLeft').textContent=diff;
+}
+function statCard(c){
+  return `<div class="card"><div class="stat-value" style="color:${c.color||'var(--text)'}">${c.value}</div><div class="stat-label">${c.label}</div><div class="stat-sub">${c.sub||''}</div></div>`;
+}
+// Overview cards（距初试动态 + DATA.cards.overview）
+(function(){
+  const diff=Math.max(0,Math.ceil((new Date('2026-12-19')-new Date())/86400000));
+  document.getElementById('ovCards').innerHTML=
+    statCard({value:diff,label:'距初试',sub:'2026.12.19',color:'var(--orange)'})+
+    DATA.cards.overview.map(statCard).join('');
+})();
+// 408 cards
+document.getElementById('f8Cards').innerHTML=DATA.cards.four8.map(statCard).join('');
+// R1 tab cards + R1进度条
+(function(){
+  document.getElementById('r1Cards').innerHTML=DATA.cards.r1.map(statCard).join('');
+  const s=DATA.r1Summary;
+  document.getElementById('r1BarTitle').textContent=s.title;
+  document.getElementById('r1Bar').innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:${s.pct}%;background:var(--green);"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--green);">${s.pct}%</div></div>`;
+})();
+
+// Overview
+(function(){
+  const c=document.getElementById('overviewProgress');
+  DATA.subjects.forEach(s=>{
+    const r=document.createElement('div');r.className='subject-row';
+    r.innerHTML=`<div class="subject-label">${s.name}</div><div class="subject-bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:${Math.max(s.pct,s.pct>0?2:0)}%;background:${s.color};"></div></div><div style="font-size:9px;color:var(--text-dim);">${s.note}</div></div><div class="subject-pct" style="color:${s.color}">${s.pct}%</div>`;
+    c.appendChild(r);
+  });
+})();
+(function(){
+  const c=document.getElementById('priorities');
+  DATA.priorities.forEach(p=>{
+    const d=document.createElement('div');d.className='w-row';
+    d.innerHTML=`<div style="min-width:14px;font-size:9px;color:${p.urgent?'var(--red)':'var(--text-dim)'}">${p.urgent?'●':'○'}</div><div class="w-info"><div class="w-name">${p.text}</div></div>`;
+    c.appendChild(d);
+  });
+})();
+(function(){
+  const c=document.getElementById('r1Queue');
+  const ts=`${new Date().getMonth()+1}/${new Date().getDate()}`;
+  DATA.r1Queue.forEach(q=>{
+    const is=q.date.startsWith(ts);
+    const r=document.createElement('div');r.className='q-row'+(is?' q-today':'');
+    r.innerHTML=`<div class="q-date" style="color:${is?'var(--blue)':'var(--text-dim)'}">${q.date}</div><div class="q-content">${q.txt}<span class="q-count">${typeof q.n==='number'?q.n+'题':q.n}</span>${is?'<span class="tag tag-g">今天</span>':''}</div>`;
+    c.appendChild(r);
+  });
+})();
+
+// Math
+(function(){
+  const c=document.getElementById('mathHeatmap');
+  const sorted=[...DATA.lectures].sort((a,b)=>a.pct-b.pct);
+  sorted.forEach(l=>{
+    let cls,color;
+    if(l.fail&&l.pct===0){cls='bl-gray';color='var(--text-dim)';}
+    else if(l.skip){cls='bl-green';color='var(--green)';}
+    else if(l.pct>=60){cls='bl-green';color='var(--green)';}
+    else if(l.pct>=50){cls='bl-yellow';color='var(--yellow)';}
+    else{cls='bl-red';color='var(--red)';}
+    const d=document.createElement('div');d.className='heat-cell '+cls;
+    d.innerHTML=`<div class="hn">L${l.num}</div><div class="hv" style="color:${color}">${l.skip?'100%':l.pct+'%'}</div><div class="hl">${l.name.substring(0,6)}</div>`;
+    c.appendChild(d);
+  });
+})();
+(function(){
+  const c=document.getElementById('mathGroups');
+  const groups={};
+  DATA.lectures.forEach(l=>{if(!groups[l.cat])groups[l.cat]={lectures:[]};groups[l.cat].lectures.push(l);});
+  Object.entries(groups).forEach(([name,g])=>{
+    const avg=Math.round(g.lectures.filter(l=>!l.skip).reduce((s,l)=>s+l.pct,0)/Math.max(g.lectures.filter(l=>!l.skip).length,1));
+    const color=catColors[name]||'var(--text-dim)';
+    const d=document.createElement('div');d.style.marginBottom='10px';
+    d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;"><span style="font-size:11px;font-weight:600;color:${color};">${name}</span><span style="font-size:10px;color:var(--text-dim);">均${avg}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(avg,2)}%;background:${color};opacity:0.7;"></div></div><div style="font-size:9px;color:var(--text-dim);margin-top:2px;">${g.lectures.map(l=>`L${l.num}(${l.pct}%)`).join(' · ')}</div>`;
+    c.appendChild(d);
+  });
+})();
+(function(){
+  const c=document.getElementById('knowledgeMap');
+  const sections=[
+    {title:'极限',color:'var(--blue)',items:['等价无穷小：加减项不可替换','洛必达：适用条件','数列极限：单调有界、夹逼']},
+    {title:'微分学',color:'var(--purple)',items:['中值定理：构造辅助函数','泰勒展开：拉格朗日余项','驻点与极值判定']},
+    {title:'积分学',color:'var(--yellow)',items:['三角代换/倍角不熟练','变限积分求导错误','不定积分忘+C','区间再现']},
+    {title:'多元函数',color:'var(--red)',items:['偏导：链式法则漏项','二重积分：次序/极坐标','极值：拉格朗日乘数法']},
+    {title:'微分方程',color:'var(--cyan)',items:['一阶线性通解公式','二阶常系数特征方程','可分离变量忘+C']},
+    {title:'线性代数',color:'var(--purple)',items:['证明题写法（向量组）','相似/正交矩阵（特征值）','合同/相似混淆（二次型）']},
+  ];
+  sections.forEach(s=>{
+    const d=document.createElement('div');d.className='km-section';
+    d.innerHTML=`<div class="km-title" style="color:${s.color}">${s.title}</div>`+s.items.map(i=>`<div class="km-item">· ${i}</div>`).join('');
+    c.appendChild(d);
+  });
+})();
+(function(){
+  const c=document.getElementById('linearAlg');
+  const table=document.createElement('table');table.className='ch-table';
+  DATA.la.forEach(ch=>{
+    const tr=document.createElement('tr');
+    let badge;
+    if(ch.status==='done')badge=`<span class="badge-sm badge-green">完成 ${ch.note||''}</span>`;
+    else badge=`<span class="badge-sm badge-red">未做</span>`;
+    tr.innerHTML=`<td>${ch.name}</td><td style="text-align:right">${badge}</td>`;
+    table.appendChild(tr);
+  });
+  c.appendChild(table);
+})();
+
+// 408
+function renderChapterTable(items,container){
+  const table=document.createElement('table');table.className='ch-table';
+  items.forEach(ch=>{
+    const tr=document.createElement('tr');
+    let badge;
+    if(ch.status==='done')badge='<span class="badge-sm badge-green">完成</span>';
+    else if(ch.status==='progress')badge='<span class="badge-sm badge-yellow">进行中</span>';
+    else if(ch.status==='skip')badge='<span class="badge-sm badge-cyan">略过</span>';
+    else badge='<span class="badge-sm badge-gray">未开始</span>';
+    tr.innerHTML=`<td>${ch.name}</td><td style="font-size:10px;color:var(--text-dim)">${ch.note||''}</td><td style="text-align:right">${badge}</td>`;
+    table.appendChild(tr);
+  });
+  document.getElementById(container).appendChild(table);
+}
+renderChapterTable(DATA.coop,'coopChapters');
+renderChapterTable(DATA.ds,'dsChapters');
+renderChapterTable(DATA.os,'osChapters');
+renderChapterTable(DATA.net,'netChapters');
+
+// R1
+(function(){
+  const c=document.getElementById('r1List');
+  DATA.r1.forEach(r=>{
+    const pct=r.total>0?Math.round(r.done/r.total*100):0;
+    const remaining=r.total-r.done;
+    const isDone=remaining===0;
+    const d=document.createElement('div');d.className='r1-row';
+    d.innerHTML=`
+      <div class="r1-name" style="color:${isDone?'var(--green)':'var(--text)'};">${r.ch}</div>
+      <div class="r1-bar"><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${isDone?'var(--green)':pct>50?'var(--yellow)':'var(--red)'};"></div></div></div>
+      <div class="r1-count" style="color:${isDone?'var(--green)':remaining<=3?'var(--yellow)':'var(--red)'};">${isDone?'完成':remaining+'道'}</div>
+      ${isDone?'':`<div class="r1-items">${r.items}</div>`}
+    `;
+    c.appendChild(d);
+  });
+})();
+
+updateCountdown();
+</script>
+</body>
+</html>

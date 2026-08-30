@@ -5281,7 +5281,7 @@ updateCountdown();
   function render(){
     const c=document.getElementById('mkList');c.innerHTML='';
     DATA.mistakes.f408.forEach(sec=>{
-      if(curFilter!=='all'&&curFilter!=='math'&&sec.subj!==curFilter)return;
+      if(curFilter!=='all'&&sec.subj!==curFilter)return;
       const kps=sec.items.filter(match), groups=(sec.groups||[]).filter(match);
       if(curKw&&!kps.length&&!groups.length&&!match(sec))return;
       const card=document.createElement('div');card.className='mk-card';

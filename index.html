@@ -500,7 +500,7 @@ const DATA = {
       "name": "英语",
       "pct": 10,
       "color": "var(--red)",
-      "note": "单词完成，阅读1篇"
+      "note": "单词完成，阅读15篇"
     },
     {
       "name": "政治",
@@ -5731,10 +5731,10 @@ const DATA = {
     "readings": [
       {
         "year": "2010",
-        "t1": "",
-        "t2": "",
-        "t3": "",
-        "t4": "",
+        "t1": "完成",
+        "t2": "完成",
+        "t3": "完成",
+        "t4": "完成",
         "rate": "",
         "date": ""
       },
@@ -5746,9 +5746,27 @@ const DATA = {
         "t4": "完成",
         "rate": "~60%",
         "date": "7/12 + 8/4-8/5"
+      },
+      {
+        "year": "2012",
+        "t1": "完成",
+        "t2": "完成",
+        "t3": "完成",
+        "t4": "完成",
+        "rate": "",
+        "date": ""
+      },
+      {
+        "year": "2013",
+        "t1": "完成",
+        "t2": "完成",
+        "t3": "完成",
+        "t4": "",
+        "rate": "",
+        "date": "9/3"
       }
     ],
-    "reading_total": 1,
+    "reading_total": 15,
     "small3": [
       {
         "module": "完形填空(10分)",
@@ -6638,7 +6656,7 @@ renderChapterTable(DATA.net,'netChapters');
   });
   // 阅读
   const readC = document.getElementById('engReading');
-  const doneCount = ep.readings.filter(r => r.t1 === '完成').length;
+  const doneCount = ep.readings.reduce((n, r) => n + ['t1','t2','t3','t4'].filter(c => r[c] === '完成').length, 0);
   readC.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
     <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:${Math.max(doneCount*10,2)}%;background:${doneCount>=5?'var(--yellow)':'var(--red)'}"></div></div></div>
     <div style="font-size:12px;font-weight:700;color:${doneCount>=5?'var(--yellow)':'var(--red)'}">${doneCount}篇</div>

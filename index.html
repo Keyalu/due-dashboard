@@ -141,6 +141,58 @@
   .mk-group-name { font-weight: 700; color: var(--text-bright); }
   .mk-count { font-size: 10px; color: var(--text-dim); }
   .mk-empty { text-align: center; color: var(--text-dim); font-size: 11px; padding: 24px 0; }
+
+  /* 每日记录表格 */
+  .log-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .log-table th { background: var(--bg); padding: 6px 4px; text-align: left; font-weight: 600; color: var(--text-dim); border-bottom: 2px solid var(--border); position: sticky; top: 0; white-space: nowrap; }
+  .log-table td { padding: 5px 4px; border-bottom: 1px solid #f3f4f6; vertical-align: top; line-height: 1.4; }
+  .log-table tr:hover { background: #f9fafb; }
+  .log-date { font-weight: 600; color: var(--text-bright); white-space: nowrap; }
+  .log-empty { color: #d1d5db; }
+
+  /* 规划问题卡片 */
+  .problem-card { background: var(--bg); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; border-left: 3px solid var(--orange); }
+  .problem-title { font-size: 12px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
+  .problem-status { font-size: 10px; color: var(--text-dim); margin-bottom: 6px; }
+  .problem-solutions { font-size: 10px; color: #4b5563; line-height: 1.7; }
+  .problem-solutions li { margin-left: 16px; }
+
+  /* 关于页 */
+  .about-row { display: flex; padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px; }
+  .about-row:last-child { border-bottom: none; }
+  .about-label { min-width: 70px; color: var(--text-dim); font-weight: 600; }
+  .about-value { flex: 1; color: var(--text); }
+  .index-item { padding: 5px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px; }
+  .index-item:last-child { border-bottom: none; }
+  .index-item a { color: var(--blue); text-decoration: none; }
+  .index-item a:hover { text-decoration: underline; }
+  .index-desc { font-size: 9px; color: var(--text-dim); margin-top: 1px; }
+
+  /* Markdown 渲染内容 */
+  .md-content { font-size: 11px; line-height: 1.7; color: var(--text); }
+  .md-content h1 { font-size: 16px; font-weight: 700; margin: 12px 0 8px; color: var(--text-bright); }
+  .md-content h2 { font-size: 14px; font-weight: 700; margin: 10px 0 6px; color: var(--text-bright); }
+  .md-content h3 { font-size: 12px; font-weight: 700; margin: 8px 0 4px; color: var(--text-bright); }
+  .md-content p { margin: 6px 0; }
+  .md-content ul, .md-content ol { margin: 6px 0; padding-left: 20px; }
+  .md-content li { margin: 2px 0; }
+  .md-content blockquote { border-left: 3px solid var(--border); padding-left: 10px; color: var(--text-dim); margin: 8px 0; }
+  .md-content hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+  .md-content code { background: var(--bg); padding: 1px 5px; border-radius: 3px; font-size: 10px; font-family: monospace; }
+  .md-content strong { color: var(--text-bright); }
+  .md-content table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10px; }
+  .md-content th { background: var(--bg); padding: 5px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
+  .md-content td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
+
+  /* 英语政治状态徽章 */
+  .ep-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .ep-done { background: var(--green-bg); color: var(--green); }
+  .ep-doing { background: var(--yellow-bg); color: var(--yellow); }
+  .ep-todo { background: #f9fafb; color: var(--text-dim); }
+  .ep-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px; }
+  .ep-row:last-child { border-bottom: none; }
+  .ep-label { min-width: 60px; color: var(--text-dim); }
+  .ep-note { flex: 1; font-size: 9px; color: var(--text-dim); text-align: right; }
 </style>
 </head>
 <body>
@@ -151,6 +203,9 @@
   <div class="tab" onclick="switchTab('engpol')">英语·政治</div>
   <div class="tab" onclick="switchTab('r1')">R1清单</div>
   <div class="tab" onclick="switchTab('mistakes')">错题本</div>
+  <div class="tab" onclick="switchTab('daily')">每日记录</div>
+  <div class="tab" onclick="switchTab('planning')">规划反思</div>
+  <div class="tab" onclick="switchTab('about')">关于</div>
   <div class="tab-countdown"><span class="num" id="daysLeft">--</span><span>天</span></div>
 </div>
 
@@ -242,30 +297,75 @@
     <div class="card">
       <div class="card-title-lg">英语（英二）</div>
       <div class="card-title">单词</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--green);"></div></div></div>
-        <div style="font-size:13px;font-weight:700;color:var(--green);">完成</div>
-      </div>
+      <div id="engWord"></div>
       <div class="card-title">阅读（40分）</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:15%;background:var(--red);"></div></div></div>
-        <div style="font-size:13px;font-weight:700;color:var(--red);">2011年4篇(~60%)</div>
-      </div>
-      <div class="tip-warn">严重落后 · 需每天1篇精做</div>
+      <div id="engReading"></div>
+      <div class="card-title">小三门 + 作文</div>
+      <div id="engSmall3"></div>
     </div>
     <div class="card">
       <div class="card-title-lg">政治</div>
-      <div style="margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:700;color:var(--text-dim);">未开始</div>
-        <div class="tip-warn">需尽快启动</div>
-      </div>
+      <div id="polStatus"></div>
       <div class="card-title">规划</div>
-      <div class="tl">
-        <div class="tl-item active"><div class="tl-date">9月</div><div class="tl-title">基础</div><div class="tl-desc">徐涛强化课+肖1000一刷</div></div>
-        <div class="tl-item"><div class="tl-date">10月</div><div class="tl-title">强化</div><div class="tl-desc">二刷错题+背诵手册</div></div>
-        <div class="tl-item"><div class="tl-date">11月</div><div class="tl-title">冲刺</div><div class="tl-desc">肖八+时政</div></div>
-        <div class="tl-item"><div class="tl-date">12月</div><div class="tl-title">押题</div><div class="tl-desc">肖四背诵</div></div>
-      </div>
+      <div id="polPlan"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 每日记录 ========== -->
+<div id="page-daily" class="page">
+  <div class="card">
+    <div class="card-title-lg">每日学习记录</div>
+    <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;">
+      <span style="font-size:11px;color:var(--text-dim);">显示最近</span>
+      <select id="dailyLimit" style="border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:11px;outline:none;">
+        <option value="30">30天</option>
+        <option value="60">60天</option>
+        <option value="0">全部</option>
+      </select>
+    </div>
+    <div id="dailyTable" style="overflow-x:auto;"></div>
+  </div>
+</div>
+
+<!-- ========== 规划反思 ========== -->
+<div id="page-planning" class="page">
+  <div class="grid grid-1">
+    <div class="card">
+      <div class="card-title-lg">关键问题与对策</div>
+      <div id="planProblems"></div>
+    </div>
+  </div>
+  <div class="grid grid-1">
+    <div class="card">
+      <div class="card-title-lg">阶段规划</div>
+      <div id="planPhases" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+  <div class="grid grid-1">
+    <div class="card">
+      <div class="card-title-lg">目标院校</div>
+      <div id="planSchools" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 关于 ========== -->
+<div id="page-about" class="page">
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title-lg">基本信息</div>
+      <div id="aboutInfo"></div>
+    </div>
+    <div class="card">
+      <div class="card-title-lg">文件索引</div>
+      <div id="aboutIndex"></div>
+    </div>
+  </div>
+  <div class="grid grid-1">
+    <div class="card">
+      <div class="card-title-lg">全库格式约定</div>
+      <div id="aboutFormat" class="md-content"></div>
     </div>
   </div>
 </div>
@@ -408,7 +508,7 @@ const DATA = {
       "name": "英语",
       "pct": 10,
       "color": "var(--red)",
-      "note": "单词完成，阅读4篇"
+      "note": "单词完成，阅读1篇"
     },
     {
       "name": "政治",
@@ -449,57 +549,57 @@ const DATA = {
   ],
   "r1Queue": [
     {
-      "date": "9/2",
+      "date": "9/4",
       "txt": "第11讲: 习2,习3,习4 + 第12讲: 例2,习3",
       "n": 5
     },
     {
-      "date": "9/3",
+      "date": "9/5",
       "txt": "第13讲: 例2,例4,例5,例6,例7",
       "n": 5
     },
     {
-      "date": "9/4",
+      "date": "9/6",
       "txt": "第13讲: 例8,例9,例11,例12,例13",
       "n": 5
     },
     {
-      "date": "9/5",
+      "date": "9/7",
       "txt": "第13讲: 例17,例18,例19,例20,例21",
       "n": 5
     },
     {
-      "date": "9/6",
+      "date": "9/8",
       "txt": "第13讲: 例22,习1,习3,习5,习9",
       "n": 5
     },
     {
-      "date": "9/7",
+      "date": "9/9",
       "txt": "第13讲: 习13 + 第14讲: 例2,例4,例6,例7",
       "n": 5
     },
     {
-      "date": "9/8",
+      "date": "9/10",
       "txt": "第14讲: 例8,例9,例11,例12,例13",
       "n": 5
     },
     {
-      "date": "9/9",
+      "date": "9/11",
       "txt": "第14讲: 例14,例17,习1,习5,习6",
       "n": 5
     },
     {
-      "date": "9/10",
+      "date": "9/12",
       "txt": "第14讲: 习7,习10,习12 + 第15讲: 习1,习2",
       "n": 5
     },
     {
-      "date": "9/11",
+      "date": "9/13",
       "txt": "第15讲: 习3,习4,习5,习6,习7",
       "n": 5
     },
     {
-      "date": "9/12",
+      "date": "9/14",
       "txt": "第15讲: 习10,习12,习13",
       "n": 3
     }
@@ -5614,6 +5714,869 @@ const DATA = {
         ]
       }
     ]
+  },
+  "engpol": {
+    "words": [
+      {
+        "round": "第一轮",
+        "method": "单词书/APP",
+        "status": "完成",
+        "note": ""
+      },
+      {
+        "round": "第二轮",
+        "method": "APP+真题生词",
+        "status": "未开始",
+        "note": "每天150-200词"
+      },
+      {
+        "round": "第三轮",
+        "method": "真题生词+短语",
+        "status": "未开始",
+        "note": "重点记熟词僻义"
+      }
+    ],
+    "readings": [
+      {
+        "year": "2010",
+        "t1": "",
+        "t2": "",
+        "t3": "",
+        "t4": "",
+        "rate": "",
+        "date": ""
+      },
+      {
+        "year": "2011",
+        "t1": "完成",
+        "t2": "完成",
+        "t3": "完成",
+        "t4": "完成",
+        "rate": "~60%",
+        "date": "7/12 + 8/4-8/5"
+      }
+    ],
+    "reading_total": 1,
+    "small3": [
+      {
+        "module": "完形填空(10分)",
+        "round1": "未开始",
+        "round2": "未开始",
+        "note": "10月开始"
+      },
+      {
+        "module": "新题型(10分)",
+        "round1": "未开始",
+        "round2": "未开始",
+        "note": "10月开始"
+      },
+      {
+        "module": "翻译(15分)",
+        "round1": "未开始",
+        "round2": "未开始",
+        "note": "9月开始"
+      },
+      {
+        "module": "小作文(10分)",
+        "round1": "未开始",
+        "round2": "未开始",
+        "note": "10月中开始"
+      },
+      {
+        "module": "大作文(15分)",
+        "round1": "未开始",
+        "round2": "未开始",
+        "note": "10月中开始"
+      }
+    ],
+    "politics": [
+      {
+        "stage": "基础",
+        "time": "9月-9月底",
+        "content": "徐涛强化课+一刷1000题",
+        "status": "未开始"
+      },
+      {
+        "stage": "强化",
+        "time": "10月",
+        "content": "二刷1000题错题+背诵手册",
+        "status": "未开始"
+      },
+      {
+        "stage": "冲刺",
+        "time": "11月",
+        "content": "肖八选择题+时政",
+        "status": "未开始"
+      },
+      {
+        "stage": "押题",
+        "time": "12月",
+        "content": "肖四大题背诵",
+        "status": "未开始"
+      }
+    ]
+  },
+  "dailyLog": [
+    {
+      "date": "6/17",
+      "math": "",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "6/18",
+      "math": "第15讲习1-4(全错)",
+      "four8": "第1章概述完成",
+      "english": "未背",
+      "final": "体系结构",
+      "hours": "",
+      "note": "计组启动，微分方程难过关；英语旷工"
+    },
+    {
+      "date": "6/19",
+      "math": "未做",
+      "four8": "第1章完成 + 王道选择题",
+      "english": "未做",
+      "final": "体系结构",
+      "hours": "",
+      "note": "跳过第2章，直接攻第3-4章"
+    },
+    {
+      "date": "6/20",
+      "math": "未做(休息)",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": "错题全部顺延"
+    },
+    {
+      "date": "6/21",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "6/22",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "6/23",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "6/24",
+      "math": "未做",
+      "four8": "存储系统完成",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": "计组第3章完成"
+    },
+    {
+      "date": "6/25",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "体系结构",
+      "hours": "",
+      "note": "期末冲刺"
+    },
+    {
+      "date": "6/26",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "体系结构",
+      "hours": "",
+      "note": "期末冲刺"
+    },
+    {
+      "date": "6/27",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "体系结构",
+      "hours": "",
+      "note": "期末冲刺"
+    },
+    {
+      "date": "6/28",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "体系结构",
+      "hours": "",
+      "note": "期末冲刺"
+    },
+    {
+      "date": "6/29",
+      "math": "未做",
+      "four8": "",
+      "english": "",
+      "final": "体系结构",
+      "hours": "",
+      "note": "期末冲刺"
+    },
+    {
+      "date": "6/30",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "体系结构",
+      "hours": "",
+      "note": "期末考日！完全搁置考研"
+    },
+    {
+      "date": "7/1",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "休息/恢复期"
+    },
+    {
+      "date": "7/2",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "暑假开始"
+    },
+    {
+      "date": "7/3",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/4",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/5",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/6",
+      "math": "未做",
+      "four8": "第2章剩浮点数舍入+溢出",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "计组第4章略过(本科已学)，线代零基础课启动；全面分析差距"
+    },
+    {
+      "date": "7/7",
+      "math": "错题5道",
+      "four8": "第2章浮点数收尾完成",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "计组第2章完成，错题队列启动"
+    },
+    {
+      "date": "7/8",
+      "math": "错题4/5道",
+      "four8": "第5章CPU开始",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "A17顺延"
+    },
+    {
+      "date": "7/9",
+      "math": "错题8道(超额)",
+      "four8": "第5章CPU",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "第6讲例题也开始做了，进度超前"
+    },
+    {
+      "date": "7/10",
+      "math": "线代第19讲例1-13+习1-11(10错)",
+      "four8": "微指令（云里雾里）",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "线代正课正式开始！计算粗心为主"
+    },
+    {
+      "date": "7/11",
+      "math": "第6讲例7,10,13,14,20,21(3错)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "中值定理+泰勒余项+不等式证明需巩固"
+    },
+    {
+      "date": "7/12",
+      "math": "第6讲习3,4,6,7(全错)",
+      "four8": "字段间接编码+数据通路控制元件",
+      "english": "2011年text1:5错4",
+      "final": "",
+      "hours": "",
+      "note": "中值定理完全无思路！⭐需专项突破；"
+    },
+    {
+      "date": "7/13",
+      "math": "第6讲习8+第8讲例3,9,10,14,18,19+习5+线代A1,7",
+      "four8": "5-4微程序+5-6流水线",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "第8讲3错；线代行列式A组完成"
+    },
+    {
+      "date": "7/14",
+      "math": "第8讲习5,7+第9讲例3,5,8,9,10,21(5错)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "第9讲积分公式+方法大问题；不定积分多次忘+C"
+    },
+    {
+      "date": "7/15",
+      "math": "第9讲例22,23,26,27,28(4错1对)",
+      "four8": "计组第5章CPU",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "变限积分求导代入错误；递推式不熟练"
+    },
+    {
+      "date": "7/16",
+      "math": "第9讲例29+习3,7,8,9(错题R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "4错2对"
+    },
+    {
+      "date": "7/17",
+      "math": "第9讲习10,11,12,13,14(错题R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "4错1对"
+    },
+    {
+      "date": "7/18",
+      "math": "未做(顺延)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/19",
+      "math": "第9讲积压10道(8错2对)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "赶进度，积压消化"
+    },
+    {
+      "date": "7/20",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/21",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/22",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/23",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/24",
+      "math": "第20讲矩阵例1-13,16,17(5错8对)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "线代第2章矩阵启动"
+    },
+    {
+      "date": "7/25",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/26",
+      "math": "第20讲A1-19(5错14对)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "伴随矩阵+正交矩阵不熟"
+    },
+    {
+      "date": "7/27",
+      "math": "未做",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "7/28",
+      "math": "第21讲向量组例1-14+习1-12(15错11对)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "证明题写法是最大短板！⭐"
+    },
+    {
+      "date": "8/1",
+      "math": "第11讲例题1,2,3,5,7,8,11(5错2对)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "拉格朗日/积分中值不熟"
+    },
+    {
+      "date": "8/3",
+      "math": "第22讲线代例1-15(10错5对)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "齐次方程组+基础解系不熟"
+    },
+    {
+      "date": "8/4",
+      "math": "第15讲全课重写(33错题)+线代第22讲",
+      "four8": "",
+      "english": "未做",
+      "final": "2011英二阅读20题错8题",
+      "hours": "",
+      "note": "微分方程零基础！⭐"
+    },
+    {
+      "date": "8/5",
+      "math": "线代第22讲+23讲启动+2011英二阅读",
+      "four8": "",
+      "english": "未做",
+      "final": "2011英二阅读续做",
+      "hours": "",
+      "note": "60%正确率"
+    },
+    {
+      "date": "8/6",
+      "math": "第15讲例3-8+第13讲例2(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/7",
+      "math": "第13讲例5,6,7,8,9,11,12(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/8",
+      "math": "第13讲例13,17,18,19,20,21,22(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/9",
+      "math": "第13讲习1,3,5,9,13+第14讲例2,4(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/10",
+      "math": "第14讲例6,7,8,9,11,12,13(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/11",
+      "math": "第14讲例14,17+习1,5,6,7,10(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/12",
+      "math": "第14讲习12+第15讲例9,10,11,12,13(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/13",
+      "math": "第15讲例14-19+第19讲例3,4(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/14",
+      "math": "第19讲例5,9,13+习1,3(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/15",
+      "math": "第19讲习4,5,6+第20讲例1,2(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/16",
+      "math": "第20讲例3,5,9,10,13,17+A2(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/17",
+      "math": "第20讲A7,13,16,17+第21讲例1,2(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/18",
+      "math": "第21讲例3,4,5,6,7,8,9(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/19",
+      "math": "第21讲例10,11,14+习8.2,10(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/20",
+      "math": "第21讲习11,12.1+第22讲例1,2,3,4(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/21",
+      "math": "第22讲例7,9,10,11,13,15+第15讲习1,2(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/22",
+      "math": "第15讲习3,4,5,6,7,10+第2讲例1,5(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": "线代R1第23-24讲完成"
+    },
+    {
+      "date": "8/23",
+      "math": "第2讲例7,10,14,15+习4,6+A2(R1)",
+      "four8": "",
+      "english": "未做",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/24",
+      "math": "",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/25",
+      "math": "",
+      "four8": "OS 3.2虚拟内存管理提交(58/83)",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/26",
+      "math": "第15讲例1-23错题R1（12对11未记结果）",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": "微分方程例题R1过手"
+    },
+    {
+      "date": "8/27",
+      "math": "",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/28",
+      "math": "",
+      "four8": "OS 4.2目录+4.3文件系统提交并录入错题本",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": "晚间：全库格式重构"
+    },
+    {
+      "date": "8/29",
+      "math": "",
+      "four8": "",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": ""
+    },
+    {
+      "date": "8/30",
+      "math": "",
+      "four8": "OS 5.1 I/O管理概念提交（18/26对）",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": "刷题流程skill化+全库同步"
+    },
+    {
+      "date": "8/31",
+      "math": "",
+      "four8": "OS 5.2 设备独立性软件提交并录入（36/45）",
+      "english": "",
+      "final": "",
+      "hours": "",
+      "note": "凌晨完成；环境初始化：技能已装+看板管线校验"
+    }
+  ],
+  "planning": {
+    "problems": [
+      {
+        "title": "起床后刷抖音2小时",
+        "status": "",
+        "solutions": [
+          "📵 睡前把手机放到书桌以外的地方（如客厅/另一个房间）",
+          "⏰ 用闹钟而非手机闹钟（或买一个实体闹钟）",
+          "🚫 卸载抖音或设置应用限额（每天30分钟）",
+          "🎯 前一晚写下第二天起床后的第一件事（具体到页码/题目）"
+        ]
+      },
+      {
+        "title": "微分方程零基础 + 线代R1积压",
+        "status": "第15讲微分方程例题23道全错，习题10错3对，共33道错题！线代R1还有37道待排",
+        "solutions": [
+          "📐 8/4-17集中做线代错题R1（每天7道），8/18起启动高数R2",
+          "⭐ 微分方程必须专项突破：一阶线性、二阶常系数是必考内容",
+          "📐 每次做错不要只标完成，要真正理解题型和解法再进入下一题"
+        ]
+      },
+      {
+        "title": "408推进节奏",
+        "status": "计组第5章进行中，DS缺排序，OS+计网未开始。8月即将开始！",
+        "solutions": [
+          "📺 8月1日前计组一轮必须收尾 + DS排序补完",
+          "🎥 8月必须启动操作系统，8月底前四门全部过完一轮",
+          "⚡ OS+计网进度紧，8月是408冲刺月"
+        ]
+      },
+      {
+        "title": "空档时间被手机吃掉",
+        "status": "",
+        "solutions": [
+          "📖 随身带一本口袋笔记/Anki卡片，想刷手机的时候就刷知识点",
+          "⏲️ 番茄钟工作法：25分钟专注 + 5分钟休息（休息别碰手机，起来走走）",
+          "📊 用Forest/番茄ToDo记录专注时长，可视化你的努力"
+        ]
+      }
+    ],
+    "phases": [
+      {
+        "stage": "**基础收尾**",
+        "time": "6月中-7月中",
+        "math": "高数一轮结束+线代一轮",
+        "four8": "DS+计组一轮结束",
+        "english": "阅读方法论+每天1篇",
+        "politics": "-"
+      },
+      {
+        "stage": "**一轮冲刺**",
+        "time": "7月中-8月底",
+        "math": "高数强化+线代强化",
+        "four8": "OS+计网一轮结束",
+        "english": "阅读真题(英二)",
+        "politics": "8月中开始徐涛强化课"
+      },
+      {
+        "stage": "**强化提升**",
+        "time": "9月-10月中",
+        "math": "真题+专题突破",
+        "four8": "408二轮+大题训练",
+        "english": "完型+翻译+新题型",
+        "politics": "刷选择题(1000题)"
+      },
+      {
+        "stage": "**冲刺模考**",
+        "time": "10月中-11月",
+        "math": "模拟卷+查漏补缺",
+        "four8": "408真题+模拟",
+        "english": "作文模板+真题二刷",
+        "politics": "肖八+时政"
+      },
+      {
+        "stage": "**最后冲刺**",
+        "time": "12月",
+        "math": "错题+公式回顾",
+        "four8": "错题+核心考点",
+        "english": "作文背诵",
+        "politics": "肖四"
+      }
+    ],
+    "schools": [
+      {
+        "": "层次",
+        "四川大学": "985",
+        "重庆大学": "985"
+      },
+      {
+        "": "复试线(2024)",
+        "四川大学": "待查",
+        "重庆大学": "待查"
+      },
+      {
+        "": "录取均分",
+        "四川大学": "待查",
+        "重庆大学": "待查"
+      },
+      {
+        "": "专业课",
+        "四川大学": "22408",
+        "重庆大学": "22408"
+      }
+    ]
+  },
+  "formatRules": "<h1>📖 全库格式约定</h1>\n<blockquote>📂 [[进度看板.html]] · 本文档为全库格式的唯一定义处<br>所有追踪表、错题本、看板均遵循以下约定，修改格式需同步更新本文档。</blockquote>\n<hr>\n<h2>状态词</h2>\n<p>（替代原符号，空单元格=未做）</p>\n<table class=\"ch-table\">\n<thead><tr>\n<th>写法</th>\n<th>含义</th>\n</tr></thead><tbody>\n<tr>\n<td>完成 / 进行中 / 暂缓 / 未开始</td>\n<td>阶段状态</td>\n</tr>\n<tr>\n<td>日期 对 / 日期 错</td>\n<td>错题复习结果（R1/R2/R3列），裸日期=复习过但结果未记</td>\n</tr>\n<tr>\n<td>正常： / 关注： / 落后：</td>\n<td>仪表盘状态前缀</td>\n</tr>\n<tr>\n<td>⭐重点 / 🔥当前主力</td>\n<td>内容性标记</td>\n</tr>\n</tbody></table>\n<hr>\n<h2>来源码</h2>\n<p>例=例题，习=习题，A=1000题A组，B=1000题B组</p>\n<hr>\n<h2>追踪表统一列</h2>\n<p>章节｜内容｜一轮｜做题｜正确率｜二轮｜备注</p>\n<ul>\n<li>做题列：<code>选择完成·大题未做</code> 或 <code>例X/Y+习Z/W</code>（—=无记录）</li>\n<li>正确率：百分比或区间，<code>—</code>=无数据</li>\n</ul>\n<hr>\n<h2>错题复习规则</h2>\n<p>R1→R2→R3三轮，每轮做对标记<code>对</code>、做错标记<code>错</code>，三轮全对=掌握移出队列</p>\n<hr>\n<p>📂 [[进度看板.html]]</p>",
+  "about": {
+    "school": "湖南大学 - 计算机科学与技术",
+    "target": "四川大学 / 重庆大学",
+    "subjects": "政治 + 英语 + 数二(22408) + 408计算机综合",
+    "exam_date": "2026年12月19日"
   }
 };
 // ==== DATA:GENERATED-END ====
@@ -5771,6 +6734,144 @@ renderChapterTable(DATA.net,'netChapters');
     `;
     c.appendChild(d);
   });
+})();
+
+// 英语·政治（数据驱动）
+(function(){
+  const ep = DATA.engpol;
+  // 单词
+  const wordC = document.getElementById('engWord');
+  ep.words.forEach(w => {
+    const cls = w.status === '完成' ? 'ep-done' : w.status === '进行中' ? 'ep-doing' : 'ep-todo';
+    wordC.innerHTML += `<div class="ep-row"><span class="ep-label">${w.round}</span><span class="ep-badge ${cls}">${w.status}</span><span class="ep-note">${w.note||''}</span></div>`;
+  });
+  // 阅读
+  const readC = document.getElementById('engReading');
+  const doneCount = ep.readings.filter(r => r.t1 === '完成').length;
+  readC.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:${Math.max(doneCount*10,2)}%;background:${doneCount>=5?'var(--yellow)':'var(--red)'}"></div></div></div>
+    <div style="font-size:12px;font-weight:700;color:${doneCount>=5?'var(--yellow)':'var(--red)'}">${doneCount}篇</div>
+  </div>`;
+  ep.readings.forEach(r => {
+    if (r.t1 === '完成' || r.year === '2010') {
+      const cls = r.t1 === '完成' ? 'ep-done' : 'ep-todo';
+      readC.innerHTML += `<div class="ep-row"><span class="ep-label">${r.year}</span><span class="ep-badge ${cls}">${r.t1==='完成'?'完成':'未做'}</span><span class="ep-note">${r.rate||''} ${r.date||''}</span></div>`;
+    }
+  });
+  // 小三门+作文
+  const smallC = document.getElementById('engSmall3');
+  ep.small3.forEach(s => {
+    const cls = s.round1 === '未开始' ? 'ep-todo' : 'ep-doing';
+    smallC.innerHTML += `<div class="ep-row"><span class="ep-label">${s.module}</span><span class="ep-badge ${cls}">${s.round1}</span><span class="ep-note">${s.note||''}</span></div>`;
+  });
+  // 政治状态
+  const polC = document.getElementById('polStatus');
+  const allTodo = ep.politics.every(p => p.status === '未开始');
+  const currentStage = ep.politics.find(p => p.status !== '未开始');
+  polC.innerHTML = `<div style="font-size:13px;font-weight:700;color:${allTodo?'var(--text-dim)':'var(--orange)'}">${allTodo?'未开始':currentStage.stage}</div>`
+    + (allTodo ? '<div class="tip-warn">需尽快启动</div>' : `<div class="tip">当前：${currentStage.content}</div>`);
+  // 政治规划时间线
+  const planC = document.getElementById('polPlan');
+  const tl = document.createElement('div'); tl.className = 'tl';
+  ep.politics.forEach(p => {
+    const isActive = p.status !== '未开始';
+    const item = document.createElement('div');
+    item.className = 'tl-item' + (isActive ? ' active' : '');
+    item.innerHTML = `<div class="tl-date">${p.time}</div><div class="tl-title">${p.stage}</div><div class="tl-desc">${p.content}</div>`;
+    tl.appendChild(item);
+  });
+  planC.appendChild(tl);
+})();
+
+// 每日记录
+(function(){
+  const logs = DATA.dailyLog;
+  const limitSel = document.getElementById('dailyLimit');
+  function render() {
+    const limit = parseInt(limitSel.value);
+    const show = limit > 0 ? logs.slice(-limit) : logs;
+    const c = document.getElementById('dailyTable');
+    let html = '<table class="log-table"><thead><tr><th>日期</th><th>数学</th><th>408</th><th>英语</th><th>期末</th><th>时长</th><th>反思</th></tr></thead><tbody>';
+    show.slice().reverse().forEach(log => {
+      const empty = (s) => s && s.trim() ? s : '<span class="log-empty">—</span>';
+      html += `<tr><td class="log-date">${log.date}</td><td>${empty(log.math)}</td><td>${empty(log.four8)}</td><td>${empty(log.english)}</td><td>${empty(log.final)}</td><td>${empty(log.hours)}</td><td>${empty(log.note)}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    c.innerHTML = html;
+  }
+  limitSel.addEventListener('change', render);
+  render();
+})();
+
+// 规划反思
+(function(){
+  const p = DATA.planning;
+  // 问题与对策
+  const probC = document.getElementById('planProblems');
+  p.problems.forEach(prob => {
+    let html = `<div class="problem-card"><div class="problem-title">${prob.title}</div>`;
+    if (prob.status) html += `<div class="problem-status">${prob.status}</div>`;
+    if (prob.solutions.length) {
+      html += '<ul class="problem-solutions">';
+      prob.solutions.forEach(s => html += `<li>${s}</li>`);
+      html += '</ul>';
+    }
+    html += '</div>';
+    probC.innerHTML += html;
+  });
+  // 阶段规划
+  const phaseC = document.getElementById('planPhases');
+  let phaseHtml = '<table class="log-table"><thead><tr><th>阶段</th><th>时间</th><th>数学</th><th>408</th><th>英语</th><th>政治</th></tr></thead><tbody>';
+  p.phases.forEach(ph => {
+    phaseHtml += `<tr><td class="log-date">${ph.stage}</td><td>${ph.time}</td><td>${ph.math}</td><td>${ph.four8}</td><td>${ph.english}</td><td>${ph.politics}</td></tr>`;
+  });
+  phaseHtml += '</tbody></table>';
+  phaseC.innerHTML = phaseHtml;
+  // 院校信息
+  const schoolC = document.getElementById('planSchools');
+  if (p.schools.length) {
+    const headers = Object.keys(p.schools[0]);
+    let schoolHtml = '<table class="log-table"><thead><tr>';
+    headers.forEach(h => schoolHtml += `<th>${h}</th>`);
+    schoolHtml += '</tr></thead><tbody>';
+    p.schools.forEach(s => {
+      schoolHtml += '<tr>';
+      headers.forEach(h => schoolHtml += `<td>${s[h]}</td>`);
+      schoolHtml += '</tr>';
+    });
+    schoolHtml += '</tbody></table>';
+    schoolC.innerHTML = schoolHtml;
+  }
+})();
+
+// 关于
+(function(){
+  const a = DATA.about;
+  // 基本信息
+  document.getElementById('aboutInfo').innerHTML = `
+    <div class="about-row"><span class="about-label">本科</span><span class="about-value">${a.school}</span></div>
+    <div class="about-row"><span class="about-label">目标</span><span class="about-value">${a.target}</span></div>
+    <div class="about-row"><span class="about-label">科目</span><span class="about-value">${a.subjects}</span></div>
+    <div class="about-row"><span class="about-label">初试</span><span class="about-value">${a.exam_date}</span></div>
+  `;
+  // 文件索引
+  const idxC = document.getElementById('aboutIndex');
+  const files = [
+    {name:'数学二追踪表.md', desc:'张宇30讲逐讲追踪 + 错题统计'},
+    {name:'408追踪表.md', desc:'四门课逐章追踪 + 推进计划'},
+    {name:'英语政治追踪表.md', desc:'单词/阅读/政治时间线'},
+    {name:'数学错题本.md', desc:'按章节记录错题 + 三次复习法'},
+    {name:'408错题本.md', desc:'王道小程序错题记录（计组+OS）'},
+    {name:'错题分类.md', desc:'按错因归类索引，快速定位同类错误'},
+    {name:'每日记录.md', desc:'每日学习记录'},
+    {name:'规划与反思.md', desc:'关键问题对策 + 阶段规划 + 院校信息'},
+    {name:'全库格式约定.md', desc:'全库格式唯一定义处'},
+  ];
+  files.forEach(f => {
+    idxC.innerHTML += `<div class="index-item"><a href="${f.name}">${f.name}</a><div class="index-desc">${f.desc}</div></div>`;
+  });
+  // 格式约定（markdown 已转 HTML）
+  document.getElementById('aboutFormat').innerHTML = DATA.formatRules;
 })();
 
 updateCountdown();

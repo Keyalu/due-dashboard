@@ -29,14 +29,30 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, 'SF Pro Display', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
 
-  /* Tabs */
-  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab { padding: 10px 14px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-dim); border-bottom: 2px solid transparent; transition: all 0.2s; user-select: none; white-space: nowrap; flex-shrink: 0; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
-  .tab-countdown { margin-left: auto; display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-dim); padding: 10px 0 10px 12px; flex-shrink: 0; white-space: nowrap; }
-  .tab-countdown .num { font-size: 18px; font-weight: 700; color: var(--orange); }
+  /* 顶部栏 */
+  .app-header { display: flex; align-items: center; gap: 12px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.04); height: 48px; }
+  .hamburger { cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s; user-select: none; flex-shrink: 0; }
+  .hamburger:hover { background: var(--bg); }
+  .hamburger span { display: block; width: 18px; height: 2px; background: var(--text); margin: 3px 0; transition: all 0.3s; border-radius: 1px; }
+  .app-title { font-size: 14px; font-weight: 700; color: var(--text-bright); flex: 1; }
+  .header-countdown { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+  .header-countdown .num { font-size: 18px; font-weight: 700; color: var(--orange); }
+
+  /* 抽屉遮罩 */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+  .drawer-overlay.active { opacity: 1; visibility: visible; }
+
+  /* 侧边抽屉 */
+  .drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 240px; background: var(--surface); z-index: 201; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: 2px 0 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+  .drawer.active { transform: translateX(0); }
+  .drawer-header { padding: 16px; border-bottom: 1px solid var(--border); }
+  .drawer-title { font-size: 14px; font-weight: 700; color: var(--text-bright); }
+  .drawer-subtitle { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .drawer-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .drawer-tab { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-dim); transition: all 0.2s; user-select: none; border-left: 3px solid transparent; }
+  .drawer-tab:hover { background: var(--bg); color: var(--text); }
+  .drawer-tab.active { color: var(--blue); background: var(--blue-bg); border-left-color: var(--blue); font-weight: 600; }
+  .drawer-tab .icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
 
   .page { display: none; max-width: 1100px; margin: 0 auto; padding: 16px; }
   .page.active { display: block; }
@@ -196,17 +212,33 @@
 </style>
 </head>
 <body>
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('overview')">总览</div>
-  <div class="tab" onclick="switchTab('math')">数学</div>
-  <div class="tab" onclick="switchTab('four8')">408</div>
-  <div class="tab" onclick="switchTab('engpol')">英语·政治</div>
-  <div class="tab" onclick="switchTab('r1')">R1清单</div>
-  <div class="tab" onclick="switchTab('mistakes')">错题本</div>
-  <div class="tab" onclick="switchTab('daily')">每日记录</div>
-  <div class="tab" onclick="switchTab('planning')">规划反思</div>
-  <div class="tab" onclick="switchTab('about')">关于</div>
-  <div class="tab-countdown"><span class="num" id="daysLeft">--</span><span>天</span></div>
+<!-- 顶部栏 -->
+<div class="app-header">
+  <div class="hamburger" onclick="toggleDrawer()">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="app-title">考研进度看板</div>
+  <div class="header-countdown"><span class="num" id="daysLeft">--</span><span>天</span></div>
+</div>
+
+<!-- 抽屉遮罩 -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+
+<!-- 侧边抽屉 -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">📚 考研管理</div>
+    <div class="drawer-subtitle">2027考研 · 22408</div>
+  </div>
+  <div class="drawer-nav">
+    <div class="drawer-tab active" onclick="switchTab('overview')"><span class="icon">📊</span>总览</div>
+    <div class="drawer-tab" onclick="switchTab('math')"><span class="icon">📐</span>数学</div>
+    <div class="drawer-tab" onclick="switchTab('four8')"><span class="icon">💻</span>408</div>
+    <div class="drawer-tab" onclick="switchTab('engpol')"><span class="icon">📖</span>英语·政治</div>
+    <div class="drawer-tab" onclick="switchTab('r1')"><span class="icon">✅</span>R1清单</div>
+    <div class="drawer-tab" onclick="switchTab('mistakes')"><span class="icon">❌</span>错题本</div>
+    <div class="drawer-tab" onclick="switchTab('daily')"><span class="icon">📝</span>每日记录</div>
+  </div>
 </div>
 
 <!-- ========== 总览 ========== -->
@@ -328,47 +360,7 @@
   </div>
 </div>
 
-<!-- ========== 规划反思 ========== -->
-<div id="page-planning" class="page">
-  <div class="grid grid-1">
-    <div class="card">
-      <div class="card-title-lg">关键问题与对策</div>
-      <div id="planProblems"></div>
-    </div>
-  </div>
-  <div class="grid grid-1">
-    <div class="card">
-      <div class="card-title-lg">阶段规划</div>
-      <div id="planPhases" style="overflow-x:auto;"></div>
-    </div>
-  </div>
-  <div class="grid grid-1">
-    <div class="card">
-      <div class="card-title-lg">目标院校</div>
-      <div id="planSchools" style="overflow-x:auto;"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== 关于 ========== -->
-<div id="page-about" class="page">
-  <div class="grid grid-2">
-    <div class="card">
-      <div class="card-title-lg">基本信息</div>
-      <div id="aboutInfo"></div>
-    </div>
-    <div class="card">
-      <div class="card-title-lg">文件索引</div>
-      <div id="aboutIndex"></div>
-    </div>
-  </div>
-  <div class="grid grid-1">
-    <div class="card">
-      <div class="card-title-lg">全库格式约定</div>
-      <div id="aboutFormat" class="md-content"></div>
-    </div>
-  </div>
-</div>
+<!-- page 容器结束 -->
 
 <script>
 // ==== DATA:GENERATED-BEGIN（此区块由 生成看板.py 自动生成，勿手改） ====
@@ -6465,128 +6457,27 @@ const DATA = {
       "hours": "",
       "note": "凌晨完成；环境初始化：技能已装+看板管线校验"
     }
-  ],
-  "planning": {
-    "problems": [
-      {
-        "title": "起床后刷抖音2小时",
-        "status": "",
-        "solutions": [
-          "📵 睡前把手机放到书桌以外的地方（如客厅/另一个房间）",
-          "⏰ 用闹钟而非手机闹钟（或买一个实体闹钟）",
-          "🚫 卸载抖音或设置应用限额（每天30分钟）",
-          "🎯 前一晚写下第二天起床后的第一件事（具体到页码/题目）"
-        ]
-      },
-      {
-        "title": "微分方程零基础 + 线代R1积压",
-        "status": "第15讲微分方程例题23道全错，习题10错3对，共33道错题！线代R1还有37道待排",
-        "solutions": [
-          "📐 8/4-17集中做线代错题R1（每天7道），8/18起启动高数R2",
-          "⭐ 微分方程必须专项突破：一阶线性、二阶常系数是必考内容",
-          "📐 每次做错不要只标完成，要真正理解题型和解法再进入下一题"
-        ]
-      },
-      {
-        "title": "408推进节奏",
-        "status": "计组第5章进行中，DS缺排序，OS+计网未开始。8月即将开始！",
-        "solutions": [
-          "📺 8月1日前计组一轮必须收尾 + DS排序补完",
-          "🎥 8月必须启动操作系统，8月底前四门全部过完一轮",
-          "⚡ OS+计网进度紧，8月是408冲刺月"
-        ]
-      },
-      {
-        "title": "空档时间被手机吃掉",
-        "status": "",
-        "solutions": [
-          "📖 随身带一本口袋笔记/Anki卡片，想刷手机的时候就刷知识点",
-          "⏲️ 番茄钟工作法：25分钟专注 + 5分钟休息（休息别碰手机，起来走走）",
-          "📊 用Forest/番茄ToDo记录专注时长，可视化你的努力"
-        ]
-      }
-    ],
-    "phases": [
-      {
-        "stage": "**基础收尾**",
-        "time": "6月中-7月中",
-        "math": "高数一轮结束+线代一轮",
-        "four8": "DS+计组一轮结束",
-        "english": "阅读方法论+每天1篇",
-        "politics": "-"
-      },
-      {
-        "stage": "**一轮冲刺**",
-        "time": "7月中-8月底",
-        "math": "高数强化+线代强化",
-        "four8": "OS+计网一轮结束",
-        "english": "阅读真题(英二)",
-        "politics": "8月中开始徐涛强化课"
-      },
-      {
-        "stage": "**强化提升**",
-        "time": "9月-10月中",
-        "math": "真题+专题突破",
-        "four8": "408二轮+大题训练",
-        "english": "完型+翻译+新题型",
-        "politics": "刷选择题(1000题)"
-      },
-      {
-        "stage": "**冲刺模考**",
-        "time": "10月中-11月",
-        "math": "模拟卷+查漏补缺",
-        "four8": "408真题+模拟",
-        "english": "作文模板+真题二刷",
-        "politics": "肖八+时政"
-      },
-      {
-        "stage": "**最后冲刺**",
-        "time": "12月",
-        "math": "错题+公式回顾",
-        "four8": "错题+核心考点",
-        "english": "作文背诵",
-        "politics": "肖四"
-      }
-    ],
-    "schools": [
-      {
-        "": "层次",
-        "四川大学": "985",
-        "重庆大学": "985"
-      },
-      {
-        "": "复试线(2024)",
-        "四川大学": "待查",
-        "重庆大学": "待查"
-      },
-      {
-        "": "录取均分",
-        "四川大学": "待查",
-        "重庆大学": "待查"
-      },
-      {
-        "": "专业课",
-        "四川大学": "22408",
-        "重庆大学": "22408"
-      }
-    ]
-  },
-  "formatRules": "<h1>📖 全库格式约定</h1>\n<blockquote>📂 [[进度看板.html]] · 本文档为全库格式的唯一定义处<br>所有追踪表、错题本、看板均遵循以下约定，修改格式需同步更新本文档。</blockquote>\n<hr>\n<h2>状态词</h2>\n<p>（替代原符号，空单元格=未做）</p>\n<table class=\"ch-table\">\n<thead><tr>\n<th>写法</th>\n<th>含义</th>\n</tr></thead><tbody>\n<tr>\n<td>完成 / 进行中 / 暂缓 / 未开始</td>\n<td>阶段状态</td>\n</tr>\n<tr>\n<td>日期 对 / 日期 错</td>\n<td>错题复习结果（R1/R2/R3列），裸日期=复习过但结果未记</td>\n</tr>\n<tr>\n<td>正常： / 关注： / 落后：</td>\n<td>仪表盘状态前缀</td>\n</tr>\n<tr>\n<td>⭐重点 / 🔥当前主力</td>\n<td>内容性标记</td>\n</tr>\n</tbody></table>\n<hr>\n<h2>来源码</h2>\n<p>例=例题，习=习题，A=1000题A组，B=1000题B组</p>\n<hr>\n<h2>追踪表统一列</h2>\n<p>章节｜内容｜一轮｜做题｜正确率｜二轮｜备注</p>\n<ul>\n<li>做题列：<code>选择完成·大题未做</code> 或 <code>例X/Y+习Z/W</code>（—=无记录）</li>\n<li>正确率：百分比或区间，<code>—</code>=无数据</li>\n</ul>\n<hr>\n<h2>错题复习规则</h2>\n<p>R1→R2→R3三轮，每轮做对标记<code>对</code>、做错标记<code>错</code>，三轮全对=掌握移出队列</p>\n<hr>\n<p>📂 [[进度看板.html]]</p>",
-  "about": {
-    "school": "湖南大学 - 计算机科学与技术",
-    "target": "四川大学 / 重庆大学",
-    "subjects": "政治 + 英语 + 数二(22408) + 408计算机综合",
-    "exam_date": "2026年12月19日"
-  }
+  ]
 };
 // ==== DATA:GENERATED-END ====
 
 const catColors = { 极限:'var(--blue)', 微分:'var(--purple)', 积分:'var(--yellow)', 多元:'var(--red)', 方程:'var(--cyan)' };
 function switchTab(id) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.drawer-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  event.target.classList.add('active');
+  document.querySelectorAll('.drawer-tab').forEach(t=>{
+    if(t.getAttribute('onclick') && t.getAttribute('onclick').includes("'"+id+"'")) t.classList.add('active');
+  });
+  closeDrawer();
+}
+function toggleDrawer() {
+  document.getElementById('drawer').classList.toggle('active');
+  document.getElementById('drawerOverlay').classList.toggle('active');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('active');
+  document.getElementById('drawerOverlay').classList.remove('active');
 }
 function updateCountdown() {
   const diff=Math.max(0,Math.ceil((new Date('2026-12-19')-new Date())/86400000));
@@ -6801,77 +6692,6 @@ renderChapterTable(DATA.net,'netChapters');
   }
   limitSel.addEventListener('change', render);
   render();
-})();
-
-// 规划反思
-(function(){
-  const p = DATA.planning;
-  // 问题与对策
-  const probC = document.getElementById('planProblems');
-  p.problems.forEach(prob => {
-    let html = `<div class="problem-card"><div class="problem-title">${prob.title}</div>`;
-    if (prob.status) html += `<div class="problem-status">${prob.status}</div>`;
-    if (prob.solutions.length) {
-      html += '<ul class="problem-solutions">';
-      prob.solutions.forEach(s => html += `<li>${s}</li>`);
-      html += '</ul>';
-    }
-    html += '</div>';
-    probC.innerHTML += html;
-  });
-  // 阶段规划
-  const phaseC = document.getElementById('planPhases');
-  let phaseHtml = '<table class="log-table"><thead><tr><th>阶段</th><th>时间</th><th>数学</th><th>408</th><th>英语</th><th>政治</th></tr></thead><tbody>';
-  p.phases.forEach(ph => {
-    phaseHtml += `<tr><td class="log-date">${ph.stage}</td><td>${ph.time}</td><td>${ph.math}</td><td>${ph.four8}</td><td>${ph.english}</td><td>${ph.politics}</td></tr>`;
-  });
-  phaseHtml += '</tbody></table>';
-  phaseC.innerHTML = phaseHtml;
-  // 院校信息
-  const schoolC = document.getElementById('planSchools');
-  if (p.schools.length) {
-    const headers = Object.keys(p.schools[0]);
-    let schoolHtml = '<table class="log-table"><thead><tr>';
-    headers.forEach(h => schoolHtml += `<th>${h}</th>`);
-    schoolHtml += '</tr></thead><tbody>';
-    p.schools.forEach(s => {
-      schoolHtml += '<tr>';
-      headers.forEach(h => schoolHtml += `<td>${s[h]}</td>`);
-      schoolHtml += '</tr>';
-    });
-    schoolHtml += '</tbody></table>';
-    schoolC.innerHTML = schoolHtml;
-  }
-})();
-
-// 关于
-(function(){
-  const a = DATA.about;
-  // 基本信息
-  document.getElementById('aboutInfo').innerHTML = `
-    <div class="about-row"><span class="about-label">本科</span><span class="about-value">${a.school}</span></div>
-    <div class="about-row"><span class="about-label">目标</span><span class="about-value">${a.target}</span></div>
-    <div class="about-row"><span class="about-label">科目</span><span class="about-value">${a.subjects}</span></div>
-    <div class="about-row"><span class="about-label">初试</span><span class="about-value">${a.exam_date}</span></div>
-  `;
-  // 文件索引
-  const idxC = document.getElementById('aboutIndex');
-  const files = [
-    {name:'数学二追踪表.md', desc:'张宇30讲逐讲追踪 + 错题统计'},
-    {name:'408追踪表.md', desc:'四门课逐章追踪 + 推进计划'},
-    {name:'英语政治追踪表.md', desc:'单词/阅读/政治时间线'},
-    {name:'数学错题本.md', desc:'按章节记录错题 + 三次复习法'},
-    {name:'408错题本.md', desc:'王道小程序错题记录（计组+OS）'},
-    {name:'错题分类.md', desc:'按错因归类索引，快速定位同类错误'},
-    {name:'每日记录.md', desc:'每日学习记录'},
-    {name:'规划与反思.md', desc:'关键问题对策 + 阶段规划 + 院校信息'},
-    {name:'全库格式约定.md', desc:'全库格式唯一定义处'},
-  ];
-  files.forEach(f => {
-    idxC.innerHTML += `<div class="index-item"><a href="${f.name}">${f.name}</a><div class="index-desc">${f.desc}</div></div>`;
-  });
-  // 格式约定（markdown 已转 HTML）
-  document.getElementById('aboutFormat').innerHTML = DATA.formatRules;
 })();
 
 updateCountdown();

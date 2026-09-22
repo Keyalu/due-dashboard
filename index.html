@@ -209,6 +209,18 @@
   .ep-row:last-child { border-bottom: none; }
   .ep-label { min-width: 60px; color: var(--text-dim); }
   .ep-note { flex: 1; font-size: 9px; color: var(--text-dim); text-align: right; }
+  .fc-card { border:1px solid var(--border); border-radius:8px; margin-bottom:10px; overflow:hidden; }
+  .fc-q { padding:12px 14px; cursor:pointer; font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center; background:var(--bg); }
+  .fc-q:hover { background:var(--blue-bg); }
+  .fc-tag { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:500; margin-right:8px; }
+  .fc-tag.DS { background:#fef3c7; color:#92400e; }
+  .fc-tag.OS { background:#dbeafe; color:#1e40af; }
+  .fc-tag.CO { background:#fce7f3; color:#9d174d; }
+  .fc-tag.CN { background:#d1fae5; color:#065f46; }
+  .fc-a { padding:12px 14px; font-size:12px; line-height:1.6; color:var(--text); display:none; border-top:1px solid var(--border); }
+  .fc-a.show { display:block; }
+  .fc-btn { font-size:11px; color:var(--blue); white-space:nowrap; }
+  .fc-hard { color:var(--red); font-size:10px; margin-left:6px; }
 </style>
 </head>
 <body>
@@ -238,6 +250,7 @@
     <div class="drawer-tab" onclick="switchTab('r1')"><span class="icon">✅</span>R1清单</div>
     <div class="drawer-tab" onclick="switchTab('mistakes')"><span class="icon">❌</span>错题本</div>
     <div class="drawer-tab" onclick="switchTab('daily')"><span class="icon">📝</span>每日记录</div>
+    <div class="drawer-tab" onclick="switchTab('flashcard')"><span class="icon">🃏</span>闪卡</div>
   </div>
 </div>
 
@@ -362,6 +375,14 @@
 
 <!-- page 容器结束 -->
 
+<div id="page-flashcard" class="page">
+  <div class="grid grid-1">
+    <div class="card">
+      <div class="card-title">408 薄弱点闪卡 <span style="font-weight:400;font-size:11px;color:var(--text-dim)">（点击"查看答案"翻面）</span></div>
+      <div id="flashcardList"></div>
+    </div>
+  </div>
+</div>
 <script>
 // ==== DATA:GENERATED-BEGIN（此区块由 生成看板.py 自动生成，勿手改） ====
 const DATA = {
@@ -7227,6 +7248,43 @@ function switchTab(id) {
   });
   closeDrawer();
 }
+const FLASHCARDS = [
+  {sub:'DS', hard:false, q:'循环队列判空、判满条件？', a:'判空：front == rear<br>判满：(rear+1) % MaxSize == front（牺牲一个单元法）'},
+  {sub:'DS', hard:false, q:'哪些排序算法不稳定？', a:'口诀：冒插归基稳定，快选堆希不稳定（快速、选择、堆、希尔）'},
+  {sub:'DS', hard:true, q:'Prim/Kruskal/Dijkstra/Floyd 各是什么？', a:'Prim=加点法（稠密图最小生成树）<br>Kruskal=加边法（稀疏图最小生成树）<br>Dijkstra=单源最短路<br>Floyd=多源最短路'},
+  {sub:'DS', hard:false, q:'哈夫曼树有度为1的节点吗？', a:'没有。哈夫曼树只有度为0和2的节点'},
+  {sub:'DS', hard:false, q:'BFS/DFS 各用什么数据结构？', a:'BFS 用队列（一层层铺开）<br>DFS 用栈（一条路走到底）'},
+  {sub:'DS', hard:false, q:'前序+中序怎么重建二叉树？', a:'前序第一个定根 → 中序分左右子树范围 → 递归'},
+  {sub:'OS', hard:false, q:'死锁四个必要条件？', a:'互斥、请求保持（占有且等待）、不剥夺、循环等待'},
+  {sub:'OS', hard:false, q:'死锁处理策略有哪些？', a:'预防、避免（银行家）、检测、解除'},
+  {sub:'CO', hard:true, q:'SRAM 和 DRAM 区别？', a:'SRAM=静态、快、做Cache、不需刷新<br>DRAM=动态、慢、做主存、需定时刷新'},
+  {sub:'CO', hard:false, q:'冯诺依曼五大部件？', a:'运算器、控制器、存储器、输入设备、输出设备'},
+  {sub:'CO', hard:false, q:'RISC vs CISC 核心区别？', a:'RISC：定长指令、Load/Store访存、硬布线<br>CISC：变长指令、运算可直接访存、微程序'},
+  {sub:'CO', hard:false, q:'中断和异常怎么区分？', a:'异常（内中断）：CPU内部、与当前指令有关<br>中断（外中断）：CPU外部、与当前指令无关'},
+  {sub:'CO', hard:false, q:'Cache 三种映射？', a:'全相联（任意映射）、直接映射（固定映射）、组相联（组间直接、组内全相联）'},
+  {sub:'CO', hard:false, q:'写直达 vs 写回？', a:'写直达：同步写主存、简单但慢、配合写缓冲<br>写回：替换时才写主存、需脏位标记、性能好'},
+  {sub:'CO', hard:false, q:'流水线冒险三种？', a:'结构冒险（硬件争抢）、数据冒险（数据依赖）、控制冒险（转移指令改PC）'},
+  {sub:'CO', hard:false, q:'DMA vs 中断的数据传送单位？', a:'中断：字/字节为单位<br>DMA：数据块为单位；DMA响应在机器周期结束，优先级高于中断'},
+  {sub:'CN', hard:false, q:'DHCP 为什么源IP是0.0.0.0？', a:'因为主机还没正式获得IP，0.0.0.0表示"本机未知"；广播是通知所有DHCP服务器"我选谁了"'},
+  {sub:'CN', hard:false, q:'TCP 为什么三次握手不是两次？', a:'防止已失效的连接请求突然传到服务端，造成资源浪费'},
+  {sub:'CN', hard:false, q:'DNS 递归 vs 迭代查询？', a:'主机→本地DNS：递归查询<br>本地DNS→根/顶级/权限：迭代查询'},
+  {sub:'CN', hard:true, q:'TCP 拥塞控制：慢开始/拥塞避免？', a:'慢开始：cwnd指数涨（1→2→4）<br>拥塞避免：cwnd线性涨（+1）<br>超时后：ssthresh=cwnd/2，cwnd=1，重新慢开始（乘性减、加性增）'},
+  {sub:'CN', hard:false, q:'集线器/交换机/路由器各隔离冲突域/广播域？', a:'集线器：都不隔离<br>交换机：隔离冲突域、不隔离广播域<br>路由器：都隔离'},
+  {sub:'CN', hard:false, q:'受限广播 vs 定向广播的转发规则？', a:'255.255.255.255（受限广播）：绝对不转发<br>定向广播（主机号全1）：理论可转发，现实默认关闭（防Smurf）<br>127.x环回：不转发；224.x多播：需多播路由协议'}
+];
+(function(){
+  const box = document.getElementById('flashcardList');
+  FLASHCARDS.forEach((f,i)=>{
+    const div = document.createElement('div');
+    div.className = 'fc-card';
+    div.innerHTML = '<div class="fc-q" onclick="this.nextElementSibling.classList.toggle(\'show\');this.querySelector(\'.fc-btn\').textContent=this.nextElementSibling.classList.contains(\'show\')?\'收起答案\':\'查看答案\'">'+
+      '<span><span class="fc-tag '+f.sub+'">'+f.sub+'</span>'+f.q+(f.hard?'<span class="fc-hard">★硬伤</span>':'')+'</span>'+
+      '<span class="fc-btn">查看答案</span></div>'+
+      '<div class="fc-a">'+f.a+'</div>';
+    box.appendChild(div);
+  });
+})();
+
 function toggleDrawer() {
   document.getElementById('drawer').classList.toggle('active');
   document.getElementById('drawerOverlay').classList.toggle('active');

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>错题 018｜有理函数部分分式分解（重根+二次因子）</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; color: #1a1b1c; line-height: 1.9; background: #fafaf9; }
+  h1 { font-size: 22px; border-bottom: 2px solid #d97757; padding-bottom: 10px; }
+  h2 { font-size: 18px; color: #b05a3a; margin-top: 30px; }
+  h3 { font-size: 16px; color: #1a1b1c; margin-top: 22px; }
+  .meta { color: #6b7280; font-size: 14px; }
+  .img-box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; }
+  .img-box img { max-width: 100%; height: auto; display: inline-block; }
+  .box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 16px; margin: 12px 0; overflow-x: auto; }
+  .wrong { border-left: 4px solid #d64541; }
+  .right { border-left: 4px solid #2e9e5b; }
+  .final { border-left: 4px solid #d97757; }
+  .tip { background: #fdf3e7; border-left: 4px solid #d97757; padding: 10px 14px; border-radius: 4px; margin: 14px 0; }
+  .err { color: #d64541; font-weight: 600; }
+  .ok { color: #2e9e5b; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; }
+  th, td { border: 1px solid #e5e5e5; padding: 8px 10px; font-size: 14px; }
+  th { background: #f4f1ec; }
+  .tags span { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-right: 8px; }
+  .tag-type { background: #fdeaea; color: #c0392b; border: 1px solid #eec8c8; }
+  .tag-status { background: #eef6ee; color: #2e7d32; border: 1px solid #c9e6c9; }
+  .tag-chapter { background: #eef3fb; color: #2c5da6; border: 1px solid #cdd9ef; }
+  .back { margin-top: 30px; font-size: 14px; }
+  .back a { color: #d97757; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  mjx-container { overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>错题 018｜有理函数部分分式分解（重根+二次因子）</h1>
+<div class="meta">📅 2026-09-19 · 知识点：有理函数部分分式分解（重根+二次因子）</div>
+<div class="tags"><span class="tag-type">错误类型：方法选择</span><span class="tag-status">状态：待复习</span><span class="tag-chapter">章节：高数/积分</span></div>
+
+<h2>题目（2019 数二 第16题）</h2>
+<div class="box final">求 ∫ (3x+6) / [(x−1)²(x²+x+1)] dx。</div>
+<h2>考点</h2>
+<div class="box">有理函数积分——部分分式分解（重根 + 不可约二次因子）。</div>
+<h2>核心方法</h2>
+<div class="box right">
+分母有重根 (x−1)² 和不可约二次式 x²+x+1，设：<br>
+(3x+6)/[(x−1)²(x²+x+1)] = A/(x−1) + B/(x−1)² + (Cx+D)/(x²+x+1)。<br>
+通分后分子恒等：<br>
+3x+6 = A(x−1)(x²+x+1) + B(x²+x+1) + (Cx+D)(x−1)²。<br>
+代入 x=1：9 = B·3 ⇒ B=3。<br>
+比较 x³、x²、x、常数项系数，解出 A、C、D。<br>
+积分：<br>
+∫ A/(x−1) dx = A·ln|x−1|，<br>
+∫ B/(x−1)² dx = −B/(x−1)，<br>
+∫ (Cx+D)/(x²+x+1) dx 拆成 C/2·∫(2x+1)/(x²+x+1) + (D−C/2)·∫ dx/(...)，第二部分用配方 (x+½)²+¾ 套 arctan。
+</div>
+<h2>易错提醒</h2>
+<div class="tip">重根因子必须设成 A/(x−1) + B/(x−1)² 两项；不可约二次式分子必须设 Cx+D（不能只设常数）。这是 9/14 学过的有理函数部分分式的标准形式。</div>
+<div class="back">← <a href="../../index.html">返回错题集总索引</a></div>
+<script>
+window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] } };
+</script>
+<script async src="../../../mathjax/tex-svg.js"></script>
+</body>
+</html>

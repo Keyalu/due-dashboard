@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>错题 022｜积分中值+罗尔+泰勒证明模板</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; color: #1a1b1c; line-height: 1.9; background: #fafaf9; }
+  h1 { font-size: 22px; border-bottom: 2px solid #d97757; padding-bottom: 10px; }
+  h2 { font-size: 18px; color: #b05a3a; margin-top: 30px; }
+  h3 { font-size: 16px; color: #1a1b1c; margin-top: 22px; }
+  .meta { color: #6b7280; font-size: 14px; }
+  .img-box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; }
+  .img-box img { max-width: 100%; height: auto; display: inline-block; }
+  .box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 16px; margin: 12px 0; overflow-x: auto; }
+  .wrong { border-left: 4px solid #d64541; }
+  .right { border-left: 4px solid #2e9e5b; }
+  .final { border-left: 4px solid #d97757; }
+  .tip { background: #fdf3e7; border-left: 4px solid #d97757; padding: 10px 14px; border-radius: 4px; margin: 14px 0; }
+  .err { color: #d64541; font-weight: 600; }
+  .ok { color: #2e9e5b; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; }
+  th, td { border: 1px solid #e5e5e5; padding: 8px 10px; font-size: 14px; }
+  th { background: #f4f1ec; }
+  .tags span { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-right: 8px; }
+  .tag-type { background: #fdeaea; color: #c0392b; border: 1px solid #eec8c8; }
+  .tag-status { background: #eef6ee; color: #2e7d32; border: 1px solid #c9e6c9; }
+  .tag-chapter { background: #eef3fb; color: #2c5da6; border: 1px solid #cdd9ef; }
+  .back { margin-top: 30px; font-size: 14px; }
+  .back a { color: #d97757; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  mjx-container { overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>错题 022｜积分中值+罗尔+泰勒证明模板</h1>
+<div class="meta">📅 2026-09-19 · 知识点：积分中值+罗尔+泰勒证明模板</div>
+<div class="tags"><span class="tag-type">错误类型：方法选择</span><span class="tag-status">状态：待复习</span><span class="tag-chapter">章节：高数/中值定理</span></div>
+
+<h2>题目（2019 数二 第21题）</h2>
+<div class="box final">
+f 在 [0,1] 二阶可导，f(0)=0, f(1)=1, ∫<sub>0</sub><sup>1</sup>f(x)dx=1。证明：<br>
+(I) ∃ξ∈(0,1) 使 f'(ξ)=0；<br>
+(II) ∃η∈(0,1) 使 f''(η)<−2。
+</div>
+<h2>考点</h2>
+<div class="box">罗尔定理 + 泰勒展开（证明题）。</div>
+<h2>核心方法</h2>
+<div class="box right">
+(I) 由积分中值定理，∃c∈(0,1) 使 f(c) = 1/(1−0)·∫<sub>0</sub><sup>1</sup>f = 1。<br>
+f(1)=f(c)=1，由罗尔定理，∃ξ∈(c,1)⊂(0,1) 使 f'(ξ)=0。<br>
+(II) 在 x=c 处展开泰勒：<br>
+f(0) = f(c) + f'(c)·(0−c) + ½f''(η<sub>1</sub>)c² = 0，<br>
+f(1) = f(c) + f'(c)·(1−c) + ½f''(η<sub>2</sub>)(1−c)² = 1。<br>
+结合 f(c)=1、f(0)=0、f(1)=1 解出 f'(c) 并推 f'' 符号。
+</div>
+<h2>易错提醒</h2>
+<div class="tip">证明题三步：① 积分中值找等值点 c（f(c)=1=f(1)）② 罗尔得 f'(ξ)=0 ③ 泰勒在中间点 c 展开到两端点。这是"积分条件+罗尔+泰勒"的标准模板。</div>
+<div class="back">← <a href="../../index.html">返回错题集总索引</a></div>
+<script>
+window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] } };
+</script>
+<script async src="../../../mathjax/tex-svg.js"></script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>408错题集 · 总索引</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; max-width: 960px; margin: 0 auto; padding: 24px 16px 48px; color: #1a1b1c; line-height: 1.8; background: #fafaf9; }
+  h1 { font-size: 26px; border-bottom: 2px solid #d97757; padding-bottom: 12px; }
+  .sub { color: #6b7280; font-size: 14px; margin-bottom: 20px; }
+  .cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .card { flex: 1 1 150px; min-width: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 12px 14px; box-sizing: border-box; }
+  .card .num { font-size: 24px; font-weight: 700; color: #b05a3a; }
+  .card .lbl { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  h2.sec { font-size: 15px; color: #6b7280; margin: 22px 0 10px; }
+  .sec-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .sec-chip { background: #eef3fb; color: #2c5da6; border: 1px solid #cdd9ef; padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+  .sec-chip b { font-size: 15px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filters input[type="text"] { flex: 1 1 220px; padding: 8px 12px; border: 1px solid #d5d5d5; border-radius: 8px; font-size: 14px; box-sizing: border-box; min-width: 0; }
+  .chip { display: inline-block; padding: 5px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; background: #fff; border: 1px solid #d5d5d5; user-select: none; }
+  .chip.on { background: #b05a3a; color: #fff; border-color: #b05a3a; }
+  table { border-collapse: collapse; width: 100%; background: #fff; }
+  th, td { border: 1px solid #e5e5e5; padding: 9px 10px; font-size: 14px; text-align: left; vertical-align: top; }
+  th { background: #f4f1ec; white-space: nowrap; }
+  a { color: #b05a3a; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .empty-row td { color: #a0a0a0; text-align: center; }
+  .btype { display: inline-block; padding: 1px 9px; border-radius: 20px; font-size: 12px; white-space: nowrap; }
+  .t-concept { background: #fdeaea; color: #c0392b; }
+  .t-method { background: #eef3fb; color: #2c5da6; }
+  .t-formula { background: #fdf3e7; color: #b05a3a; }
+  .t-calc { background: #eef6ee; color: #2e7d32; }
+  .t-exam { background: #f4f0f8; color: #6c4a8e; }
+  .st-pending { background: #fff4e5; color: #b26a00; }
+  .st-done { background: #eef6ee; color: #2e7d32; }
+  .st-redo { background: #fdeaea; color: #c0392b; }
+</style>
+</head>
+<body>
+
+<h1>📘 408错题集</h1>
+<div class="sub">累计收录 <b id="totalN">0</b> 道 · 数据由 <code>data.json</code> 自动生成 · 更新于 <span id="updDate"></span></div>
+
+<div class="cards">
+  <div class="card"><div class="num" id="cTotal">0</div><div class="lbl">总题数</div></div>
+  <div class="card"><div class="num" id="cPending">0</div><div class="lbl">待复习</div></div>
+  <div class="card"><div class="num" id="cDone">0</div><div class="lbl">已掌握</div></div>
+  <div class="card"><div class="num" id="cRedo">0</div><div class="lbl">需重做</div></div>
+  <div class="card"><div class="num" id="cSec">0</div><div class="lbl">章节数</div></div>
+</div>
+
+<h2 class="sec">📂 章节分布</h2>
+<div class="sec-chips" id="secChips"></div>
+
+<h2 class="sec">🔍 检索</h2>
+<div class="filters">
+  <input type="text" id="kw" placeholder="搜索：知识点 / 章节 / 错误类型…">
+  <span class="chip on" data-f="all">全部</span>
+  <span id="typeChips"></span>
+</div>
+
+<table>
+  <thead>
+    <tr><th>编号</th><th>日期</th><th>章节</th><th>知识点</th><th>错误类型</th><th>状态</th><th>链接</th></tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<h2 class="sec">📁 预留章节（待收录）</h2>
+<div class="sub" style="margin-left:4px;">DS 数据结构 · OS 操作系统 · CO 计算机组成原理 · CN 计算机网络</div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  var data = (typeof window.WRONG_BOOK !== 'undefined') ? window.WRONG_BOOK : [];
+
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function typeClass(t) {
+    var m = { '概念不清': 't-concept', '方法选择': 't-method', '列式错误': 't-formula', '计算失误': 't-calc', '审题错误': 't-exam' };
+    return m[t] || 't-calc';
+  }
+  function statusClass(s) {
+    var m = { '待复习': 'st-pending', '已掌握': 'st-done', '需重做': 'st-redo' };
+    return m[s] || 'st-pending';
+  }
+
+  var tbody = document.getElementById('tbody');
+  var secChips = document.getElementById('secChips');
+  var typeChips = document.getElementById('typeChips');
+  var kw = document.getElementById('kw');
+  var activeType = 'all';
+  var activeSec = 'all';
+
+  // 更新日期（取当前本地日期）
+  var d = new Date();
+  document.getElementById('updDate').textContent = d.getFullYear() + '-' +
+    ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+
+  // 统计
+  document.getElementById('totalN').textContent = data.length;
+  document.getElementById('cTotal').textContent = data.length;
+  document.getElementById('cPending').textContent = data.filter(function (r) { return r.status === '待复习'; }).length;
+  document.getElementById('cDone').textContent = data.filter(function (r) { return r.status === '已掌握'; }).length;
+  document.getElementById('cRedo').textContent = data.filter(function (r) { return r.status === '需重做'; }).length;
+
+  // 章节分布
+  var secCount = {};
+  data.forEach(function (r) { secCount[r.chapter] = (secCount[r.chapter] || 0) + 1; });
+  var secNames = Object.keys(secCount).sort();
+  document.getElementById('cSec').textContent = secNames.length;
+  secChips.innerHTML = secNames.map(function (s) {
+    return '<span class="sec-chip" data-sec="' + esc(s) + '">' + esc(s) + ' · <b>' + secCount[s] + '</b> 题</span>';
+  }).join('') || '<span class="sub" style="margin-left:4px;">暂无</span>';
+
+  // 错误类型 chips（动态）
+  var types = [];
+  data.forEach(function (r) { if (types.indexOf(r.type) < 0) types.push(r.type); });
+  typeChips.innerHTML = types.map(function (t) {
+    return '<span class="chip" data-f="' + esc(t) + '">' + esc(t) + '</span>';
+  }).join('');
+
+  // 渲染表格
+  function render() {
+    var q = kw.value.trim().toLowerCase();
+    var rows = data.filter(function (r) {
+      var okType = activeType === 'all' || r.type === activeType;
+      var okSec = activeSec === 'all' || r.chapter === activeSec;
+      var text = (r.id + r.date + r.chapter + r.knowledge + r.type + r.status).toLowerCase();
+      var okKw = q === '' || text.indexOf(q) >= 0;
+      return okType && okSec && okKw;
+    });
+    if (!rows.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">没有匹配的错题</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function (r) {
+      return '<tr>' +
+        '<td>' + esc(r.id) + '</td>' +
+        '<td>' + esc(r.date) + '</td>' +
+        '<td>' + esc(r.chapter) + '</td>' +
+        '<td>' + esc(r.knowledge) + '</td>' +
+        '<td><span class="btype ' + typeClass(r.type) + '">' + esc(r.type) + '</span></td>' +
+        '<td><span class="btype ' + statusClass(r.status) + '">' + esc(r.status) + '</span></td>' +
+        '<td><a href="' + esc(r.file) + '">打开 →</a></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // 事件绑定
+  kw.addEventListener('input', render);
+  typeChips.addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains('chip')) {
+      activeType = e.target.getAttribute('data-f');
+      Array.prototype.forEach.call(typeChips.querySelectorAll('.chip'), function (c) { c.classList.remove('on'); });
+      Array.prototype.forEach.call(document.querySelectorAll('.filters > .chip[data-f="all"]'), function (c) { c.classList.remove('on'); });
+      e.target.classList.add('on');
+      render();
+    }
+  });
+  secChips.addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains('sec-chip')) {
+      activeSec = e.target.getAttribute('data-sec');
+      Array.prototype.forEach.call(secChips.querySelectorAll('.sec-chip'), function (c) { c.classList.remove('on'); });
+      e.target.classList.add('on');
+      render();
+    }
+  });
+  var allChip = document.querySelector('.filters > .chip[data-f="all"]');
+  if (allChip) allChip.addEventListener('click', function () {
+    activeType = 'all';
+    activeSec = 'all';
+    Array.prototype.forEach.call(typeChips.querySelectorAll('.chip'), function (c) { c.classList.remove('on'); });
+    Array.prototype.forEach.call(secChips.querySelectorAll('.sec-chip'), function (c) { c.classList.remove('on'); });
+    this.classList.add('on');
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

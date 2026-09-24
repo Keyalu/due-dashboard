@@ -351,6 +351,16 @@
     </div>
   </div>
   <div id="mkList"></div>
+  <!-- 错题集站点入口。默认隐藏：题目截图是版权内容，只打进本地 APK，不发布到公开 Pages，
+       所以在浏览器里打开 Pages 时探测会 404、卡片保持隐藏。见文件末尾的探测脚本。 -->
+  <div class="card" id="wbEntry" style="display:none;margin-top:12px;">
+    <div class="card-title">题目原图与完整解析</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <a class="wb-link" href="数学错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-bright);text-decoration:none;">数学错题集</a>
+      <a class="wb-link" href="408错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-bright);text-decoration:none;">408错题集</a>
+      <span style="font-size:11px;color:var(--text-dim);">公式已随 App 内置，离线可看</span>
+    </div>
+  </div>
 </div>
 
 <!-- ========== 英语·政治 ========== -->
@@ -7616,6 +7626,29 @@ updateCountdown();
       console.warn('[PWA] sw 注册失败（离线或首次未走 https）：', e && e.message);
     });
   }
+})();
+</script>
+<script>
+/* ==== 错题集入口探测 ====
+   错题集只随 APK 本地打包，不发布到公开 Pages（题目截图属版权内容）。
+   所以同一份看板既要在 App 里显示入口、又要在浏览器打开 Pages 时不显示——
+   用一次 HEAD 探测判断该路径是否存在，比按 userAgent 或域名猜可靠得多。
+   这段必须独立成一块：上面那段 PWA 外壳脚本在非 https / iframe 里会提前 return。 */
+(function () {
+  var card = document.getElementById('wbEntry');
+  if (!card) return;
+  var links = Array.prototype.slice.call(card.querySelectorAll('.wb-link'));
+  var alive = 0;
+  links.forEach(function (a) {
+    fetch(a.getAttribute('href'), { method: 'HEAD', cache: 'no-store' })
+      .then(function (r) {
+        if (r.ok) { alive++; } else { a.style.display = 'none'; }
+      })
+      .catch(function () { a.style.display = 'none'; })
+      .then(function () {
+        card.style.display = alive ? '' : 'none';
+      });
+  });
 })();
 </script>
 </body>

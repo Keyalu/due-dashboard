@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>错题 013｜泰勒展开与曲率相切等价条件</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; color: #1a1b1c; line-height: 1.9; background: #fafaf9; }
+  h1 { font-size: 22px; border-bottom: 2px solid #d97757; padding-bottom: 10px; }
+  h2 { font-size: 18px; color: #b05a3a; margin-top: 30px; }
+  h3 { font-size: 16px; color: #1a1b1c; margin-top: 22px; }
+  .meta { color: #6b7280; font-size: 14px; }
+  .img-box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; }
+  .img-box img { max-width: 100%; height: auto; display: inline-block; }
+  .box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 16px; margin: 12px 0; overflow-x: auto; }
+  .wrong { border-left: 4px solid #d64541; }
+  .right { border-left: 4px solid #2e9e5b; }
+  .final { border-left: 4px solid #d97757; }
+  .tip { background: #fdf3e7; border-left: 4px solid #d97757; padding: 10px 14px; border-radius: 4px; margin: 14px 0; }
+  .err { color: #d64541; font-weight: 600; }
+  .ok { color: #2e9e5b; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; }
+  th, td { border: 1px solid #e5e5e5; padding: 8px 10px; font-size: 14px; }
+  th { background: #f4f1ec; }
+  .tags span { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-right: 8px; }
+  .tag-type { background: #fdeaea; color: #c0392b; border: 1px solid #eec8c8; }
+  .tag-status { background: #eef6ee; color: #2e7d32; border: 1px solid #c9e6c9; }
+  .tag-chapter { background: #eef3fb; color: #2c5da6; border: 1px solid #cdd9ef; }
+  .back { margin-top: 30px; font-size: 14px; }
+  .back a { color: #d97757; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  mjx-container { overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>错题 013｜泰勒展开与曲率相切等价条件</h1>
+<div class="meta">📅 2026-09-19 · 知识点：泰勒展开与曲率相切等价条件</div>
+<div class="tags"><span class="tag-type">错误类型：概念不清</span><span class="tag-status">状态：待复习</span><span class="tag-chapter">章节：高数/导数</span></div>
+
+<h2>题目（2019 数二 第6题）</h2>
+<div class="box final">
+f,g 二阶可导且二阶导在 x=a 连续，问 lim<sub>x→a</sub> (f(x)−g(x))/(x−a)² = 0 是"两曲线在 x=a 相切且曲率相等"的什么条件？
+</div>
+<h2>考点</h2>
+<div class="box">泰勒展开、相切（一阶导相等）、曲率公式。</div>
+<h2>核心方法</h2>
+<div class="box right">
+泰勒展开：f(x)−g(x) = [f(a)−g(a)] + [f'(a)−g'(a)](x−a) + ½[f''(a)−g''(a)](x−a)² + o((x−a)²)。<br>
+极限为 0 ⇒ f(a)=g(a) 且 f'(a)=g'(a) 且 f''(a)=g''(a)。<br>
+相切 ⇒ f(a)=g(a) 且 f'(a)=g'(a)。<br>
+曲率相等 ⇒ |f''|/(1+f'²)^(3/2) 相等，在 f'=g' 时即 |f''|=|g''|。<br>
+题设推出 f''=g''（不是绝对值），更强 ⇒ 充分；但曲率相等只要求 f''=±g''，推不出极限为 0 ⇒ 不必要。<br>
+<b>答案：充分非必要。</b>
+</div>
+<h2>易错提醒</h2>
+<div class="tip">曲率公式有绝对值！|f''| 相等 ≠ f'' 相等。这是"充分非必要"的关键。</div>
+<div class="back">← <a href="../../index.html">返回错题集总索引</a></div>
+<script>
+window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] } };
+</script>
+<script async src="../../../mathjax/tex-svg.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>错题 021｜指数变换消偏微分方程一阶偏导</title>
+<style>
+  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; color: #1a1b1c; line-height: 1.9; background: #fafaf9; }
+  h1 { font-size: 22px; border-bottom: 2px solid #d97757; padding-bottom: 10px; }
+  h2 { font-size: 18px; color: #b05a3a; margin-top: 30px; }
+  h3 { font-size: 16px; color: #1a1b1c; margin-top: 22px; }
+  .meta { color: #6b7280; font-size: 14px; }
+  .img-box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; }
+  .img-box img { max-width: 100%; height: auto; display: inline-block; }
+  .box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 16px; margin: 12px 0; overflow-x: auto; }
+  .wrong { border-left: 4px solid #d64541; }
+  .right { border-left: 4px solid #2e9e5b; }
+  .final { border-left: 4px solid #d97757; }
+  .tip { background: #fdf3e7; border-left: 4px solid #d97757; padding: 10px 14px; border-radius: 4px; margin: 14px 0; }
+  .err { color: #d64541; font-weight: 600; }
+  .ok { color: #2e9e5b; font-weight: 600; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; }
+  th, td { border: 1px solid #e5e5e5; padding: 8px 10px; font-size: 14px; }
+  th { background: #f4f1ec; }
+  .tags span { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-right: 8px; }
+  .tag-type { background: #fdeaea; color: #c0392b; border: 1px solid #eec8c8; }
+  .tag-status { background: #eef6ee; color: #2e7d32; border: 1px solid #c9e6c9; }
+  .tag-chapter { background: #eef3fb; color: #2c5da6; border: 1px solid #cdd9ef; }
+  .back { margin-top: 30px; font-size: 14px; }
+  .back a { color: #d97757; text-decoration: none; }
+  .back a:hover { text-decoration: underline; }
+  mjx-container { overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>错题 021｜指数变换消偏微分方程一阶偏导</h1>
+<div class="meta">📅 2026-09-19 · 知识点：指数变换消偏微分方程一阶偏导</div>
+<div class="tags"><span class="tag-type">错误类型：概念不清</span><span class="tag-status">状态：待复习</span><span class="tag-chapter">章节：高数/多元微分</span></div>
+
+<h2>题目（2019 数二 第20题）</h2>
+<div class="box final">
+u(x,y) 满足 2u<sub>xx</sub> − 2u<sub>xy</sub> + 3u<sub>x</sub> + 3u<sub>y</sub> = 0，作变换 u = v·e<sup>ax+by</sup>，求 a,b 使 v 的方程不含一阶偏导项。
+</div>
+<h2>考点</h2>
+<div class="box">二阶偏微分方程——指数变换消一阶偏导。</div>
+<h2>核心方法</h2>
+<div class="box right">
+设 u = v·e<sup>ax+by</sup>，则 u<sub>x</sub> = (v<sub>x</sub>+av)e<sup>ax+by</sup>，u<sub>xx</sub> = (v<sub>xx</sub>+2av<sub>x</sub>+a²v)e<sup>ax+by</sup>，交叉项同理。<br>
+代入原方程，两边约去 e<sup>ax+by</sup>。<br>
+令 v<sub>x</sub> 系数 = 0、v<sub>y</sub> 系数 = 0，得关于 a,b 的两个方程，解出 a,b。<br>
+（原方程实际系数按真题：2u<sub>xx</sub>−2u<sub>xy</sub>+3u<sub>x</sub>+3u<sub>y</sub>=0，代入后解二元一次方程组。）
+</div>
+<h2>易错提醒</h2>
+<div class="tip">套路：u = v·e<sup>ax+by</sup> 代入后，v 的一阶偏导系数只由 a,b 决定；直接令其为 0 列方程，二阶偏导项保持不变。别去动 v 的二阶导。</div>
+<div class="back">← <a href="../../index.html">返回错题集总索引</a></div>
+<script>
+window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }, svg: { fontCache: 'global' }, options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] } };
+</script>
+<script async src="../../../mathjax/tex-svg.js"></script>
+</body>
+</html>

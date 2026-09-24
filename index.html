@@ -7585,8 +7585,9 @@ updateCountdown();
 <script>
 /* ==== PWA 应用外壳（手工维护，位于 DATA 生成区之外，不会被 生成看板.py 覆盖） ==== */
 (function () {
-  // file:// 本地预览与 http 开发端口都不注册 SW，免得本地被缓存钉住
-  if (location.protocol !== 'https:') return;
+  // file:// 本地预览与 http 开发端口都不注册 SW，免得本地被缓存钉住；
+  // 安卓壳（app/shell/index.html）是把本页塞进 iframe 跑的，子帧里注册只会抛 SecurityError
+  if (location.protocol !== 'https:' || window.self !== window.top) return;
 
   var badge = null;
   function setOfflineBadge(offline) {

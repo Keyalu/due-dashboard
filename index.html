@@ -2,7 +2,17 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- 不再禁用用户缩放：maximum-scale/user-scalable=no 会让系统字体缩放失效，无障碍不达标 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="408 与数学二复习进度、错题本与 R1 复习队列">
+<meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>考研进度看板 · 2027考研</title>
 <style>
   :root {
@@ -63,6 +73,13 @@
   .grid-1 { grid-template-columns: 1fr; }
   @media (max-width: 768px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-2 { grid-template-columns: 1fr; } .page { padding: 12px; } }
   @media (max-width: 400px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+
+  /* PWA 独立窗口：状态栏/刘海与底部手势条不再压住顶栏（file:// 下 env() 为 0，无副作用） */
+  @supports (padding: env(safe-area-inset-top)) {
+    .app-header { padding-top: env(safe-area-inset-top); height: calc(48px + env(safe-area-inset-top)); }
+    .drawer { top: env(safe-area-inset-top); bottom: env(safe-area-inset-bottom); }
+    .page { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); overflow: hidden; }
   .card-title { font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
@@ -574,57 +591,57 @@ const DATA = {
   ],
   "r1Queue": [
     {
-      "date": "9/23",
+      "date": "9/25",
       "txt": "第11讲: 习2,习3,习4 + 第12讲: 例2,习3",
       "n": 5
     },
     {
-      "date": "9/24",
+      "date": "9/26",
       "txt": "第13讲: 例2,例4,例5,例6,例7",
       "n": 5
     },
     {
-      "date": "9/25",
+      "date": "9/27",
       "txt": "第13讲: 例8,例9,例11,例12,例13",
       "n": 5
     },
     {
-      "date": "9/26",
+      "date": "9/28",
       "txt": "第13讲: 例17,例18,例19,例20,例21",
       "n": 5
     },
     {
-      "date": "9/27",
+      "date": "9/29",
       "txt": "第13讲: 例22,习1,习3,习5,习9",
       "n": 5
     },
     {
-      "date": "9/28",
+      "date": "9/30",
       "txt": "第13讲: 习13 + 第14讲: 例2,例4,例6,例7",
       "n": 5
     },
     {
-      "date": "9/29",
+      "date": "10/1",
       "txt": "第14讲: 例8,例9,例11,例12,例13",
       "n": 5
     },
     {
-      "date": "9/30",
+      "date": "10/2",
       "txt": "第14讲: 例14,例17,习1,习5,习6",
       "n": 5
     },
     {
-      "date": "10/1",
+      "date": "10/3",
       "txt": "第14讲: 习7,习10,习12 + 第15讲: 习1,习2",
       "n": 5
     },
     {
-      "date": "10/2",
+      "date": "10/4",
       "txt": "第15讲: 习3,习4,习5,习6,习7",
       "n": 5
     },
     {
-      "date": "10/3",
+      "date": "10/5",
       "txt": "第15讲: 习10,习12,习13",
       "n": 3
     }
@@ -7233,6 +7250,15 @@ const DATA = {
       "final": "",
       "hours": "",
       "note": "选填稳；大题计算/证明是短板，需专项突破"
+    },
+    {
+      "date": "9/23",
+      "math": "",
+      "four8": "CN 4.3 IPv6(7/7全对)+4.4路由算法前22题(22/22全对)",
+      "english": "词汇自测：错28词（形近混淆8+词义偏差6+词性5+遗漏9）",
+      "final": "",
+      "hours": "",
+      "note": "4.3+4.4前22题全对；4.4剩11题明天做"
     }
   ]
 };
@@ -7554,6 +7580,41 @@ updateCountdown();
     if(!c.children.length)c.innerHTML='<div class="mk-empty">无匹配的错题记录</div>';
   }
   render();
+})();
+</script>
+<script>
+/* ==== PWA 应用外壳（手工维护，位于 DATA 生成区之外，不会被 生成看板.py 覆盖） ==== */
+(function () {
+  // file:// 本地预览与 http 开发端口都不注册 SW，免得本地被缓存钉住
+  if (location.protocol !== 'https:') return;
+
+  var badge = null;
+  function setOfflineBadge(offline) {
+    if (!document.body) return;
+    if (offline && !badge) {
+      badge = document.createElement('div');
+      badge.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:12px;'
+        + 'background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow);'
+        + 'border-radius:14px;padding:4px 12px;font-size:11px;z-index:9999;'
+        + 'box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap';
+      badge.textContent = '离线中 · 显示的是缓存看板';
+      document.body.appendChild(badge);
+    } else if (!offline && badge) {
+      badge.remove();
+      badge = null;
+    }
+  }
+  window.addEventListener('online', function () { setOfflineBadge(false); });
+  window.addEventListener('offline', function () { setOfflineBadge(true); });
+  setOfflineBadge(!navigator.onLine);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(function (reg) {
+      console.log('[PWA] sw 已注册，scope=' + (reg.scope || ''));
+    }).catch(function (e) {
+      console.warn('[PWA] sw 注册失败（离线或首次未走 https）：', e && e.message);
+    });
+  }
 })();
 </script>
 </body>

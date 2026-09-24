@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://keyalu.github.io/due-dashboard/schema/看板数据.schema.json",
+  "title": "考研进度看板数据（看板数据.json）",
+  "description": "由 生成看板.py 从 md 真相源产出。可执行校验在 生成看板.py 的 validate()（tools/check_data.py 为其入口），本文件是给消费方（PWA / Android App）看的规范性契约。两者必须同步：改字段先改 validate() 与本文件，再改生成逻辑。",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "status", "source", "validation", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "description": "结构版本。消费方遇到不认识的版本应拒绝渲染并提示重跑生成器，而不是尽力猜。"
+    },
+    "generatedAt": { "type": "string", "description": "ISO-8601 带时区的生成时刻" },
+    "status": { "enum": ["ok", "invalid"], "description": "产出时 validate() 的结论快照" },
+    "source": {
+      "type": "object",
+      "description": "每个 md 真相源的 sha1 前 8 位，用于判断「产物是否落后于源文件」",
+      "additionalProperties": { "type": ["string", "null"] }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["errors", "warnings", "strict"],
+      "additionalProperties": false,
+      "properties": {
+        "errors": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "strict": { "type": "boolean" }
+      }
+    },
+    "knownQuirks": { "type": "object", "additionalProperties": { "type": "string" } },
+    "data": { "$ref": "#/$defs/DashboardData" }
+  },
+  "$defs": {
+    "StatusWord": {
+      "enum": ["done", "progress", "skip", "todo"],
+      "description": "内部状态码。↔ 全库格式约定.md 的状态词：完成=done / 进行中=progress / 暂缓=skip / 未开始或空单元格=todo。App 侧视觉映射（建议固定，勿按字面量判等）：done→tertiary, progress→primary, skip→neutral-variant, todo→outline"
+    },
+    "ReviewCell": {
+      "type": "string",
+      "pattern": "^(\\d{1,2}/\\d{1,2}(\\s+(对|错))?)?$",
+      "description": "R1/R2/R3 复习列：空=未复习；「M/D」=复习过但结果未记；「M/D 对」「M/D 错」=带结果。三轮全对=已掌握"
+    },
+    "CssVar": {
+      "type": "string",
+      "pattern": "^var\\(--",
+      "description": "颜色一律是看板 CSS 变量引用，不允许十六进制字面量，否则深色模式失配"
+    },
+    "MdText": { "type": "string", "description": "可能含 Markdown 强调与中文标点，由消费方自行清洗；[[双链]] 需映射为 App 路由" },
+    "ChapterRow": {
+      "type": "object",
+      "required": ["name", "status", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/MdText", "description": "形如「第7章 排序」" },
+        "status": { "$ref": "#/$defs/StatusWord" },
+        "note": { "$ref": "#/$defs/MdText" }
+      }
+    },
+    "LectureRow": {
+      "type": "object",
+      "required": ["num", "name", "pct", "cat"],
+      "additionalProperties": false,
+      "properties": {
+        "num": { "type": "integer", "minimum": 1, "maximum": 15 },
+        "name": { "$ref": "#/$defs/MdText" },
+        "pct": { "type": "integer", "minimum": 0, "maximum": 100, "description": "0 表示无数据，生成器另加 fail:true" },
+        "cat": { "enum": ["极限", "微分", "积分", "多元", "方程", "其他"], "description": "板块归属，是 生成看板.py 的 LECTURE_CAT 领域常量，不由 md 提供" },
+        "skip": { "type": "boolean", "description": "true=不计入板块均分（第7讲题少且零错题）" },
+        "fail": { "type": "boolean", "description": "true=正确率 0，需专项突破" }
+      }
+    },
+    "SubjectRow": {
+      "type": "object",
+      "required": ["name", "pct", "color", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/MdText" },
+        "pct": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "color": { "$ref": "#/$defs/CssVar" },
+        "note": { "$ref": "#/$defs/MdText" }
+      },
+      "description": "固定 8 条：高数一轮/线代/数据结构/计组/操作系统/计网/英语/政治"
+    },
+    "PriorityRow": {
+      "type": "object",
+      "required": ["text", "urgent"],
+      "additionalProperties": false,
+      "properties": {
+        "text": { "$ref": "#/$defs/MdText" },
+        "urgent": { "type": "boolean", "description": "前 5 条视为紧急，App 可用 error 容器强调" }
+      }
+    },
+    "R1Chapter": {
+      "type": "object",
+      "required": ["ch", "total", "done", "items"],
+      "additionalProperties": false,
+      "properties": {
+        "ch": { "$ref": "#/$defs/MdText" },
+        "total": { "type": "integer", "minimum": 0 },
+        "done": { "type": "integer", "minimum": 0, "description": "R1 列非空的题数；恒有 done <= total" },
+        "items": { "$ref": "#/$defs/MdText", "description": "待做题号串（来源码+题号，逗号分隔），全部完成时为「全部完成」" }
+      }
+    },
+    "R1QueueDay": {
+      "type": "object",
+      "required": ["date", "txt", "n"],
+      "additionalProperties": false,
+      "properties": {
+        "date": { "type": "string", "pattern": "^\\d{1,2}/\\d{1,2}$", "description": "相对 generatedAt 的排期日（当天+1 起，每天 5 道）；App 必须按 generatedAt 重算，不可当绝对日期" },
+        "txt": { "type": "string", "description": "形如「第13讲: 例5,习3 + 第14讲: 习1」" },
+        "n": { "type": "integer", "minimum": 1, "description": "该天道数；全列求和须等于 R1 待做总数" }
+      }
+    },
+    "StatCard": {
+      "type": "object",
+      "required": ["value", "label", "sub", "color"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "string", "description": "已是展示格式（如「264/317」「~11天」），App 侧不要再做数值推导" },
+        "label": { "type": "string" },
+        "sub": { "type": "string" },
+        "color": { "$ref": "#/$defs/CssVar" }
+      }
+    },
+    "Mistake408Item": {
+      "type": "object",
+      "required": ["q", "kp", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "q": { "type": "string", "description": "小程序内题号" },
+        "kp": { "$ref": "#/$defs/MdText", "description": "知识点，5-15 字的提炼结果" },
+        "note": { "$ref": "#/$defs/MdText", "description": "简述列，多为空；kp 缺失时由生成器回落至此" }
+      }
+    },
+    "Mistake408Group": {
+      "type": "object",
+      "required": ["name", "nums", "desc"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "description": "错因/知识大类名" },
+        "nums": { "type": "string", "pattern": "^\\d+(,\\d+)*$", "description": "命中的题号，逗号分隔（已从 、， 归一化）" },
+        "desc": { "$ref": "#/$defs/MdText", "description": "该类核心考点归纳，非逐题罗列" }
+      }
+    },
+    "Mistake408Section": {
+      "type": "object",
+      "required": ["subj", "title", "rate", "pct", "items", "groups"],
+      "additionalProperties": false,
+      "properties": {
+        "subj": { "enum": ["计组", "DS", "OS", "计网", "?"], "description": "由 408错题本.md 的 ## 小节推断；? 表示未识别到科目头" },
+        "title": { "type": "string", "description": "已剥掉旧条目的日期前缀，形如「OS-5-5.1 I/O管理概念」" },
+        "rate": { "type": "string", "pattern": "^(\\d+/\\d+)?$", "description": "「正确数/已提交数」，空串=该节缺正确率行（会被记为格式警告）" },
+        "pct": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/Mistake408Item" } },
+        "groups": { "type": "array", "items": { "$ref": "#/$defs/Mistake408Group" } }
+      }
+    },
+    "MistakeMathRow": {
+      "type": "object",
+      "required": ["q", "cause", "r1", "r2", "r3"],
+      "additionalProperties": false,
+      "properties": {
+        "q": { "type": "string", "description": "来源码+题号，如「例2」「习11」「A17」" },
+        "cause": { "$ref": "#/$defs/MdText", "description": "错因，可空" },
+        "r1": { "$ref": "#/$defs/ReviewCell" },
+        "r2": { "$ref": "#/$defs/ReviewCell" },
+        "r3": { "$ref": "#/$defs/ReviewCell" }
+      }
+    },
+    "MistakeMathSection": {
+      "type": "object",
+      "required": ["name", "meta", "rows"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/MdText" },
+        "meta": { "type": "string", "description": "紧跟的 > 📊 行内容，可空" },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/MistakeMathRow" } }
+      }
+    },
+    "EngpolWord": {
+      "type": "object",
+      "required": ["round", "method", "status", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "round": { "$ref": "#/$defs/MdText" },
+        "method": { "$ref": "#/$defs/MdText" },
+        "status": { "$ref": "#/$defs/MdText", "description": "未做状态词映射，此处保留 md 原文，App 侧自行按 StatusWord 语义解释" },
+        "note": { "$ref": "#/$defs/MdText" }
+      }
+    },
+    "EngpolReading": {
+      "type": "object",
+      "required": ["year", "t1", "t2", "t3", "t4", "rate", "date"],
+      "additionalProperties": false,
+      "properties": {
+        "year": { "type": "string", "description": "真题年份，如「2011」" },
+        "t1": { "type": "string" }, "t2": { "type": "string" },
+        "t3": { "type": "string" }, "t4": { "type": "string" },
+        "rate": { "$ref": "#/$defs/MdText" },
+        "date": { "type": "string" }
+      },
+      "description": "t1..t4 值为 md 原文（「完成」/空/…）；reading_total 即其中等于「完成」的单元数"
+    },
+    "EngpolSmall3": {
+      "type": "object",
+      "required": ["module", "round1", "round2", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "module": { "$ref": "#/$defs/MdText" },
+        "round1": { "$ref": "#/$defs/MdText" },
+        "round2": { "$ref": "#/$defs/MdText" },
+        "note": { "$ref": "#/$defs/MdText" }
+      }
+    },
+    "EngpolPolitics": {
+      "type": "object",
+      "required": ["stage", "time", "content", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "stage": { "$ref": "#/$defs/MdText" },
+        "time": { "$ref": "#/$defs/MdText" },
+        "content": { "$ref": "#/$defs/MdText" },
+        "status": { "$ref": "#/$defs/MdText" }
+      }
+    },
+    "DailyLog": {
+      "type": "object",
+      "required": ["date", "math", "four8", "english", "final", "hours", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "date": { "type": "string", "description": "md 原样，形如「9/19」或「7/1 」，App 侧不可直接当 ISO 日期排序" },
+        "math": { "$ref": "#/$defs/MdText" },
+        "four8": { "$ref": "#/$defs/MdText" },
+        "english": { "$ref": "#/$defs/MdText" },
+        "final": { "$ref": "#/$defs/MdText", "description": "期末考试科目列，非考研内容，可空" },
+        "hours": { "type": "string", "description": "有效时长，多为空" },
+        "note": { "$ref": "#/$defs/MdText", "description": "当日反思" }
+      }
+    },
+    "DashboardData": {
+      "type": "object",
+      "required": ["lectures", "subjects", "priorities", "r1Queue", "coop", "ds", "os", "net", "la", "r1", "cards", "r1Summary", "mistakes", "engpol", "dailyLog"],
+      "additionalProperties": false,
+      "properties": {
+        "lectures": { "type": "array", "items": { "$ref": "#/$defs/LectureRow" }, "minItems": 15, "maxItems": 15, "description": "高数 15 讲，顺序不保证，按 num 取用" },
+        "subjects": { "type": "array", "items": { "$ref": "#/$defs/SubjectRow" }, "minItems": 8, "maxItems": 8 },
+        "priorities": { "type": "array", "items": { "$ref": "#/$defs/PriorityRow" } },
+        "r1Queue": { "type": "array", "items": { "$ref": "#/$defs/R1QueueDay" } },
+        "coop": { "type": "array", "items": { "$ref": "#/$defs/ChapterRow" }, "description": "计算机组成原理" },
+        "ds": { "type": "array", "items": { "$ref": "#/$defs/ChapterRow" }, "description": "数据结构" },
+        "os": { "type": "array", "items": { "$ref": "#/$defs/ChapterRow" }, "description": "操作系统" },
+        "net": { "type": "array", "items": { "$ref": "#/$defs/ChapterRow" }, "description": "计算机网络" },
+        "la": { "type": "array", "items": { "$ref": "#/$defs/ChapterRow" }, "description": "线性代数，当前第0讲+19-24讲共 7 行；status 由生成器固定为 done" },
+        "r1": { "type": "array", "items": { "$ref": "#/$defs/R1Chapter" } },
+        "cards": {
+          "type": "object",
+          "required": ["overview", "four8", "r1"],
+          "additionalProperties": false,
+          "properties": {
+            "overview": { "type": "array", "items": { "$ref": "#/$defs/StatCard" }, "minItems": 3, "maxItems": 3 },
+            "four8": { "type": "array", "items": { "$ref": "#/$defs/StatCard" }, "minItems": 4, "maxItems": 4 },
+            "r1": { "type": "array", "items": { "$ref": "#/$defs/StatCard" }, "minItems": 4, "maxItems": 4 }
+          }
+        },
+        "r1Summary": {
+          "type": "object",
+          "required": ["title", "pct"],
+          "additionalProperties": false,
+          "properties": {
+            "title": { "type": "string" },
+            "pct": { "type": "integer", "minimum": 0, "maximum": 100, "description": "须等于 round(sum(r1.done)/sum(r1.total)*100)" }
+          }
+        },
+        "mistakes": {
+          "type": "object",
+          "required": ["f408", "math"],
+          "additionalProperties": false,
+          "properties": {
+            "f408": { "type": "array", "items": { "$ref": "#/$defs/Mistake408Section" } },
+            "math": { "type": "array", "items": { "$ref": "#/$defs/MistakeMathSection" } }
+          }
+        },
+        "engpol": {
+          "type": "object",
+          "required": ["words", "readings", "reading_total", "small3", "politics"],
+          "additionalProperties": false,
+          "properties": {
+            "words": { "type": "array", "items": { "$ref": "#/$defs/EngpolWord" } },
+            "readings": { "type": "array", "items": { "$ref": "#/$defs/EngpolReading" } },
+            "reading_total": { "type": "integer", "minimum": 0 },
+            "small3": { "type": "array", "items": { "$ref": "#/$defs/EngpolSmall3" } },
+            "politics": { "type": "array", "items": { "$ref": "#/$defs/EngpolPolitics" } }
+          }
+        },
+        "dailyLog": { "type": "array", "items": { "$ref": "#/$defs/DailyLog" }, "minItems": 1 }
+      }
+    }
+  }
+}

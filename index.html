@@ -684,7 +684,8 @@
       say('wdProg', '第 ' + p.maxQ + ' 题超出该节 ' + state.picked.count + ' 题范围，为安全起见不提交', 'var(--red)'); return;
     }
     var btn = this; btn.disabled = true;
-    state.results = { title: state.picked.title, sub: state.subject, rows: [], wrong: [] };
+    state.results = { title: state.picked.title, sub: state.subject,
+                      rows: [], wrong: [], expected: p.list.length };
 
     api('/app/questionBank/exerciseIds', { questionBankId: state.picked.bankId })
       .then(function (r) {
@@ -709,7 +710,9 @@
                 '　对 ' + state.results.rows.filter(function (x) { return x.right; }).length +
                 '　错 ' + state.results.wrong.length);
             i++;
-            return sleep(500 + Math.random() * 1000);   // 与 submit_wangdao.py:274 同节奏
+            // 必须 .then(one) 继续递归：只 return sleep() 会让整条链在第 1 题成功后就结束，
+            // 表现为"解析出 7 题却只提交 1 题"且毫无报错
+            return sleep(500 + Math.random() * 1000).then(one);   // 与 submit_wangdao.py:274 同节奏
           }).catch(function (e) {
             var m = String(e.message || e);
             state.results.rows.push({ q: a.q, opts: a.opts.join(','), err: m });
@@ -730,9 +733,20 @@
       btn.disabled = false;
       var r = state.results;
       var done = r.rows.filter(function (x) { return x.right !== undefined; });
-      if (!done.length) { $('wdResult').innerHTML = ''; return; }
-      say('wdProg', '完成：提交 ' + done.length + ' 题，对 ' + (done.length - r.wrong.length) +
-          '，错 ' + r.wrong.length, 'var(--green)');
+      // 不变式：尝试数必须等于解析出的题数。少一题就是没跑完，绝不能显示成"完成"
+      var partial = r.rows.length !== r.expected;
+      var msg;
+      if (!done.length) {
+        msg = '没有一题提交成功（尝试 ' + r.rows.length + '/' + r.expected + '）';
+      } else if (partial) {
+        msg = '⚠ 中断：只尝试了 ' + r.rows.length + '/' + r.expected + ' 题，对 ' +
+              (done.length - r.wrong.length) + '、错 ' + r.wrong.length +
+              '。剩余 ' + (r.expected - r.rows.length) + ' 题未提交，别当成完整一轮';
+      } else {
+        msg = '完成：提交 ' + done.length + ' 题，对 ' + (done.length - r.wrong.length) +
+              '，错 ' + r.wrong.length;
+      }
+      say('wdProg', msg, (done.length && !partial) ? 'var(--green)' : 'var(--red)');
       $('wdResult').innerHTML =
         '<table class="wd-res"><tr><th>#</th><th>我的</th><th>正确</th><th>结果</th></tr>' +
         r.rows.map(function (x) {
@@ -754,6 +768,9 @@
       + '对 ' + okN + '、错 ' + r.wrong.length + '，正确率 ' + okN + '/' + done.length + '\n'
       + '错题（题号 我的→正确）：'
       + (r.wrong.length ? r.wrong.map(function (x) { return x.q + ' ' + x.opts + '→' + x.correct; }).join('；') : '无')
+      + (r.rows.length !== r.expected
+          ? '\n⚠ 本轮中断：只尝试 ' + r.rows.length + '/' + r.expected + ' 题，正确率分母是已尝试数，勿按整节录入'
+          : '')
       + '\n（App 只提交判分，知识点提炼与 408错题本.md 录入仍需在电脑上进行）';
     var self = this;
     navigator.clipboard.writeText(txt).then(function () {

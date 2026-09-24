@@ -344,6 +344,16 @@
 
 <!-- ========== 错题本 ========== -->
 <div id="page-mistakes" class="page">
+  <!-- 错题集站点入口。默认隐藏，由文件末尾的 HEAD 探测决定显隐：
+       本地 file:// 打开或错题集尚未发布时探测 404，卡片保持隐藏，不会留下点了报错的死链。 -->
+  <div class="card" id="wbEntry" style="display:none;margin-bottom:12px;">
+    <div class="card-title">题目原图与完整解析</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <a class="wb-link" href="数学错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text-bright);text-decoration:none;">数学错题集</a>
+      <a class="wb-link" href="408错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text-bright);text-decoration:none;">408错题集</a>
+      <span style="font-size:11px;color:var(--text-dim);">公式已随站点发布，离线不可用</span>
+    </div>
+  </div>
   <div class="card" style="margin-bottom:12px;">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <div id="mkFilters" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -351,16 +361,6 @@
     </div>
   </div>
   <div id="mkList"></div>
-  <!-- 错题集站点入口。默认隐藏：题目截图是版权内容，只打进本地 APK，不发布到公开 Pages，
-       所以在浏览器里打开 Pages 时探测会 404、卡片保持隐藏。见文件末尾的探测脚本。 -->
-  <div class="card" id="wbEntry" style="display:none;margin-top:12px;">
-    <div class="card-title">题目原图与完整解析</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <a class="wb-link" href="数学错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-bright);text-decoration:none;">数学错题集</a>
-      <a class="wb-link" href="408错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--text-bright);text-decoration:none;">408错题集</a>
-      <span style="font-size:11px;color:var(--text-dim);">公式已随 App 内置，离线可看</span>
-    </div>
-  </div>
 </div>
 
 <!-- ========== 英语·政治 ========== -->

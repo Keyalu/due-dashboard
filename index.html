@@ -267,6 +267,7 @@
     <div class="drawer-tab" onclick="switchTab('r1')"><span class="icon">✅</span>R1清单</div>
     <div class="drawer-tab" onclick="switchTab('mistakes')"><span class="icon">❌</span>错题本</div>
     <div class="drawer-tab" onclick="switchTab('wrongbook')"><span class="icon">🖼️</span>错题集</div>
+    <div class="drawer-tab" onclick="switchTab('wangdao')"><span class="icon">📝</span>王道提交</div>
     <div class="drawer-tab" onclick="switchTab('daily')"><span class="icon">📝</span>每日记录</div>
     <div class="drawer-tab" onclick="switchTab('flashcard')"><span class="icon">🃏</span>闪卡</div>
   </div>
@@ -372,6 +373,358 @@
     </div>
   </div>
 </div>
+
+  <!-- ========== 王道提交（手工维护区，位于 DATA 生成区之外） ========== -->
+  <div id="page-wangdao" class="page">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title-lg">王道选择题提交器</div>
+      <div style="font-size:11px;color:var(--text-dim);line-height:1.7;">
+        在小程序里做完题，把答案串贴到这里提交、判分、看解析。<br>
+        <b>只提交，不写错题本</b>——提交完点「复制汇总」，回电脑贴给我录入。<br>
+        提交会真实写入你的王道账号进度，请先核对章节名与题数。
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">1 · Token</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input id="wdToken" type="password" placeholder="抓包得到的 Token（只存本机）"
+               style="flex:1;min-width:180px;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;outline:none;">
+        <button class="wd-btn" data-act="save">保存</button>
+        <button class="wd-btn" data-act="check">自检</button>
+      </div>
+      <div id="wdTokMsg" style="font-size:11px;color:var(--text-dim);margin-top:8px;">未保存。Token 只存在本机 localStorage，不会上传到任何地方。</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">2 · 科目与章节</div>
+      <div id="wdSubjects" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      <div style="margin-top:10px;">
+        <button class="wd-btn" data-act="load">加载章节列表</button>
+        <span id="wdLoadMsg" style="font-size:11px;color:var(--text-dim);margin-left:8px;"></span>
+      </div>
+      <div id="wdSections" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">3 · 答案串</div>
+      <textarea id="wdAnswers" rows="4" placeholder="例：CBDAB,AACBD,BAACC,DBABA,CABBA,B&#10;多选写成 (BD)；跳过的题写 (空)"
+                style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;font-family:monospace;outline:none;resize:vertical;"></textarea>
+      <div id="wdParse" style="font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.6;">等待输入…</div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title">4 · 提交</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="wd-btn wd-go" data-act="submit">开始提交</button>
+        <button class="wd-btn" data-act="copy" style="display:none;">复制汇总</button>
+      </div>
+      <div id="wdProg" style="font-size:11px;color:var(--text-dim);margin-top:8px;line-height:1.6;"></div>
+      <div id="wdResult"></div>
+    </div>
+  </div>
+
+<style>
+  .wd-btn { border:1px solid var(--border); background:var(--bg); color:var(--text);
+            border-radius:8px; padding:9px 14px; font-size:12px; cursor:pointer;
+            min-height:40px; font-family:inherit; }
+  .wd-btn.on { border-color:var(--blue); background:var(--blue-bg); color:var(--blue); font-weight:600; }
+  .wd-btn:disabled { opacity:.45; cursor:default; }
+  .wd-go { background:var(--green); border-color:var(--green); color:#fff; font-weight:600; }
+  .wd-sec { border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px;
+            font-size:12px; cursor:pointer; display:flex; gap:8px; align-items:center; }
+  .wd-sec.on { border-color:var(--blue); background:var(--blue-bg); }
+  .wd-sec .n { color:var(--text-dim); font-size:11px; }
+  .wd-ok { color:var(--green); }
+  .wd-no { color:var(--red); }
+  table.wd-res { width:100%; border-collapse:collapse; margin-top:10px; font-size:11px; }
+  table.wd-res th, table.wd-res td { border-bottom:1px solid var(--border); padding:5px 6px; text-align:left; }
+</style>
+
+<script>
+/* ==== 王道选择题提交器 ====
+   为什么章节列表要现查服务端：.agents/skills/wangdao-tiku/references/chapter-ids.md
+   那张表有带注释的单元格（207（192 同指一库））、重复行（CN 的 4.1/4.2 出现两次且名不同）、
+   列错位（4.4 那行第四列填的是名称），且计组整段没有 dictDataId 表。
+   把这种表内置进界面意味着"提交到错误题集"，会写坏账号真实进度，所以一律以服务端为准，
+   并把章节名+题数显示出来让人确认后再提交。
+
+   Token 只存本机 localStorage：本文件会随 Pages 公开，绝不能出现任何 token。 */
+(function () {
+  'use strict';
+  var API = 'https://xiao.cskaoyan.com';
+  var TK = 'wangdao-token';
+  var SUBJECTS = [
+    { key: 'DS', name: '数据结构', rootId: 21 },
+    { key: 'CO', name: '计算机组成', rootId: 43 },
+    { key: 'OS', name: '操作系统', rootId: 154 },
+    { key: 'CN', name: '计算机网络', rootId: 144 }
+  ];
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { subject: null, sections: null, picked: null, results: null };
+
+  function tok() { try { return localStorage.getItem(TK) || ''; } catch (e) { return ''; } }
+
+  function api(path, payload) {
+    // payload 为 null 走 GET；带 Token 头（服务端 CORS 已放行 token,content-type）
+    var opt = { method: payload ? 'POST' : 'GET',
+                headers: { Token: tok(), 'Content-Type': 'application/json' } };
+    if (payload) opt.body = JSON.stringify(payload);
+    return fetch(API + path, opt).then(function (r) {
+      if (r.status === 401 || r.status === 429) throw new Error('HTTP ' + r.status);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+
+  function say(id, msg, color) {
+    var el = $(id); if (!el) return;
+    el.textContent = msg;
+    el.style.color = color || 'var(--text-dim)';
+  }
+
+  /* ---- 答案串解析：与 wangdao-tiku skill 的规则保持一致 ---- */
+  function parseAnswers(text) {
+    var out = [], n = 1, err = [];
+    text.replace(/\s+/g, '').split(',').forEach(function (tok2) {
+      if (!tok2) return;
+      var m = tok2.match(/^\(([^)]*)\)$/);
+      if (m) {
+        if (m[1] === '空') { n++; return; }          // 跳过一题，不写入
+        out.push({ q: n++, opts: m[1].split('') });   // 多选：保持用户给的顺序
+        return;
+      }
+      tok2.split('').forEach(function (ch) {
+        if (ch === '空') { n++; return; }
+        if (!/[A-Z]/.test(ch)) { err.push('无法识别的字符「' + ch + '」'); return; }
+        out.push({ q: n++, opts: [ch] });
+      });
+    });
+    return { list: out, next: n, err: err };
+  }
+
+  function showParse() {
+    var box = $('wdAnswers'), p = parseAnswers(box.value);
+    var head = '解析出 <b>' + p.list.length + '</b> 题（题号 ' +
+      (p.list.length ? p.list[0].q + '–' + p.list[p.list.length - 1].q : '—') + '）';
+    if (state.picked) {
+      var total = state.picked.count;
+      head += '　该节题数 <b>' + (total || '?') + '</b>';
+      if (total && p.list.length > total) {
+        head += '<br><span class="wd-no">⚠ 答案数超过该节题数，可能选错章节，已禁止提交</span>';
+      }
+    }
+    var multi = p.list.filter(function (r) { return r.opts.length > 1; }).length;
+    if (multi) head += '　含多选 ' + multi + ' 题';
+    if (p.err.length) head += '<br><span class="wd-no">' + p.err.slice(0, 3).join('；') + '</span>';
+    head += '<br>预览：' + p.list.slice(0, 12).map(function (r) {
+      return r.q + ':' + r.opts.join('');
+    }).join('  ') + (p.list.length > 12 ? ' …' : '');
+    $('wdParse').innerHTML = head;
+    return p;
+  }
+
+  /* ---- Token ---- */
+  document.querySelector('#page-wangdao [data-act=save]').onclick = function () {
+    var v = $('wdToken').value.trim();
+    if (!v) { say('wdTokMsg', '先粘贴 token', 'var(--red)'); return; }
+    try { localStorage.setItem(TK, v); } catch (e) { say('wdTokMsg', '本机存储不可用', 'var(--red)'); return; }
+    $('wdToken').value = '已保存（' + v.length + ' 字符）';
+    say('wdTokMsg', '已存到本机 localStorage。本页面公开在 Pages 上，token 不会出现在页面源码里。', 'var(--green)');
+  };
+  document.querySelector('#page-wangdao [data-act=check]').onclick = function () {
+    if (!tok()) { say('wdTokMsg', '还没有 token', 'var(--red)'); return; }
+    say('wdTokMsg', '自检中…');
+    api('/app/questionBank/nodeCounts?rootId=154').then(function (j) {
+      var n = j && j.data && typeof j.data === 'object' ? Object.keys(j.data).length : 0;
+      if (!n) throw new Error('返回空数据（多半是 token 过期）');
+      say('wdTokMsg', '✓ token 有效，OS 返回 ' + n + ' 个章节节点', 'var(--green)');
+    }).catch(function (e) {
+      var m = String(e.message || e);
+      say('wdTokMsg', (m.indexOf('401') >= 0 ? '✗ 401：token 已过期，去小程序重新抓包'
+        : m.indexOf('Failed to fetch') >= 0 ? '✗ 请求被拒（CORS 或无网络）：' + m : '✗ ' + m), 'var(--red)');
+    });
+  };
+
+  /* ---- 科目 ---- */
+  function renderSubjects() {
+    $('wdSubjects').innerHTML = SUBJECTS.map(function (s) {
+      return '<button class="wd-btn' + (state.subject === s.key ? ' on' : '') +
+             '" data-sub="' + s.key + '">' + s.name + '</button>';
+    }).join('');
+    Array.prototype.forEach.call($('wdSubjects').querySelectorAll('[data-sub]'), function (b) {
+      b.onclick = function () {
+        state.subject = b.getAttribute('data-sub'); state.sections = null; state.picked = null;
+        renderSubjects(); $('wdSections').innerHTML = '';
+        say('wdLoadMsg', '点「加载章节列表」向服务端查询该科章节（约需十几秒）');
+      };
+    });
+  }
+  renderSubjects();
+
+  /* ---- 章节枚举：nodeCounts 只给 id→题数，名字要逐节 list ---- */
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  document.querySelector('#page-wangdao [data-act=load]').onclick = function () {
+    var btn = this;
+    if (!tok()) { say('wdLoadMsg', '先保存 token', 'var(--red)'); return; }
+    if (!state.subject) { say('wdLoadMsg', '先选科目', 'var(--red)'); return; }
+    var sub = SUBJECTS.filter(function (s) { return s.key === state.subject; })[0];
+    btn.disabled = true; state.picked = null;
+    say('wdLoadMsg', '取章节节点…');
+    api('/app/questionBank/nodeCounts?rootId=' + sub.rootId).then(function (j) {
+      var counts = j && j.data;
+      if (!counts || typeof counts !== 'object') throw new Error('nodeCounts 返回异常');
+      var ids = Object.keys(counts);
+      state.sections = [];
+      var i = 0;
+      function next() {
+        if (i >= ids.length) return Promise.resolve();
+        var id = ids[i];
+        return api('/app/questionBank/list', { dictDataId: Number(id), pageNum: 1, pageSize: 10, isAll: 1 })
+          .then(function (r) {
+            var it = (r.data && r.data.list && r.data.list[0]) || null;
+            state.sections.push({ dictDataId: Number(id), count: counts[id],
+                                  bankId: it ? (it.questionBankId || it.id) : null,
+                                  title: it ? (it.title || it.name || '') : '（取标题失败）' });
+          })
+          .catch(function () {
+            state.sections.push({ dictDataId: Number(id), count: counts[id], bankId: null, title: '（取标题失败）' });
+          })
+          .then(function () { i++; return sleep(200); })   // 与 PC 脚本同量级节流
+          .then(next);
+      }
+      return next().then(function () { return ids.length; });
+    }).then(function (n) {
+      btn.disabled = false;
+      say('wdLoadMsg', '✓ 已取到 ' + n + ' 节，请核对章节名与题数后选择', 'var(--green)');
+      renderSections(sub);
+    }).catch(function (e) {
+      btn.disabled = false;
+      say('wdLoadMsg', '✗ ' + e.message, 'var(--red)');
+    });
+  };
+
+  function renderSections(sub) {
+    var list = state.sections.slice().sort(function (a, b) {
+      return String(a.title).localeCompare(String(b.title), 'zh');
+    });
+    $('wdSections').innerHTML = list.map(function (s, idx) {
+      return '<div class="wd-sec" data-i="' + idx + '"><span>' + (s.title || '（无标题）') +
+             '</span><span class="n">dictDataId ' + s.dictDataId + ' · ' + s.count + ' 题</span></div>';
+    }).join('');
+    Array.prototype.forEach.call($('wdSections').querySelectorAll('.wd-sec'), function (el) {
+      el.onclick = function () {
+        state.picked = list[Number(el.getAttribute('data-i'))];
+        Array.prototype.forEach.call($('wdSections').querySelectorAll('.wd-sec'), function (x) {
+          x.classList.remove('on');
+        });
+        el.classList.add('on');
+        say('wdLoadMsg', '已选：' + state.picked.title + '（' + state.picked.count + ' 题）', 'var(--green)');
+        showParse();
+      };
+    });
+  }
+
+  $('wdAnswers').addEventListener('input', showParse);
+
+  /* ---- 提交 ---- */
+  document.querySelector('#page-wangdao [data-act=submit]').onclick = function () {
+    if (!tok() || !state.subject || !state.picked) {
+      say('wdProg', '先完成 token 自检、选科目并加载章节、选中具体一节', 'var(--red)'); return;
+    }
+    var p = showParse();
+    if (!p.list.length) { say('wdProg', '答案串为空', 'var(--red)'); return; }
+    if (state.picked.count && p.list.length > state.picked.count) {
+      say('wdProg', '答案数超过该节题数，为安全起见不提交', 'var(--red)'); return;
+    }
+    var btn = this; btn.disabled = true;
+    state.results = { title: state.picked.title, sub: state.subject, rows: [], wrong: [] };
+
+    api('/app/questionBank/exerciseIds', { questionBankId: state.picked.bankId })
+      .then(function (r) {
+        var ids = r.data || [];
+        if (!ids.length) throw new Error('该节没取到 exerciseId');
+        var i = 0;
+        function one() {
+          if (i >= p.list.length) return Promise.resolve();
+          var a = p.list[i], id = ids[a.q - 1];
+          if (!id) { state.results.rows.push({ q: a.q, opts: a.opts.join(''), skip: '无 exerciseId' }); i++; return one(); }
+          return api('/app/exam/userSubmit', {
+            exerciseId: id, questionType: 0, userAnswer: a.opts,
+            pageNum: 2, isReal: 0, type: 2
+          }).then(function (j) {
+            if (j.code !== 200) throw new Error('code=' + j.code + ' ' + (j.message || ''));
+            var d = j.data || {};
+            var row = { q: a.q, opts: a.opts.join(','), right: !!d.right,
+                        correct: d.answerVals == null ? '?' : d.answerVals };
+            state.results.rows.push(row);
+            if (!row.right) state.results.wrong.push(row);
+            say('wdProg', '已提交 ' + (i + 1) + '/' + p.list.length +
+                '　对 ' + state.results.rows.filter(function (x) { return x.right; }).length +
+                '　错 ' + state.results.wrong.length);
+            i++;
+            return sleep(500 + Math.random() * 1000);   // 与 submit_wangdao.py:274 同节奏
+          }).catch(function (e) {
+            var m = String(e.message || e);
+            state.results.rows.push({ q: a.q, opts: a.opts.join(','), err: m });
+            if (m.indexOf('401') >= 0 || m.indexOf('429') >= 0) {
+              say('wdProg', '✗ ' + m + '：已按要求停止，不重试轰炸。'
+                  + (m.indexOf('401') >= 0 ? '请重新抓包更新 token。' : ''), 'var(--red)');
+              return Promise.reject({ stop: true });
+            }
+            i++; return sleep(800).then(one);
+          });
+        }
+        return one().then(function () { return true; });
+      })
+      .then(function () { finish(); })
+      .catch(function (e) { if (!e || !e.stop) say('wdProg', '✗ ' + (e.message || '中断'), 'var(--red)'); finish(); });
+
+    function finish() {
+      btn.disabled = false;
+      var r = state.results;
+      var done = r.rows.filter(function (x) { return x.right !== undefined; });
+      if (!done.length) { $('wdResult').innerHTML = ''; return; }
+      say('wdProg', '完成：提交 ' + done.length + ' 题，对 ' + (done.length - r.wrong.length) +
+          '，错 ' + r.wrong.length, 'var(--green)');
+      $('wdResult').innerHTML =
+        '<table class="wd-res"><tr><th>#</th><th>我的</th><th>正确</th><th>结果</th></tr>' +
+        r.rows.map(function (x) {
+          return '<tr><td>' + x.q + '</td><td>' + x.opts + '</td><td>' +
+            (x.correct == null ? '—' : x.correct) + '</td><td class="' +
+            (x.right ? 'wd-ok' : 'wd-no') + '">' +
+            (x.err ? '失败:' + x.err : (x.skip || (x.right ? '✓' : '✗'))) + '</td></tr>';
+        }).join('') + '</table>';
+      document.querySelector('#page-wangdao [data-act=copy]').style.display = '';
+    }
+  };
+
+  /* ---- 汇总文本：交回 PC 由 AI 提炼知识点并录入错题本 ---- */
+  document.querySelector('#page-wangdao [data-act=copy]').onclick = function () {
+    var r = state.results; if (!r) return;
+    var done = r.rows.filter(function (x) { return x.right !== undefined; });
+    var okN = done.length - r.wrong.length;
+    var txt = r.sub + ' ' + r.title + '（选择题）：提交 ' + done.length + ' 题，'
+      + '对 ' + okN + '、错 ' + r.wrong.length + '，正确率 ' + okN + '/' + done.length + '\n'
+      + '错题（题号 我的→正确）：'
+      + (r.wrong.length ? r.wrong.map(function (x) { return x.q + ' ' + x.opts + '→' + x.correct; }).join('；') : '无')
+      + '\n（App 只提交判分，知识点提炼与 408错题本.md 录入仍需在电脑上进行）';
+    var self = this;
+    navigator.clipboard.writeText(txt).then(function () {
+      self.textContent = '已复制 ✓';
+      setTimeout(function () { self.textContent = '复制汇总'; }, 1800);
+    }).catch(function () {
+      // WebView 无剪贴板权限时退化成可选中的文本框
+      self.style.display = 'none';
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.style.cssText = 'width:100%;min-height:110px;margin-top:8px;font-size:11px';
+      $('wdResult').appendChild(ta); ta.select();
+      say('wdProg', '剪贴板不可用，已改为文本框，长按全选复制', 'var(--yellow)');
+    });
+  };
+})();
+</script>
 
 <!-- ========== 英语·政治 ========== -->
 <div id="page-engpol" class="page">

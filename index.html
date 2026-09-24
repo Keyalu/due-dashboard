@@ -266,6 +266,7 @@
     <div class="drawer-tab" onclick="switchTab('engpol')"><span class="icon">📖</span>英语·政治</div>
     <div class="drawer-tab" onclick="switchTab('r1')"><span class="icon">✅</span>R1清单</div>
     <div class="drawer-tab" onclick="switchTab('mistakes')"><span class="icon">❌</span>错题本</div>
+    <div class="drawer-tab" onclick="switchTab('wrongbook')"><span class="icon">🖼️</span>错题集</div>
     <div class="drawer-tab" onclick="switchTab('daily')"><span class="icon">📝</span>每日记录</div>
     <div class="drawer-tab" onclick="switchTab('flashcard')"><span class="icon">🃏</span>闪卡</div>
   </div>
@@ -344,16 +345,6 @@
 
 <!-- ========== 错题本 ========== -->
 <div id="page-mistakes" class="page">
-  <!-- 错题集站点入口。默认隐藏，由文件末尾的 HEAD 探测决定显隐：
-       本地 file:// 打开或错题集尚未发布时探测 404，卡片保持隐藏，不会留下点了报错的死链。 -->
-  <div class="card" id="wbEntry" style="display:none;margin-bottom:12px;">
-    <div class="card-title">题目原图与完整解析</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <a class="wb-link" href="数学错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text-bright);text-decoration:none;">数学错题集</a>
-      <a class="wb-link" href="408错题集/index.html" style="border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text-bright);text-decoration:none;">408错题集</a>
-      <span style="font-size:11px;color:var(--text-dim);">公式已随站点发布，离线不可用</span>
-    </div>
-  </div>
   <div class="card" style="margin-bottom:12px;">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
       <div id="mkFilters" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
@@ -361,6 +352,25 @@
     </div>
   </div>
   <div id="mkList"></div>
+</div>
+
+
+<!-- ========== 错题集 ========== -->
+<div id="page-wrongbook" class="page">
+  <div class="card" style="margin-bottom:12px;">
+    <div class="card-title-lg">错题集站点</div>
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">
+      每道题一张独立页：题目原图 + 完整解析 + LaTeX 公式。
+      随 Pages 发布，<b>需联网</b>打开；公式已随站点本地化，不依赖外部 CDN。
+    </div>
+    <div id="wbEntry" style="display:none;flex-direction:column;gap:10px;">
+      <a class="wb-link" href="数学错题集/index.html" style="display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:10px 16px;border:1px solid var(--border);background:var(--bg);border-radius:10px;font-size:14px;font-weight:600;color:var(--text-bright);text-decoration:none;">数学错题集<span style="font-size:12px;color:var(--text-dim);">打开 →</span></a>
+      <a class="wb-link" href="408错题集/index.html" style="display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:10px 16px;border:1px solid var(--border);background:var(--bg);border-radius:10px;font-size:14px;font-weight:600;color:var(--text-bright);text-decoration:none;">408错题集<span style="font-size:12px;color:var(--text-dim);">打开 →</span></a>
+    </div>
+    <div id="wbOff" style="font-size:12px;color:var(--yellow);line-height:1.6;">
+      未检测到错题集站点。需联网加载，或确认已运行 python 部署看板.py。
+    </div>
+  </div>
 </div>
 
 <!-- ========== 英语·政治 ========== -->
@@ -7637,13 +7647,13 @@ updateCountdown();
 </script>
 <script>
 /* ==== 错题集入口探测 ====
-   错题集只随 APK 本地打包，不发布到公开 Pages（题目截图属版权内容）。
-   所以同一份看板既要在 App 里显示入口、又要在浏览器打开 Pages 时不显示——
-   用一次 HEAD 探测判断该路径是否存在，比按 userAgent 或域名猜可靠得多。
+   错题集是随 Pages 发布的独立站点。这里用一次 HEAD 探测判断它在不在：
+   本地 file:// 打开、离线、或尚未部署时探测失败，就显示提示而不是留下点了报错的死链。
    这段必须独立成一块：上面那段 PWA 外壳脚本在非 https / iframe 里会提前 return。 */
 (function () {
   var card = document.getElementById('wbEntry');
   if (!card) return;
+  var off = document.getElementById('wbOff');
   var links = Array.prototype.slice.call(card.querySelectorAll('.wb-link'));
   var alive = 0;
   links.forEach(function (a) {
@@ -7653,7 +7663,8 @@ updateCountdown();
       })
       .catch(function () { a.style.display = 'none'; })
       .then(function () {
-        card.style.display = alive ? '' : 'none';
+        if (alive) { card.style.display = 'flex'; if (off) off.style.display = 'none'; }
+        else if (off) { card.style.display = 'none'; off.style.display = ''; }
       });
   });
 })();

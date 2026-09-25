@@ -251,9 +251,24 @@
     <span></span><span></span><span></span>
   </div>
   <div class="app-title">考研进度看板</div>
-  <div class="header-countdown"><span class="num" id="daysLeft">--</span><span>天</span></div>
+  <div class="header-countdown" id="countdownBtn" onclick="toggleCalendar()" style="cursor:pointer" title="点击查看日历"><span class="num" id="daysLeft">--</span><span>天</span></div>
 </div>
 
+<!-- 日历弹窗 -->
+<div id="calendarPop" style="display:none;position:fixed;top:54px;right:12px;z-index:200;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:280px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <button onclick="changeMonth(-1)" style="border:none;background:none;cursor:pointer;font-size:16px;padding:4px 8px;">‹</button>
+    <div id="calTitle" style="font-weight:600;font-size:14px;"></div>
+    <button onclick="changeMonth(1)" style="border:none;background:none;cursor:pointer;font-size:16px;padding:4px 8px;">›</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;color:var(--text-dim);margin-bottom:4px;">
+    <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div style="color:var(--orange)">六</div><div style="color:var(--orange)">日</div>
+  </div>
+  <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;"></div>
+  <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);text-align:center;">
+    🎯 考研日 <b style="color:var(--orange)">2026-12-19</b>
+  </div>
+</div>
 <!-- 抽屉遮罩 -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
@@ -7827,6 +7842,54 @@ function updateCountdown() {
   const diff=Math.max(0,Math.ceil((new Date('2026-12-19')-new Date())/86400000));
   document.getElementById('daysLeft').textContent=diff;
 }
+// ==== 日历弹窗 ====
+let calYear, calMonth;
+function toggleCalendar(){
+  const p=document.getElementById('calendarPop');
+  if(p.style.display==='none'){
+    const now=new Date();
+    calYear=now.getFullYear(); calMonth=now.getMonth();
+    renderCalendar();
+    p.style.display='block';
+  } else p.style.display='none';
+}
+function changeMonth(d){
+  calMonth+=d;
+  if(calMonth<0){calMonth=11;calYear--;}
+  if(calMonth>11){calMonth=0;calYear++;}
+  renderCalendar();
+}
+function renderCalendar(){
+  document.getElementById('calTitle').textContent=calYear+'年'+(calMonth+1)+'月';
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='';
+  const today=new Date();
+  const exam=new Date('2026-12-19');
+  const firstDay=new Date(calYear,calMonth,1);
+  // 周一为一周开始：JS getDay() 周日=0，转成周一=0
+  let startOffset=(firstDay.getDay()+6)%7;
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  for(let i=0;i<startOffset;i++){grid.innerHTML+='<div></div>';}
+  for(let d=1;d<=daysInMonth;d++){
+    const cellDate=new Date(calYear,calMonth,d);
+    const isToday=cellDate.toDateString()===today.toDateString();
+    const isExam=cellDate.toDateString()===exam.toDateString();
+    const dow=cellDate.getDay();
+    let bg='',color='var(--text)';
+    if(dow===0||dow===6) color='var(--orange)';
+    if(isToday){bg='var(--blue)';color='#fff';}
+    if(isExam){bg='var(--orange)';color='#fff';}
+    grid.innerHTML+='<div style="padding:4px 0;border-radius:4px;background:'+bg+';color:'+color+';font-weight:'+(isToday||isExam?'700':'400')+'">'+d+'</div>';
+  }
+}
+// 点击外部关闭日历
+document.addEventListener('click',function(e){
+  const p=document.getElementById('calendarPop');
+  const btn=document.getElementById('countdownBtn');
+  if(p.style.display==='block' && !p.contains(e.target) && !btn.contains(e.target)){
+    p.style.display='none';
+  }
+});
 function statCard(c){
   return `<div class="card"><div class="stat-value" style="color:${c.color||'var(--text)'}">${c.value}</div><div class="stat-label">${c.label}</div><div class="stat-sub">${c.sub||''}</div></div>`;
 }

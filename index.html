@@ -7845,6 +7845,19 @@ function updateCountdown() {
   document.getElementById('daysLeft').textContent=diff;
 }
 // ==== 日历弹窗 ====
+const CALENDAR_DATA = {
+  '2026-09-07':{math:'15讲1ka R1(12错)',cs:'CN 2.1-2.3物理层(64/75/89%)',en:'2015text1+单词',note:'1ka R1 12错'},
+  '2026-09-08':{cs:'CN 3.1-3.4数据链路层(4+1+8+25题)',note:'3.4窗口规则待巩固'},
+  '2026-09-09':{math:'积分大观·有理函数',cs:'错题录入2道(CRC/SR)',note:'SR反例三步法'},
+  '2026-09-12':{cs:'CN 3.5介质访问控制(21/21全对)',note:'链路层收官'},
+  '2026-09-14':{math:'积分大观·含根式+有理函数',cs:'CN 3.6-3.8(74/75/78%)',note:'第3章全量收官'},
+  '2026-09-15':{en:'2015年text1+text2',note:'英语阅读恢复'},
+  '2026-09-22':{math:'数二2008真题：选填全对，大题19起全错',note:'大题计算/证明短板'},
+  '2026-09-23':{cs:'CN 4.3 IPv6全对+4.4前22题全对',en:'词汇错28词',note:'4.3+4.4前22全对'},
+  '2026-09-24':{cs:'CN 4.4 23-27(错25:RIP坏消息)',en:'词汇错20+(rub/rob形近)',note:'4.4共错1题96%'},
+  '2026-09-25':{cs:'项目迁移due研App同步',en:'词汇连线全对，默写错strife等',note:'闪卡分类+云母日历'},
+  '2026-09-26':{note:'📋 今日待办（待23:00自动更新）'},
+};
 let calYear, calMonth;
 function toggleCalendar(){
   const p=document.getElementById('calendarPop');
@@ -7861,27 +7874,53 @@ function changeMonth(d){
   if(calMonth>11){calMonth=0;calYear++;}
   renderCalendar();
 }
+function pad(n){return n<10?'0'+n:''+n;}
+function showCalDetail(y,m,d){
+  const key=y+'-'+pad(m)+'-'+pad(d);
+  const detail=document.getElementById('calDetail');
+  const data=CALENDAR_DATA[key];
+  const today=new Date();
+  const isToday=key===today.getFullYear()+'-'+pad(today.getMonth())+'-'+pad(today.getDate());
+  if(data||isToday){
+    let html='<div style="font-weight:600;margin-bottom:4px;color:var(--text-bright)">'+y+'/'+m+'/'+d+(isToday?' · 今天':'')+'</div>';
+    if(data){
+      if(data.math) html+='<div style="margin:2px 0">📐 '+data.math+'</div>';
+      if(data.cs) html+='<div style="margin:2px 0">💻 '+data.cs+'</div>';
+      if(data.en) html+='<div style="margin:2px 0">📖 '+data.en+'</div>';
+      if(data.note) html+='<div style="margin:2px 0;color:var(--text-dim)">💭 '+data.note+'</div>';
+    } else if(isToday){
+      html+='<div style="color:var(--text-dim)">今日记录待更新…</div>';
+    }
+    detail.innerHTML=html;
+    detail.style.display='block';
+  } else {
+    detail.style.display='none';
+  }
+}
 function renderCalendar(){
   document.getElementById('calTitle').textContent=calYear+'年'+(calMonth+1)+'月';
   const grid=document.getElementById('calGrid');
   grid.innerHTML='';
+  document.getElementById('calDetail').style.display='none';
   const today=new Date();
   const exam=new Date('2026-12-19');
   const firstDay=new Date(calYear,calMonth,1);
-  // 周一为一周开始：JS getDay() 周日=0，转成周一=0
   let startOffset=(firstDay.getDay()+6)%7;
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   for(let i=0;i<startOffset;i++){grid.innerHTML+='<div></div>';}
   for(let d=1;d<=daysInMonth;d++){
     const cellDate=new Date(calYear,calMonth,d);
+    const key=calYear+'-'+pad(calMonth)+'-'+pad(d);
     const isToday=cellDate.toDateString()===today.toDateString();
     const isExam=cellDate.toDateString()===exam.toDateString();
+    const hasData=!!CALENDAR_DATA[key];
     const dow=cellDate.getDay();
     let bg='',color='var(--text)';
     if(dow===0||dow===6) color='var(--orange)';
     if(isToday){bg='var(--blue)';color='#fff';}
     if(isExam){bg='var(--orange)';color='#fff';}
-    grid.innerHTML+='<div style="padding:4px 0;border-radius:4px;background:'+bg+';color:'+color+';font-weight:'+(isToday||isExam?'700':'400')+'">'+d+'</div>';
+    const dot=hasData?'<div style="width:4px;height:4px;border-radius:50%;background:'+(isToday?'#fff':'var(--green)')+';margin:2px auto 0;"></div>':'';
+    grid.innerHTML+='<div onclick="showCalDetail('+calYear+','+calMonth+','+d+')" style="padding:4px 0;border-radius:4px;background:'+bg+';color:'+color+';font-weight:'+(isToday||isExam?'700':'400')+';cursor:'+(hasData||isToday?'pointer':'default')+'">'+d+dot+'</div>';
   }
 }
 // 点击外部关闭日历

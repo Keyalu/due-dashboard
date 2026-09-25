@@ -7876,13 +7876,13 @@ function changeMonth(d){
 }
 function pad(n){return n<10?'0'+n:''+n;}
 function showCalDetail(y,m,d){
-  const key=y+'-'+pad(m)+'-'+pad(d);
+  const key=y+'-'+pad(m+1)+'-'+pad(d);
   const detail=document.getElementById('calDetail');
   const data=CALENDAR_DATA[key];
   const today=new Date();
   const isToday=key===today.getFullYear()+'-'+pad(today.getMonth())+'-'+pad(today.getDate());
   if(data||isToday){
-    let html='<div style="font-weight:600;margin-bottom:4px;color:var(--text-bright)">'+y+'/'+m+'/'+d+(isToday?' · 今天':'')+'</div>';
+    let html='<div style="font-weight:600;margin-bottom:4px;color:var(--text-bright)">'+y+'/'+(m+1)+'/'+d+(isToday?' · 今天':'')+'</div>';
     if(data){
       if(data.math) html+='<div style="margin:2px 0">📐 '+data.math+'</div>';
       if(data.cs) html+='<div style="margin:2px 0">💻 '+data.cs+'</div>';
@@ -7910,7 +7910,7 @@ function renderCalendar(){
   for(let i=0;i<startOffset;i++){grid.innerHTML+='<div></div>';}
   for(let d=1;d<=daysInMonth;d++){
     const cellDate=new Date(calYear,calMonth,d);
-    const key=calYear+'-'+pad(calMonth)+'-'+pad(d);
+    const key=calYear+'-'+pad(calMonth+1)+'-'+pad(d);
     const isToday=cellDate.toDateString()===today.toDateString();
     const isExam=cellDate.toDateString()===exam.toDateString();
     const hasData=!!CALENDAR_DATA[key];

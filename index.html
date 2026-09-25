@@ -235,6 +235,8 @@
   .fc-tag.CO { background:#fce7f3; color:#9d174d; }
   .fc-tag.CN { background:#d1fae5; color:#065f46; }
   .fc-tag.EN { background:#ede9fe; color:#5b21b6; }
+  .fc-filter-btn { padding:4px 12px; border:1px solid var(--border); border-radius:14px; background:var(--bg); cursor:pointer; font-size:12px; }
+  .fc-filter-btn.active { background:var(--text); color:var(--bg); }
   .fc-a { padding:12px 14px; font-size:12px; line-height:1.6; color:var(--text); display:none; border-top:1px solid var(--border); }
   .fc-a.show { display:block; }
   .fc-btn { font-size:11px; color:var(--blue); white-space:nowrap; }
@@ -831,11 +833,20 @@
 <div id="page-flashcard" class="page">
   <div class="grid grid-1">
     <div class="card">
-      <div class="card-title">408 薄弱点闪卡 <span style="font-weight:400;font-size:11px;color:var(--text-dim)">（点击"查看答案"翻面）</span></div>
+      <div class="card-title">📇 闪卡 <span style="font-weight:400;font-size:11px;color:var(--text-dim)">（点击"查看答案"翻面）</span></div>
+      <div id="fcFilter" style="margin:8px 0 12px;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="fc-filter-btn active" data-sub="ALL">全部</button>
+        <button class="fc-filter-btn" data-sub="DS">DS</button>
+        <button class="fc-filter-btn" data-sub="OS">OS</button>
+        <button class="fc-filter-btn" data-sub="CO">CO</button>
+        <button class="fc-filter-btn" data-sub="CN">CN</button>
+        <button class="fc-filter-btn" data-sub="EN">EN英语</button>
+      </div>
       <div id="flashcardList"></div>
     </div>
   </div>
 </div>
+<script src="flashcards_en.js"></script>
 <script>
 // ==== DATA:GENERATED-BEGIN（此区块由 生成看板.py 自动生成，勿手改） ====
 const DATA = {
@@ -7779,10 +7790,12 @@ const FLASHCARDS = [
   {sub:'CN', hard:false, q:'Bellman-Ford 是不是动态规划？', a:'是。本质是DP：对每条边松弛n-1轮，dp[v]=min(dp[v], dp[u]+w(u,v))，可处理负权边'},
   {sub:'CN', hard:false, q:'Dijkstra 算法时间复杂度？', a:'数组实现 O(n²)；优先队列优化 O((n+e)log n)；不能处理负权边'}
 ];
-(function(){
-  if (window.EN_FLASHCARDS) FLASHCARDS.push(...window.EN_FLASHCARDS);
+function renderFlashcards(sub){
+  if (window.EN_FLASHCARDS && !FLASHCARDS._enPushed) { FLASHCARDS.push(...window.EN_FLASHCARDS); FLASHCARDS._enPushed = true; }
   const box = document.getElementById('flashcardList');
-  FLASHCARDS.forEach((f,i)=>{
+  box.innerHTML = '';
+  FLASHCARDS.forEach((f)=>{
+    if (sub && sub!=='ALL' && f.sub!==sub) return;
     const div = document.createElement('div');
     div.className = 'fc-card';
     div.innerHTML = '<div class="fc-q" onclick="this.nextElementSibling.classList.toggle(\'show\');this.querySelector(\'.fc-btn\').textContent=this.nextElementSibling.classList.contains(\'show\')?\'收起答案\':\'查看答案\'">'+
@@ -7791,7 +7804,15 @@ const FLASHCARDS = [
       '<div class="fc-a">'+f.a+'</div>';
     box.appendChild(div);
   });
-})();
+}
+renderFlashcards('ALL');
+document.querySelectorAll('.fc-filter-btn').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('.fc-filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFlashcards(btn.dataset.sub);
+  };
+});
 
 function toggleDrawer() {
   document.getElementById('drawer').classList.toggle('active');
@@ -8124,6 +8145,5 @@ updateCountdown();
   });
 })();
 </script>
-<script src="flashcards_en.js"></script>
 </body>
 </html>

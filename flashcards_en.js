@@ -80,5 +80,35 @@ window.EN_FLASHCARDS = [
   {sub:'EN', hard:false, q:'<span class="en-word">stale</span> 什么意思？', a:'adj.陈腐的，不新鲜的<br>stale news 过时的新闻'},
   {sub:'EN', hard:false, q:'<span class="en-word">staple</span> 什么意思？', a:'n.主食；订书钉；adj.主要的<br>staple food 主食'},
   {sub:'EN', hard:false, q:'<span class="en-word">tram</span> 什么意思？', a:'n.有轨电车（英式常用，阅读可能提及交通工具）'},
-  {sub:'EN', hard:true, q:'<span class="en-word">tragic</span> 是"策略"吗？', a:'不是！策略=strategic<br><span class="en-word">tragic</span> adj.悲剧的，悲惨的（tragedy的形容词）'}
+  {sub:'EN', hard:true, q:'<span class="en-word">tragic</span> 是"策略"吗？', a:'不是！策略=strategic<br><span class="en-word">tragic</span> adj.悲剧的，悲惨的（tragedy的形容词）'},
+  // === 10/24 连线自测：artery/contrive串行+漏5词 ===
+  {sub:'EN', hard:true, q:'<span class="en-word">artery</span> 是"设计谋划"吗？', a:'不是！设计/谋划=contrive<br><span class="en-word">artery</span> n.动脉，要道，干线（引申：交通大动脉 main artery）'},
+  {sub:'EN', hard:true, q:'<span class="en-word">contrive</span> 是"动脉"吗？', a:'不是！动脉=artery<br><span class="en-word">contrive</span> v.设计，想出，谋划；设法做到<br>con(一起)+trive联想try=想尽办法'},
+  {sub:'EN', hard:false, q:'<span class="en-word">dissipate</span> 什么意思？', a:'v.消散，驱散；浪费，挥霍（精力/财富散失，考研常考）'},
+  {sub:'EN', hard:false, q:'<span class="en-word">prevail</span> 什么意思？', a:'v.流行，盛行；占优势<br>prevail over/against 战胜，压倒'},
+  {sub:'EN', hard:false, q:'<span class="en-word">rigorous</span> 什么意思？', a:'adj.严格的，严厉的；严酷的<br>rigorous testing 严格测试'},
+  {sub:'EN', hard:false, q:'<span class="en-word">transcend</span> 什么意思？', a:'v.超越，胜过<br>trans(跨越)+scend(爬)=爬过去→超越'},
+  {sub:'EN', hard:true, q:'<span class="en-word">interfere</span> vs <span class="en-word">intervene</span>？', a:'<span class="en-word">interfere</span> 干扰/妨碍（贬义），interfere with<br><span class="en-word">intervene</span> 介入/调停（中性），第三方介入阻止冲突<br>Don\'t interfere with my work.'},
+  // === 10/24 词义默写：botany/article/distress ===
+  {sub:'EN', hard:true, q:'<span class="en-word">botany</span> 是"垄断"吗？', a:'不是！垄断=monopoly<br><span class="en-word">botany</span> n.植物学（词根botan植物，botanist植物学家）'},
+  {sub:'EN', hard:false, q:'<span class="en-word">article</span> 是"画作"吗？', a:'不是！画作=artwork/painting<br><span class="en-word">article</span> n.文章；物品；条款；冠词（最常考"文章"，法律语境"条款"）'},
+  {sub:'EN', hard:true, q:'<span class="en-word">distress</span> 是"减轻压力"吗？', a:'不是！减轻压力=relieve stress<br><span class="en-word">distress</span> n.痛苦，悲伤；v.使痛苦<br>dis(加强)+stress(压力)=处于巨大压力下→痛苦'},
+  {sub:'EN', hard:false, q:'<span class="en-word">bottom</span> 的词性？', a:'主要是名词 n.底部，底端（at the bottom of）；adj.底部的，最低的'},
+  {sub:'EN', hard:false, q:'<span class="en-word">booth</span> 什么意思？', a:'n.电话亭；摊位，隔间<br>a voting booth 投票亭'},
+  {sub:'EN', hard:false, q:'<span class="en-word">articulate</span> 什么意思？', a:'adj.表达清晰的；v.清晰地表达<br>词根articul=关节，嘴巴关节灵活→表达清晰<br>an articulate speaker'},
+  {sub:'EN', hard:false, q:'<span class="en-word">distil</span> 什么意思？', a:'v.蒸馏；提炼，吸取精华<br>distill wisdom from experience 从经验中提炼智慧'},
+  // === 10/24 词义默写（module页）：pretext/mobilise ===
+  {sub:'EN', hard:true, q:'<span class="en-word">pretext</span> 是"前提"吗？', a:'不是！前提=premise<br><span class="en-word">pretext</span> n.借口，托辞<br>on the pretext of 以...为借口'},
+  {sub:'EN', hard:false, q:'<span class="en-word">moan</span> 什么意思？', a:'v./n.呻吟，抱怨<br>moan about 抱怨...'},
+  {sub:'EN', hard:false, q:'<span class="en-word">mob</span> 什么意思？', a:'n.暴民，乌合之众；v.围攻'},
+  {sub:'EN', hard:true, q:'<span class="en-word">mobilise</span> 是"手机化"吗？', a:'不是！它是动词<br><span class="en-word">mobilise</span> v.动员，调动（军队/资源）<br>mobilise the army 动员军队'},
+  // === 10/24 trans-家族：5错3漏 ===
+  {sub:'EN', hard:true, q:'<span class="en-word">stereotype</span> 是"形式"吗？', a:'不是！形式=form<br><span class="en-word">stereotype</span> n.刻板印象，成见<br>stereo(固定)+type(类型)=固定类型→刻板印象（考研超高频）'},
+  {sub:'EN', hard:true, q:'<span class="en-word">steward</span> 是"前进"吗？', a:'不是！前进=stride/advance<br><span class="en-word">steward</span> n.乘务员，服务员；管家（名词！）'},
+  {sub:'EN', hard:true, q:'<span class="en-word">transistor</span> 是"善变的人"吗？', a:'不是！善变是transient(短暂的)记混了<br><span class="en-word">transistor</span> n.晶体管（科技类文章电子元件）'},
+  {sub:'EN', hard:true, q:'<span class="en-word">transit</span> 是"交流交换"吗？', a:'不是！交流=communicate/exchange<br><span class="en-word">transit</span> n.运输，载运；v.经过<br>in transit 在运输途中'},
+  {sub:'EN', hard:true, q:'<span class="en-word">transparent</span> 是"明星的"吗？', a:'不是！trans(穿过)+par(出现)=穿过去能看见→透明的<br><span class="en-word">transparent</span> adj.透明的；显而易见的'},
+  {sub:'EN', hard:true, q:'<span class="en-word">stationery</span> vs <span class="en-word">stationary</span>？', a:'<span class="en-word">stationery</span> n.文具（e结尾）<br><span class="en-word">stationary</span> adj.静止的（a结尾）<br>考研神坑！'},
+  {sub:'EN', hard:false, q:'<span class="en-word">steak</span> 什么意思？', a:'n.牛排，肉排'},
+  {sub:'EN', hard:false, q:'<span class="en-word">intact</span> 什么意思？', a:'adj.完整的，未受损的<br>in(不)+tact(接触)=没被碰过→完整<br>keep intact 保持原样'}
 ];

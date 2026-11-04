@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="公式与知识点手册：高数公式、线代公式、408 知识点——专记用漏记漏的条目">
+<meta name="theme-color" id="metaTheme" content="#ffffff">
+<meta name="color-scheme" content="light dark">
+<title>公式与知识点手册</title>
+<script>
+(function(){try{var t=localStorage.getItem('dash-theme');if(!t)t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();
+window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+</script>
+<style>
+  :root {
+    --bg: #f2f7fb; --surface: #ffffff; --surface-2: #e8f1f8; --border: #dce8f2;
+    --text: #2f3644; --text-dim: #68707d; --text-faint: #9aa3b2; --text-bright: #0b1220;
+    --green: #16a34a; --green-bg: #ecfdf3; --yellow: #b97e06; --yellow-bg: #fdf6e0;
+    --red: #dc2626; --red-bg: #fef1f1; --blue: #0284c7; --blue-bg: #e0f2fe;
+    --hero-grad: linear-gradient(120deg, #eaf6ff 0%, #ffffff 55%, #e0f2fe 100%);
+    --glass: rgba(255,255,255,0.82);
+    --shadow-sm: 0 1px 2px rgba(16,24,40,0.05);
+    --shadow-md: 0 1px 3px rgba(16,24,40,0.05), 0 10px 30px -14px rgba(16,24,40,0.14);
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #0a0e14; --surface: #131a24; --surface-2: #1b2431; --border: #243041;
+    --text: #c7d0db; --text-dim: #8b96a5; --text-faint: #5d6878; --text-bright: #f0f4f9;
+    --green-bg: rgba(22,163,74,0.15); --yellow-bg: rgba(202,138,4,0.16);
+    --red-bg: rgba(220,38,38,0.15); --blue: #38bdf8; --blue-bg: rgba(56,189,248,0.16);
+    --hero-grad: linear-gradient(120deg, #0b1c2c 0%, #131a24 55%, #0a2438 100%);
+    --glass: rgba(15,20,28,0.85);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.35);
+    --shadow-md: 0 1px 3px rgba(0,0,0,0.4), 0 10px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; -webkit-text-size-adjust: 100%; font-variant-numeric: tabular-nums; }
+  .ic { width: 19px; height: 19px; flex-shrink: 0; }
+  .topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 10px; background: var(--glass); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom: 1px solid var(--border); padding: 0 14px; height: 54px; }
+  .back-link { display: inline-flex; align-items: center; gap: 5px; color: var(--text-dim); text-decoration: none; font-size: 13px; font-weight: 600; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); }
+  .back-link:hover { background: var(--surface-2); }
+  .top-title { flex: 1; font-size: 15.5px; font-weight: 700; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon-btn:hover { background: var(--surface-2); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 18px 14px 60px; }
+  .hero { background: var(--hero-grad); border: 1px solid var(--border); border-radius: 20px; padding: 20px 22px; box-shadow: var(--shadow-md); margin-bottom: 14px; }
+  .hero-kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: var(--blue); text-transform: uppercase; margin-bottom: 5px; }
+  .hero-title { font-size: 23px; font-weight: 800; color: var(--text-bright); letter-spacing: -0.3px; }
+  .hero-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 5px; line-height: 1.6; }
+  .hero-stats { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .hstat { flex: 1; min-width: 70px; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 9px 12px; }
+  .hstat .v { font-size: 20px; font-weight: 800; color: var(--text-bright); line-height: 1.15; }
+  .hstat .l { font-size: 11px; color: var(--text-dim); }
+  .seg { display: flex; background: var(--surface-2); border-radius: 12px; padding: 3px; gap: 3px; margin-bottom: 12px; }
+  .seg button { flex: 1; border: none; background: transparent; color: var(--text-dim); font-size: 13.5px; font-weight: 600; padding: 8px 2px; border-radius: 9px; cursor: pointer; font-family: inherit; transition: all 0.18s; }
+  .seg button.active { background: var(--surface); color: var(--text-bright); box-shadow: var(--shadow-sm); }
+  .seg .cnt { font-size: 11px; color: var(--text-faint); font-weight: 500; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+  .search-box { flex: 1; min-width: 170px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 10px 14px; font-size: 14px; outline: none; color: var(--text-bright); }
+  .search-box:focus { border-color: var(--blue); }
+  .chip { padding: 6px 13px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); font-size: 12.5px; cursor: pointer; color: var(--text-dim); user-select: none; }
+  .chip.active { background: var(--blue-bg); color: var(--blue); border-color: var(--blue); font-weight: 700; }
+  .entry { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 15px 17px; box-shadow: var(--shadow-sm); margin-bottom: 11px; }
+  .entry.done { opacity: 0.62; }
+  .entry-head { display: flex; align-items: flex-start; gap: 10px; }
+  .entry-title { flex: 1; font-size: 15px; font-weight: 700; color: var(--text-bright); line-height: 1.45; }
+  .done-btn { flex-shrink: 0; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); font-size: 11.5px; font-weight: 700; padding: 5px 11px; border-radius: 99px; cursor: pointer; font-family: inherit; }
+  .done-btn.on { background: var(--green-bg); color: var(--green); border-color: transparent; }
+  .entry-f { margin-top: 9px; font-size: 14.5px; line-height: 1.75; color: var(--text); overflow-x: auto; padding-bottom: 2px; }
+  .entry-n { margin-top: 8px; font-size: 12.5px; line-height: 1.65; color: var(--yellow); background: var(--yellow-bg); border-radius: 10px; padding: 7px 11px; }
+  .entry-n b { font-weight: 700; }
+  .entry-s { margin-top: 8px; font-size: 11px; color: var(--text-faint); }
+  .entry-s span { background: var(--surface-2); border-radius: 6px; padding: 1.5px 7px; }
+  .empty { text-align: center; color: var(--text-dim); font-size: 13px; padding: 34px 0; }
+  .foot { margin-top: 22px; text-align: center; font-size: 11.5px; color: var(--text-faint); line-height: 1.7; }
+  .foot a { color: var(--blue); text-decoration: none; }
+  mjx-container { max-width: 100%; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-moon" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></g></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></g></symbol>
+</svg>
+
+<div class="topbar">
+  <a class="back-link" href="../index.html"><svg class="ic"><use href="#i-left"/></svg>看板</a>
+  <div class="top-title">公式与知识点手册</div>
+  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="切换深色/浅色" aria-label="切换主题"></button>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-kicker">Handbook · 专记漏掉的</div>
+    <div class="hero-title">公式与知识点手册</div>
+    <div class="hero-sub">只收你真正用漏、记漏过的公式和知识点，每条都标了易错点和出处错题。初始版本已从你的数学错题集（30 题）和 408 错题集（19 题）里提炼；之后你新漏的，我会继续往里加。</div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="v" id="stTotal">–</div><div class="l">条目总数</div></div>
+      <div class="hstat"><div class="v" id="stDone" style="color:var(--green)">–</div><div class="l">已巩固</div></div>
+      <div class="hstat"><div class="v" id="stTodo" style="color:var(--red)">–</div><div class="l">待巩固</div></div>
+    </div>
+  </div>
+
+  <div class="seg" id="seg">
+    <button data-sec="gaoshu" class="active">高数公式 <span class="cnt" id="cnt-gaoshu"></span></button>
+    <button data-sec="xiandai">线代公式 <span class="cnt" id="cnt-xiandai"></span></button>
+    <button data-sec="f408">408 知识点 <span class="cnt" id="cnt-f408"></span></button>
+  </div>
+
+  <div class="toolbar">
+    <input class="search-box" id="searchBox" type="text" placeholder="搜索标题、公式或易错点…" autocomplete="off">
+    <span class="chip active" data-f="all">全部</span>
+    <span class="chip" data-f="todo">未巩固</span>
+    <span class="chip" data-f="done">已巩固</span>
+  </div>
+
+  <div id="list"></div>
+  <div class="empty" id="emptyBox" style="display:none">没有匹配的条目</div>
+
+  <div class="foot">
+    数据在 manual-data.js，新条目由 Muse 从你的错题里提炼后追加；「已巩固」标记只保存在本机浏览器。<br>
+    <a href="../index.html">← 返回考研进度看板</a>
+  </div>
+</div>
+
+<script src="manual-data.js"></script>
+<script src="../mathjax/tex-svg.js"></script>
+<script>
+function applyTheme(t){
+  document.documentElement.dataset.theme=t;
+  var b=document.getElementById('themeBtn');
+  if(b) b.innerHTML = t==='dark' ? '<svg class="ic"><use href="#i-sun"/></svg>' : '<svg class="ic"><use href="#i-moon"/></svg>';
+  var m=document.getElementById('metaTheme'); if(m) m.setAttribute('content', t==='dark' ? '#0a0e14' : '#ffffff');
+}
+function toggleTheme(){
+  var t = document.documentElement.dataset.theme==='dark' ? 'light' : 'dark';
+  try{ localStorage.setItem('dash-theme', t); }catch(e){}
+  applyTheme(t);
+}
+applyTheme(document.documentElement.dataset.theme || 'light');
+
+var DATA = window.MANUAL_DATA || { gaoshu: [], xiandai: [], f408: [] };
+var DKEY = 'manual-done-v1';
+var doneMap = {};
+try { doneMap = JSON.parse(localStorage.getItem(DKEY) || '{}'); } catch(e) { doneMap = {}; }
+function saveDone(){ try { localStorage.setItem(DKEY, JSON.stringify(doneMap)); } catch(e){} }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+var sec = 'gaoshu';
+var filter = 'all';
+
+function totalCount(){ return DATA.gaoshu.length + DATA.xiandai.length + DATA.f408.length; }
+function doneCount(){
+  var n = 0;
+  Object.keys(DATA).forEach(function(k){ DATA[k].forEach(function(_, i){ if (doneMap[k + ':' + i]) n++; }); });
+  return n;
+}
+function renderStats(){
+  document.getElementById('stTotal').textContent = totalCount();
+  document.getElementById('stDone').textContent = doneCount();
+  document.getElementById('stTodo').textContent = totalCount() - doneCount();
+  ['gaoshu','xiandai','f408'].forEach(function(k){
+    document.getElementById('cnt-' + k).textContent = '· ' + DATA[k].length;
+  });
+}
+function render(){
+  var kw = (document.getElementById('searchBox').value || '').trim().toLowerCase();
+  var list = document.getElementById('list');
+  list.innerHTML = '';
+  var shown = 0;
+  DATA[sec].forEach(function(it, i){
+    var key = sec + ':' + i;
+    var isDone = !!doneMap[key];
+    if (filter === 'todo' && isDone) return;
+    if (filter === 'done' && !isDone) return;
+    if (kw && (it.t + ' ' + it.f + ' ' + it.n + ' ' + it.s).toLowerCase().indexOf(kw) < 0) return;
+    shown++;
+    var div = document.createElement('div');
+    div.className = 'entry' + (isDone ? ' done' : '');
+    div.innerHTML = '<div class="entry-head"><div class="entry-title">' + esc(it.t) + '</div>'
+      + '<button class="done-btn' + (isDone ? ' on' : '') + '">' + (isDone ? '已巩固' : '标记巩固') + '</button></div>'
+      + '<div class="entry-f">' + it.f + '</div>'
+      + (it.n ? '<div class="entry-n"><b>易错：</b>' + esc(it.n) + '</div>' : '')
+      + (it.s ? '<div class="entry-s">来源 <span>' + esc(it.s) + '</span></div>' : '');
+    div.querySelector('.done-btn').addEventListener('click', function(){
+      if (doneMap[key]) delete doneMap[key]; else doneMap[key] = 1;
+      saveDone(); renderStats(); render();
+    });
+    list.appendChild(div);
+  });
+  document.getElementById('emptyBox').style.display = shown ? 'none' : '';
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([list]).catch(function(){});
+}
+document.querySelectorAll('#seg button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#seg button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    sec = b.dataset.sec;
+    render();
+  });
+});
+document.querySelectorAll('.chip').forEach(function(ch){
+  ch.addEventListener('click', function(){
+    document.querySelectorAll('.chip').forEach(function(x){ x.classList.remove('active'); });
+    ch.classList.add('active');
+    filter = ch.dataset.f;
+    render();
+  });
+});
+document.getElementById('searchBox').addEventListener('input', render);
+renderStats();
+render();
+</script>
+</body>
+</html>

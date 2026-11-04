@@ -174,6 +174,17 @@
   .legend { display: flex; gap: 12px; font-size: 11px; color: var(--text-dim); margin-top: 8px; flex-wrap: wrap; }
   .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 4px; }
 
+  /* 二级页返回与进度中枢 */
+  .back-hub { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); font-size: 12.5px; font-weight: 600; padding: 6px 12px; border-radius: 9px; cursor: pointer; margin-bottom: 12px; font-family: inherit; }
+  .back-hub:hover { background: var(--surface-2); }
+  .back-hub .ic { width: 15px; height: 15px; }
+  .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+  @media (max-width: 640px) { .hub-grid { grid-template-columns: 1fr; } }
+  .hub-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 15px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: var(--shadow-sm); transition: all 0.18s; }
+  .hub-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .hub-name { font-size: 14.5px; font-weight: 700; color: var(--text-bright); }
+  .hub-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 1px; }
+
   /* 复习队列 */
   .rq-row { display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-radius: var(--r-md); cursor: pointer; transition: background 0.18s; }
   .rq-row:hover { background: var(--surface-2); }
@@ -382,6 +393,7 @@
 <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></g></symbol>
 <symbol id="i-repeat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></g></symbol>
 <symbol id="i-chev" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></g></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></g></symbol>
 </svg>
 <div class="app-header">
   <div class="hamburger" onclick="toggleDrawer()">
@@ -418,17 +430,15 @@
   </div>
   <div class="drawer-nav">
     <div class="drawer-tab active" data-t="overview" onclick="switchTab('overview')"><svg class="ic"><use href="#i-chart"/></svg>总览</div>
-    <div class="drawer-tab" data-t="math" onclick="switchTab('math')"><svg class="ic"><use href="#i-pi"/></svg>数学</div>
-    <div class="drawer-tab" data-t="four8" onclick="switchTab('four8')"><svg class="ic"><use href="#i-cpu"/></svg>408</div>
-    <div class="drawer-tab" data-t="engpol" onclick="switchTab('engpol')"><svg class="ic"><use href="#i-bookopen"/></svg>英语·政治</div>
-    <div class="drawer-tab" data-t="r1" onclick="switchTab('r1')"><svg class="ic"><use href="#i-checkc"/></svg>R1清单</div>
-    <div class="drawer-tab" data-t="mistakes" onclick="switchTab('mistakes')"><svg class="ic"><use href="#i-xc"/></svg>错题本</div>
     <div class="drawer-tab" data-t="wrongbook" onclick="switchTab('wrongbook')"><svg class="ic"><use href="#i-target"/></svg>错题集</div>
-    <div class="drawer-tab" data-t="wangdao" onclick="switchTab('wangdao')"><svg class="ic"><use href="#i-mail"/></svg>王道提交</div>
-    <div class="drawer-tab" data-t="daily" onclick="switchTab('daily')"><svg class="ic"><use href="#i-edit"/></svg>每日记录</div>
     <div class="drawer-tab" data-t="flashcard" onclick="switchTab('flashcard')"><svg class="ic"><use href="#i-layers"/></svg>闪卡</div>
     <a class="drawer-tab" href="英语闪卡/index.html" style="text-decoration:none"><svg class="ic"><use href="#i-bookopen"/></svg>英语背词</a>
+    <a class="drawer-tab" href="手册/index.html" style="text-decoration:none"><svg class="ic"><use href="#i-book"/></svg>手册</a>
+    <div class="drawer-tab" data-t="mistakes" onclick="switchTab('mistakes')"><svg class="ic"><use href="#i-xc"/></svg>错题本</div>
+    <div class="drawer-tab" data-t="progress" onclick="switchTab('progress')"><svg class="ic"><use href="#i-edit"/></svg>学习进度</div>
+    <div class="drawer-tab" data-t="wangdao" onclick="switchTab('wangdao')"><svg class="ic"><use href="#i-mail"/></svg>王道提交</div>
   </div>
+
   <div class="drawer-foot">数据由 生成看板.py 同步 · 右上角按钮切换深色模式</div>
 </div>
 
@@ -441,10 +451,10 @@
 
 <div class="tabbar" id="tabbar">
   <div class="tabbar-btn active" data-t="overview" onclick="switchTab('overview')"><svg class="ic"><use href="#i-chart"/></svg>总览</div>
-  <div class="tabbar-btn" data-t="math" onclick="switchTab('math')"><svg class="ic"><use href="#i-pi"/></svg>数学</div>
-  <div class="tabbar-btn" data-t="four8" onclick="switchTab('four8')"><svg class="ic"><use href="#i-cpu"/></svg>408</div>
-  <div class="tabbar-btn" data-t="mistakes" onclick="switchTab('mistakes')"><svg class="ic"><use href="#i-xc"/></svg>错题</div>
+  <div class="tabbar-btn" data-t="wrongbook" onclick="switchTab('wrongbook')"><svg class="ic"><use href="#i-target"/></svg>错题集</div>
   <div class="tabbar-btn" data-t="flashcard" onclick="switchTab('flashcard')"><svg class="ic"><use href="#i-layers"/></svg>闪卡</div>
+  <div class="tabbar-btn" data-t="mistakes" onclick="switchTab('mistakes')"><svg class="ic"><use href="#i-xc"/></svg>错题</div>
+  <div class="tabbar-btn" data-t="progress" onclick="switchTab('progress')"><svg class="ic"><use href="#i-edit"/></svg>进度</div>
 </div>
 
 <!-- ========== 总览（驾驶舱） ========== -->
@@ -504,7 +514,7 @@
   </div>
 </div>
 <!-- ========== 数学 ========== -->
-<div id="page-math" class="page">
+<div id="page-progress" class="page"><div class="card"><div class="card-header"><span class="card-title"><svg class="ic"><use href="#i-edit"/></svg>学习进度</span><span class="card-badge">二级页面</span></div><div style="font-size:12.5px;color:var(--text-dim);line-height:1.65;">数学、408、英语·政治、R1 清单与每日记录都收在这里，不占一级导航；进入子页后，左上角可返回本页。</div></div><div class="hub-grid"><div class="hub-card" onclick="switchTab('math')"><div class="rq-ic" style="background:var(--blue-bg);color:var(--blue)"><svg class="ic"><use href="#i-pi"/></svg></div><div class="rq-main"><div class="hub-name">数学</div><div class="hub-sub" id="hubMathSub">讲义与专题进度</div></div><div class="rq-arrow">›</div></div><div class="hub-card" onclick="switchTab('four8')"><div class="rq-ic" style="background:var(--purple-bg);color:var(--purple)"><svg class="ic"><use href="#i-cpu"/></svg></div><div class="rq-main"><div class="hub-name">408</div><div class="hub-sub">四科章节进度</div></div><div class="rq-arrow">›</div></div><div class="hub-card" onclick="switchTab('engpol')"><div class="rq-ic" style="background:var(--green-bg);color:var(--green)"><svg class="ic"><use href="#i-bookopen"/></svg></div><div class="rq-main"><div class="hub-name">英语 · 政治</div><div class="hub-sub">阅读、作文与政治进度</div></div><div class="rq-arrow">›</div></div><div class="hub-card" onclick="switchTab('r1')"><div class="rq-ic" style="background:var(--blue-bg);color:var(--blue)"><svg class="ic"><use href="#i-checkc"/></svg></div><div class="rq-main"><div class="hub-name">R1 清单</div><div class="hub-sub" id="hubR1Sub">错题滚动复习队列</div></div><div class="rq-arrow">›</div></div><div class="hub-card" onclick="switchTab('daily')"><div class="rq-ic" style="background:var(--orange-bg);color:var(--orange)"><svg class="ic"><use href="#i-edit"/></svg></div><div class="rq-main"><div class="hub-name">每日记录</div><div class="hub-sub" id="hubDailySub">每日学习日志</div></div><div class="rq-arrow">›</div></div></div></div><div id="page-math" class="page"><button class="back-hub" onclick="switchTab('progress')"><svg class="ic"><use href="#i-left"/></svg>学习进度</button>
   <div class="grid grid-2">
     <div class="card">
       <div class="card-title">高数各讲正确率</div>
@@ -529,7 +539,7 @@
 </div>
 
 <!-- ========== 408 ========== -->
-<div id="page-four8" class="page">
+<div id="page-four8" class="page"><button class="back-hub" onclick="switchTab('progress')"><svg class="ic"><use href="#i-left"/></svg>学习进度</button>
   <div class="grid grid-4" id="f8Cards"></div>
   <div class="grid grid-2">
     <div class="card"><div class="card-title">计算机组成原理</div><div id="coopChapters"></div></div>
@@ -542,7 +552,7 @@
 </div>
 
 <!-- ========== R1清单 ========== -->
-<div id="page-r1" class="page">
+<div id="page-r1" class="page"><button class="back-hub" onclick="switchTab('progress')"><svg class="ic"><use href="#i-left"/></svg>学习进度</button>
   <div class="grid grid-4" id="r1Cards"></div>
   <div class="grid grid-1">
     <div class="card">
@@ -997,7 +1007,7 @@
 </script>
 
 <!-- ========== 英语·政治 ========== -->
-<div id="page-engpol" class="page">
+<div id="page-engpol" class="page"><button class="back-hub" onclick="switchTab('progress')"><svg class="ic"><use href="#i-left"/></svg>学习进度</button>
   <div class="grid grid-2">
     <div class="card">
       <div class="card-title-lg">英语（英二）</div>
@@ -1018,7 +1028,7 @@
 </div>
 
 <!-- ========== 每日记录 ========== -->
-<div id="page-daily" class="page">
+<div id="page-daily" class="page"><button class="back-hub" onclick="switchTab('progress')"><svg class="ic"><use href="#i-left"/></svg>学习进度</button>
   <div class="card">
     <div class="card-title-lg">每日学习记录</div>
     <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center;">
@@ -1035,7 +1045,7 @@
 
 <!-- page 容器结束 -->
 
-<div id="page-flashcard" class="page"><a href="英语闪卡/index.html" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(120deg,var(--orange-bg),var(--surface));border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:12px;text-decoration:none;color:var(--text-bright);font-weight:700;font-size:13.5px;">英语背词专页<span style="font-size:11.5px;color:var(--text-dim);font-weight:500;">高频生词 · 翻卡背词 ›</span></a><a href="英语闪卡/index.html" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(120deg,var(--orange-bg),var(--surface));border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:12px;text-decoration:none;color:var(--text-bright);font-weight:700;font-size:13.5px;">英语背词专页<span style="font-size:11.5px;color:var(--text-dim);font-weight:500;">高频生词 · 翻卡背词 ›</span></a>
+<div id="page-flashcard" class="page"><a href="英语闪卡/index.html" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(120deg,var(--orange-bg),var(--surface));border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:12px;text-decoration:none;color:var(--text-bright);font-weight:700;font-size:13.5px;">英语背词专页<span style="font-size:11.5px;color:var(--text-dim);font-weight:500;">高频生词 · 翻卡背词 ›</span></a><a href="英语闪卡/index.html" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(120deg,var(--orange-bg),var(--surface));border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:12px;text-decoration:none;color:var(--text-bright);font-weight:700;font-size:13.5px;">英语背词专页<span style="font-size:11.5px;color:var(--text-dim);font-weight:500;">高频生词 · 翻卡背词 ›</span></a><a href="英语闪卡/index.html" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(120deg,var(--orange-bg),var(--surface));border:1px solid var(--border);border-radius:14px;padding:13px 16px;margin-bottom:12px;text-decoration:none;color:var(--text-bright);font-weight:700;font-size:13.5px;">英语背词专页<span style="font-size:11.5px;color:var(--text-dim);font-weight:500;">高频生词 · 翻卡背词 ›</span></a>
   <div class="grid grid-1">
     <div class="card">
       <div class="card-title"><svg class="ic"><use href="#i-layers"/></svg> 闪卡 <span style="font-weight:400;font-size:11px;color:var(--text-dim)">（点击"查看答案"翻面）</span></div>
@@ -8723,6 +8733,7 @@ function statCard(c){
   document.getElementById('reviewQueue').innerHTML=rows.map(r=>
     '<div class="rq-row" onclick="switchTab(\''+r.tab+'\')"><div class="rq-ic" style="background:'+r.bg+';color:'+r.color+'">'+ic(r.icon)+'</div><div class="rq-main"><div class="rq-name">'+r.name+'</div><div class="rq-desc">'+r.desc+'</div></div><div class="rq-num" style="color:'+r.color+'">'+r.num+'</div><div class="rq-arrow">'+ic('chev')+'</div></div>'
   ).join('');
+  document.getElementById('reviewQueue').innerHTML += '<a class="rq-row" href="手册/index.html" style="text-decoration:none;color:inherit"><div class="rq-ic" style="background:var(--blue-bg);color:var(--blue)">'+ic('book')+'</div><div class="rq-main"><div class="rq-name">公式与知识点手册</div><div class="rq-desc">高数 · 线代 · 408 三本，专记用漏记漏的条目</div></div><div class="rq-num" style="color:var(--blue)">3</div><div class="rq-arrow">'+ic('chev')+'</div></a>';
 })();
 
 /* ===== 总览卡片与各科进度 ===== */
@@ -9000,6 +9011,32 @@ document.getElementById('searchInput').addEventListener('input', function(e){ do
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeSearch(); });
 
 updateCountdown();
+/* ===== 学习进度中枢（二级页） ===== */
+function renderProgressHub(){
+  try {
+    if (DATA.lectures && DATA.lectures.length) {
+      var avg = Math.round(DATA.lectures.reduce(function(s2, l){ return s2 + (l.pct || 0); }, 0) / DATA.lectures.length);
+      var el1 = document.getElementById('hubMathSub'); if (el1) el1.textContent = '高数讲义 ' + DATA.lectures.length + ' 讲 · 平均进度 ' + avg + '%';
+    }
+    if (DATA.r1Summary && DATA.r1Summary.title) { var el2 = document.getElementById('hubR1Sub'); if (el2) el2.textContent = DATA.r1Summary.title; }
+    if (DATA.dailyLog) { var el3 = document.getElementById('hubDailySub'); if (el3) el3.textContent = '已记录 ' + DATA.dailyLog.length + ' 天'; }
+  } catch(e) {}
+}
+window.addEventListener('load', function(){
+  var orig = window.switchTab;
+  if (typeof orig === 'function' && !orig.__hubWrapped) {
+    var wrapped = function(id){
+      orig(id);
+      if (id === 'progress') renderProgressHub();
+      if (['math', 'four8', 'engpol', 'r1', 'daily'].indexOf(id) >= 0) {
+        document.querySelectorAll('.drawer-tab,.tabbar-btn').forEach(function(t){ t.classList.toggle('active', t.dataset.t === 'progress'); });
+      }
+    };
+    wrapped.__hubWrapped = true;
+    window.switchTab = wrapped;
+  }
+});
+
 
 </script>
 <script>

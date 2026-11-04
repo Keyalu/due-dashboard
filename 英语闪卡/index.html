@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="考研英语高频生词背词专页：翻卡、浏览、掌握度标记">
+<meta name="theme-color" id="metaTheme" content="#ffffff">
+<meta name="color-scheme" content="light dark">
+<title>英语高频生词 · 背词专页</title>
+<script>
+(function(){try{var t=localStorage.getItem('dash-theme');if(!t)t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();
+</script>
+<style>
+  :root {
+    --bg: #f4f5f7; --surface: #ffffff; --surface-2: #eef0f4; --border: #e5e7ee;
+    --text: #2f3644; --text-dim: #68707d; --text-faint: #9aa3b2; --text-bright: #0b1220;
+    --green: #16a34a; --green-bg: #ecfdf3; --yellow: #b97e06; --yellow-bg: #fdf6e0;
+    --red: #dc2626; --red-bg: #fef1f1; --blue: #2563eb; --blue-bg: #edf3fe;
+    --purple: #7c3aed; --purple-bg: #f3efff; --orange: #ea580c; --orange-bg: #fff3ea;
+    --hero-grad: linear-gradient(120deg, #fff8f0 0%, #ffffff 55%, #fff3ea 100%);
+    --glass: rgba(255,255,255,0.82);
+    --shadow-sm: 0 1px 2px rgba(16,24,40,0.05);
+    --shadow-md: 0 1px 3px rgba(16,24,40,0.05), 0 10px 30px -14px rgba(16,24,40,0.14);
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #0a0e14; --surface: #131a24; --surface-2: #1b2431; --border: #243041;
+    --text: #c7d0db; --text-dim: #8b96a5; --text-faint: #5d6878; --text-bright: #f0f4f9;
+    --green-bg: rgba(22,163,74,0.15); --yellow-bg: rgba(202,138,4,0.16);
+    --red-bg: rgba(220,38,38,0.15); --blue-bg: rgba(37,99,235,0.16);
+    --purple-bg: rgba(124,58,237,0.18); --orange-bg: rgba(234,88,12,0.16);
+    --hero-grad: linear-gradient(120deg, #1c1710 0%, #131a24 55%, #20130a 100%);
+    --glass: rgba(15,20,28,0.85);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.35);
+    --shadow-md: 0 1px 3px rgba(0,0,0,0.4), 0 10px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; -webkit-text-size-adjust: 100%; font-variant-numeric: tabular-nums; }
+  .ic { width: 19px; height: 19px; flex-shrink: 0; }
+  .topbar { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 10px; background: var(--glass); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom: 1px solid var(--border); padding: 0 14px; height: 54px; }
+  .back-link { display: inline-flex; align-items: center; gap: 5px; color: var(--text-dim); text-decoration: none; font-size: 13px; font-weight: 600; padding: 7px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); }
+  .back-link:hover { background: var(--surface-2); }
+  .top-title { flex: 1; font-size: 15.5px; font-weight: 700; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon-btn:hover { background: var(--surface-2); }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 18px 14px 60px; }
+  .hero { background: var(--hero-grad); border: 1px solid var(--border); border-radius: 20px; padding: 20px 22px; box-shadow: var(--shadow-md); margin-bottom: 14px; }
+  .hero-kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: var(--orange); text-transform: uppercase; margin-bottom: 5px; }
+  .hero-title { font-size: 23px; font-weight: 800; color: var(--text-bright); letter-spacing: -0.3px; }
+  .hero-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 5px; line-height: 1.6; }
+  .hero-stats { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .hstat { flex: 1; min-width: 70px; background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 9px 12px; }
+  .hstat .v { font-size: 20px; font-weight: 800; color: var(--text-bright); line-height: 1.15; }
+  .hstat .l { font-size: 11px; color: var(--text-dim); }
+  .mastery-track { background: var(--surface-2); border-radius: 99px; height: 8px; overflow: hidden; margin-top: 14px; }
+  .mastery-fill { height: 100%; background: linear-gradient(90deg, #22c55e, var(--green)); border-radius: 99px; transition: width 0.5s ease; }
+  .mastery-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-top: 5px; }
+  .seg { display: flex; background: var(--surface-2); border-radius: 12px; padding: 3px; gap: 3px; margin-bottom: 12px; }
+  .seg button { flex: 1; border: none; background: transparent; color: var(--text-dim); font-size: 13.5px; font-weight: 600; padding: 8px 0; border-radius: 9px; cursor: pointer; font-family: inherit; transition: all 0.18s; }
+  .seg button.active { background: var(--surface); color: var(--text-bright); box-shadow: var(--shadow-sm); }
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { padding: 5px 13px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); font-size: 12.5px; cursor: pointer; color: var(--text-dim); user-select: none; transition: all 0.18s; }
+  .chip.active { background: var(--orange-bg); color: var(--orange); border-color: var(--orange); font-weight: 700; }
+  /* 翻卡舞台 */
+  .stage { perspective: 1400px; margin-bottom: 12px; }
+  .flip { position: relative; width: 100%; min-height: 320px; transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1); cursor: pointer; }
+  .flip.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow-md); padding: 26px 24px; display: flex; flex-direction: column; overflow-y: auto; }
+  .face.back { transform: rotateY(180deg); }
+  .face-tag { align-self: flex-start; font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; padding: 2.5px 9px; border-radius: 99px; background: var(--purple-bg); color: var(--purple); margin-bottom: 14px; }
+  .face-tag.hard { background: var(--red-bg); color: var(--red); }
+  .q-big { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 27px; font-weight: 700; color: var(--text-bright); line-height: 1.5; padding: 6px 2px; }
+  .q-big .en-word, .a-body .en-word { background: #fef08a; color: #713f12; padding: 0 5px; border-radius: 4px; }
+  [data-theme="dark"] .q-big .en-word, [data-theme="dark"] .a-body .en-word { background: rgba(250,204,21,0.28); color: #fde68a; }
+  .flip-hint { text-align: center; font-size: 11.5px; color: var(--text-faint); }
+  .a-body { flex: 1; font-size: 15.5px; line-height: 1.85; color: var(--text); }
+  .mark-row { display: flex; gap: 9px; margin-top: 14px; }
+  .mark-btn { flex: 1; border-radius: 11px; padding: 10px 0; font-size: 13.5px; font-weight: 700; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; transition: all 0.15s; }
+  .mark-btn:active { transform: scale(0.97); }
+  .mark-btn.weak { background: var(--red-bg); color: var(--red); border-color: transparent; }
+  .mark-btn.known { background: var(--green-bg); color: var(--green); border-color: transparent; }
+  .controls { display: flex; align-items: center; gap: 9px; }
+  .ctl-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 11px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+  .ctl-btn:hover { background: var(--surface-2); }
+  .ctl-btn.primary { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .counter { flex: 1; text-align: center; font-size: 12.5px; color: var(--text-dim); font-weight: 600; }
+  .prog { background: var(--surface-2); border-radius: 99px; height: 6px; overflow: hidden; margin-top: 12px; }
+  .prog-fill { height: 100%; background: var(--orange); border-radius: 99px; transition: width 0.4s ease; }
+  .kbd-hint { text-align: center; font-size: 11px; color: var(--text-faint); margin-top: 9px; }
+  /* 浏览模式 */
+  .search-box { width: 100%; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 11px 14px; font-size: 14px; outline: none; color: var(--text-bright); margin-bottom: 12px; }
+  .search-box:focus { border-color: var(--orange); }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 11px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } .q-big { font-size: 23px; } }
+  .mini { background: var(--surface); border: 1px solid var(--border); border-radius: 15px; padding: 14px 16px; box-shadow: var(--shadow-sm); cursor: pointer; }
+  .mini-head { display: flex; align-items: flex-start; gap: 8px; }
+  .mini-q { flex: 1; font-size: 14.5px; font-weight: 700; color: var(--text-bright); line-height: 1.5; }
+  .mini-q .en-word { background: #fef08a; color: #713f12; padding: 0 4px; border-radius: 3px; }
+  [data-theme="dark"] .mini-q .en-word { background: rgba(250,204,21,0.28); color: #fde68a; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); flex-shrink: 0; margin-top: 5px; }
+  .dot.known { background: var(--green); border-color: var(--green); }
+  .dot.weak { background: var(--red); border-color: var(--red); }
+  .mini-a { display: none; margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--border); font-size: 13px; line-height: 1.75; }
+  .mini.open .mini-a { display: block; }
+  .mini-marks { display: none; gap: 7px; margin-top: 10px; }
+  .mini.open .mini-marks { display: flex; }
+  .mini-marks button { flex: 1; border: 1px solid var(--border); background: var(--surface); border-radius: 8px; padding: 6px 0; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text); font-family: inherit; }
+  .hard-badge { font-size: 10px; font-weight: 700; color: var(--red); background: var(--red-bg); padding: 1.5px 7px; border-radius: 99px; flex-shrink: 0; }
+  .empty { text-align: center; color: var(--text-dim); font-size: 13px; padding: 34px 0; }
+  .foot { margin-top: 22px; text-align: center; font-size: 11.5px; color: var(--text-faint); line-height: 1.7; }
+  .foot a { color: var(--blue); text-decoration: none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-moon" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></g></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></g></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></g></symbol>
+<symbol id="i-shuffle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></g></symbol>
+</svg>
+
+<div class="topbar">
+  <a class="back-link" href="../index.html"><svg class="ic"><use href="#i-left"/></svg>看板</a>
+  <div class="top-title">英语高频生词</div>
+  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="切换深色/浅色" aria-label="切换主题"></button>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-kicker">Vocabulary · 只背不会的</div>
+    <div class="hero-title">考研高频生词专页</div>
+    <div class="hero-sub">这里的每一张卡，都是你做阅读时真实错过、混淆过的词。翻卡自测，标记掌握度，把「不会」一个个清零。每日考题也从这里抽题。</div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="v" id="stCards">–</div><div class="l">卡片总数</div></div>
+      <div class="hstat"><div class="v" id="stWords">–</div><div class="l">涉及单词</div></div>
+      <div class="hstat"><div class="v" id="stHard" style="color:var(--red)">–</div><div class="l">★ 硬伤</div></div>
+      <div class="hstat"><div class="v" id="stKnown" style="color:var(--green)">–</div><div class="l">已掌握</div></div>
+    </div>
+    <div class="mastery-track"><div class="mastery-fill" id="masteryFill" style="width:0%"></div></div>
+    <div class="mastery-meta"><span>掌握进度</span><span id="masteryPct">0%</span></div>
+  </div>
+
+  <div class="seg">
+    <button id="segStudy" class="active" onclick="setMode('study')">背词模式</button>
+    <button id="segBrowse" onclick="setMode('browse')">浏览模式</button>
+  </div>
+
+  <div class="chips" id="chips">
+    <span class="chip active" data-f="all">全部</span>
+    <span class="chip" data-f="hard">★ 硬伤</span>
+    <span class="chip" data-f="unmarked">未标记</span>
+    <span class="chip" data-f="weak">还不会</span>
+    <span class="chip" data-f="known">已掌握</span>
+  </div>
+
+  <div id="studyPane">
+    <div class="stage">
+      <div class="flip" id="flip" onclick="flipCard()">
+        <div class="face front">
+          <span class="face-tag" id="frontTag">EN</span>
+          <div class="q-big" id="qBig"></div>
+          <div class="flip-hint">点击卡片翻面看释义</div>
+        </div>
+        <div class="face back">
+          <span class="face-tag" id="backTag">释义</span>
+          <div class="a-body" id="aBody"></div>
+          <div class="mark-row">
+            <button class="mark-btn weak" onclick="event.stopPropagation();mark(2)">还不会</button>
+            <button class="mark-btn known" onclick="event.stopPropagation();mark(1)">已掌握</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="ctl-btn" onclick="step(-1)"><svg class="ic"><use href="#i-left"/></svg>上一张</button>
+      <div class="counter" id="counter">–</div>
+      <button class="ctl-btn" onclick="shuffleDeck()"><svg class="ic"><use href="#i-shuffle"/></svg>随机</button>
+      <button class="ctl-btn primary" onclick="step(1)">下一张<svg class="ic"><use href="#i-right"/></svg></button>
+    </div>
+    <div class="prog"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="kbd-hint">键盘：空格翻面 · ← → 切换 · 1 还不会 · 2 已掌握</div>
+  </div>
+
+  <div id="browsePane" style="display:none">
+    <input class="search-box" id="searchBox" type="text" placeholder="搜索单词或释义…" autocomplete="off">
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="browseEmpty" style="display:none">没有匹配的卡片</div>
+  </div>
+
+  <div class="foot">
+    数据与看板闪卡同源（flashcards_en.js），你在阅读中新增的生词由 Muse 追加后会自动出现在这里。<br>
+    掌握度只保存在本机浏览器。 <a href="../index.html">← 返回考研进度看板</a>
+  </div>
+</div>
+
+<script src="../flashcards_en.js"></script>
+<script>
+function applyTheme(t){
+  document.documentElement.dataset.theme=t;
+  var b=document.getElementById('themeBtn');
+  if(b) b.innerHTML = t==='dark' ? '<svg class="ic"><use href="#i-sun"/></svg>' : '<svg class="ic"><use href="#i-moon"/></svg>';
+  var m=document.getElementById('metaTheme'); if(m) m.setAttribute('content', t==='dark' ? '#0a0e14' : '#ffffff');
+}
+function toggleTheme(){
+  var t = document.documentElement.dataset.theme==='dark' ? 'light' : 'dark';
+  try{ localStorage.setItem('dash-theme', t); }catch(e){}
+  applyTheme(t);
+}
+applyTheme(document.documentElement.dataset.theme || 'light');
+
+var CARDS = (window.EN_FLASHCARDS || []).map(function(c, i){ return {i: i, hard: !!c.hard, q: c.q, a: c.a}; });
+var MKEY = 'en-vocab-mastery-v1';
+var mastery = {};
+try { mastery = JSON.parse(localStorage.getItem(MKEY) || '{}'); } catch(e) { mastery = {}; }
+function saveMastery(){ try { localStorage.setItem(MKEY, JSON.stringify(mastery)); } catch(e){} }
+function stripTags(s){ var d=document.createElement('div'); d.innerHTML=s||''; return (d.textContent||'').trim(); }
+
+var filter = 'all';
+var deck = [];
+var pos = 0;
+var flipped = false;
+
+function passFilter(c){
+  var st = mastery[c.i] || 0;
+  if (filter==='all') return true;
+  if (filter==='hard') return c.hard;
+  if (filter==='unmarked') return st===0;
+  if (filter==='weak') return st===2;
+  if (filter==='known') return st===1;
+  return true;
+}
+function rebuildDeck(keepCurrent){
+  var cur = deck.length ? deck[pos] : null;
+  deck = CARDS.filter(passFilter).map(function(c){ return c.i; });
+  pos = 0;
+  if (keepCurrent && cur !== null) {
+    var k = deck.indexOf(cur);
+    if (k >= 0) pos = k;
+  }
+  flipped = false;
+  renderCard();
+  renderStats();
+}
+function cardByIdx(i){ return CARDS[i]; }
+function renderCard(){
+  var flip = document.getElementById('flip');
+  flip.classList.toggle('flipped', flipped);
+  if (!deck.length) {
+    document.getElementById('qBig').innerHTML = '<span style="font-size:16px;color:var(--text-dim)">这个筛选下没有卡片了，换个筛选看看</span>';
+    document.getElementById('aBody').innerHTML = '';
+    document.getElementById('counter').textContent = '0 / 0';
+    document.getElementById('progFill').style.width = '0%';
+    return;
+  }
+  var c = cardByIdx(deck[pos]);
+  document.getElementById('frontTag').textContent = c.hard ? '★ 硬伤' : 'EN · 高频词';
+  document.getElementById('frontTag').className = 'face-tag' + (c.hard ? ' hard' : '');
+  document.getElementById('backTag').textContent = c.hard ? '★ 硬伤 · 释义' : '释义';
+  document.getElementById('backTag').className = 'face-tag' + (c.hard ? ' hard' : '');
+  document.getElementById('qBig').innerHTML = c.q;
+  document.getElementById('aBody').innerHTML = c.a;
+  document.getElementById('counter').textContent = (pos+1) + ' / ' + deck.length;
+  document.getElementById('progFill').style.width = ((pos+1)/deck.length*100) + '%';
+}
+function flipCard(){ flipped = !flipped; document.getElementById('flip').classList.toggle('flipped', flipped); }
+function step(d){
+  if (!deck.length) return;
+  pos = (pos + d + deck.length) % deck.length;
+  flipped = false;
+  renderCard();
+}
+function shuffleDeck(){
+  for (var i = deck.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+  }
+  pos = 0; flipped = false; renderCard();
+}
+function mark(v){
+  if (!deck.length) return;
+  mastery[deck[pos]] = v;
+  saveMastery();
+  renderStats();
+  if (deck.length > 1) step(1); else { flipped = false; renderCard(); }
+}
+function renderStats(){
+  var words = {};
+  CARDS.forEach(function(c){
+    var tmp = document.createElement('div'); tmp.innerHTML = c.q;
+    tmp.querySelectorAll('.en-word').forEach(function(w){ words[(w.textContent||'').toLowerCase()] = 1; });
+  });
+  var known = CARDS.filter(function(c){ return mastery[c.i]===1; }).length;
+  document.getElementById('stCards').textContent = CARDS.length;
+  document.getElementById('stWords').textContent = Object.keys(words).length;
+  document.getElementById('stHard').textContent = CARDS.filter(function(c){ return c.hard; }).length;
+  document.getElementById('stKnown').textContent = known;
+  var pct = CARDS.length ? Math.round(known / CARDS.length * 100) : 0;
+  document.getElementById('masteryFill').style.width = pct + '%';
+  document.getElementById('masteryPct').textContent = pct + '%（' + known + ' / ' + CARDS.length + '）';
+}
+function setMode(m){
+  document.getElementById('segStudy').classList.toggle('active', m==='study');
+  document.getElementById('segBrowse').classList.toggle('active', m==='browse');
+  document.getElementById('studyPane').style.display = m==='study' ? '' : 'none';
+  document.getElementById('browsePane').style.display = m==='browse' ? '' : 'none';
+  if (m==='browse') renderBrowse();
+}
+function renderBrowse(){
+  var kw = (document.getElementById('searchBox').value || '').trim().toLowerCase();
+  var grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  var shown = 0;
+  CARDS.forEach(function(c){
+    if (!passFilter(c)) return;
+    if (kw && (stripTags(c.q) + ' ' + stripTags(c.a)).toLowerCase().indexOf(kw) < 0) return;
+    shown++;
+    var st = mastery[c.i] || 0;
+    var div = document.createElement('div');
+    div.className = 'mini';
+    div.innerHTML = '<div class="mini-head"><div class="mini-q">' + c.q + '</div>'
+      + (c.hard ? '<span class="hard-badge">★硬伤</span>' : '')
+      + '<span class="dot ' + (st===1 ? 'known' : st===2 ? 'weak' : '') + '"></span></div>'
+      + '<div class="mini-a">' + c.a + '</div>'
+      + '<div class="mini-marks"><button data-m="2">还不会</button><button data-m="1">已掌握</button><button data-m="0">清除标记</button></div>';
+    div.querySelector('.mini-head').addEventListener('click', function(){ div.classList.toggle('open'); });
+    div.querySelectorAll('.mini-marks button').forEach(function(b){
+      b.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        var v = parseInt(b.dataset.m, 10);
+        if (v === 0) delete mastery[c.i]; else mastery[c.i] = v;
+        saveMastery(); renderStats(); renderBrowse();
+      });
+    });
+    grid.appendChild(div);
+  });
+  document.getElementById('browseEmpty').style.display = shown ? 'none' : '';
+}
+document.querySelectorAll('#chips .chip').forEach(function(ch){
+  ch.addEventListener('click', function(){
+    document.querySelectorAll('#chips .chip').forEach(function(x){ x.classList.remove('active'); });
+    ch.classList.add('active');
+    filter = ch.dataset.f;
+    rebuildDeck(false);
+    if (document.getElementById('browsePane').style.display !== 'none') renderBrowse();
+  });
+});
+document.getElementById('searchBox').addEventListener('input', renderBrowse);
+document.addEventListener('keydown', function(e){
+  if (document.getElementById('studyPane').style.display === 'none') return;
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+  if (e.code === 'Space') { e.preventDefault(); flipCard(); }
+  else if (e.key === 'ArrowRight') step(1);
+  else if (e.key === 'ArrowLeft') step(-1);
+  else if (e.key === '1') mark(2);
+  else if (e.key === '2') mark(1);
+});
+rebuildDeck(false);
+</script>
+</body>
+</html>

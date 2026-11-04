@@ -734,10 +734,12 @@ function connectHost(b, code, coreInstance) {
   client.onConnect = function () {
     client.subscribe(topics().action);
     client.subscribe(topics().peer);
+    client.subscribe(lobbyControlTopic());
     afterCoreChange();
   };
   client.onMessage = function (topic, payload) {
     var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic === lobbyControlTopic()) { handleLobbyControl(msg); return; }
     if (topic === topics().peer) {
       peerOnline = !!msg.online;
       if (msg.online) core.guestJoin(); else core.guestLeave();
@@ -811,13 +813,15 @@ function startGuest(raw, restoredView) {
   wireStatus();
   client.onConnect = function () {
     client.subscribe(topics().state);
+    client.subscribe(lobbyControlTopic());
     client.publish(topics().peer, JSON.stringify({ online: true, ts: Date.now() }), true);
     client.publish(topics().action, JSON.stringify({ type: "join" }), false);
     render();
   };
   client.onMessage = function (topic, payload) {
-    if (topic !== topics().state) return;
     var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic === lobbyControlTopic()) { handleLobbyControl(msg); return; }
+    if (topic !== topics().state) return;
     if (msg.type === "host-offline") { hostOnline = false; render(); return; }
     if (msg.type === "room-closed") {
       /* 房主清空了本局：本机存档一并清掉，回到入口 */
@@ -1074,6 +1078,7 @@ function doClearPage() {
     if (role === "b") client.publish(topics().peer, JSON.stringify({ online: false }), true);
   }
   storeClear();
+  clearPairing();
   if (client) client.close();
   location.reload();
 }
@@ -1132,10 +1137,54 @@ $("rrAgreeBtn").addEventListener("click", function () { doRRResponse(true); });
 $("rrRefuseBtn").addEventListener("click", function () { doRRResponse(false); });
 $("rrCancelBtn").addEventListener("click", function () { doRRCancel(); });
 
+
+/* ================= 游戏大厅共享配对（一次配对，房主选游戏双方跟随） ================= */
+function pairBoot() {
+  try { var p = JSON.parse(localStorage.getItem("xl-pair-v1") || "null"); if (p && p.rawCode && parseCode(p.rawCode)) return p; } catch (e) {}
+  return null;
+}
+function lobbyControlTopic() { return "keyaluck/lobby/v1/" + rawCode + "/control"; }
+function pairedHere() {
+  try { var p = JSON.parse(localStorage.getItem("xl-pair-v1") || "null"); return !!(p && p.rawCode === rawCode); } catch (e) { return false; }
+}
+var lobbyNav = false;
+function handleLobbyControl(msg) {
+  if (!pairedHere() || !msg || msg.type !== "now" || lobbyNav) return;
+  if (Date.now() - (msg.ts || 0) > 15 * 60 * 1000) return;
+  if (msg.game === "心有灵犀.html") return;
+  lobbyNav = true;
+  location.href = msg.game ? msg.game : "大厅.html";
+}
+function clearPairing() {
+  try { localStorage.removeItem("xl-pair-v1"); localStorage.removeItem("xl-now"); } catch (e) {}
+}
+
 /* 链接里带 #room=房间码 时自动填入；有存档时自动恢复对局（刷新不丢局） */
 (function () {
   var m = /room=([A-Za-z0-9-]+)/.exec(location.hash || "");
   if (m) { var raw = parseCode(m[1]); if (raw) { $("joinCode").value = formatCode(raw); return; } }
+  var pair = pairBoot();
+  if (pair) {
+    var savedP = null;
+    try { savedP = storeLoad(); } catch (e) {}
+    var sameCode = savedP && savedP.rawCode === pair.rawCode;
+    if (pair.role === "a") {
+      if (sameCode && savedP.core) restoreHost(savedP);
+      else {
+        var pb = brokerById(pair.rawCode[0]);
+        if (pb) {
+          showBanner($("landingInfo"), "已通过游戏大厅配对，正在以房主身份进入…", "info");
+          probeBroker(pb, function (ok) {
+            if (ok) connectHost(pb, pair.rawCode, createGameCore());
+            else showBanner($("landingError"), "联机通道暂时连接不上，上次对局已保留，稍后刷新页面会再次恢复。", "error");
+          });
+        }
+      }
+    } else {
+      startGuest(pair.rawCode, sameCode ? (savedP.view || null) : null);
+    }
+    return;
+  }
   var saved = null;
   try { saved = storeLoad(); } catch (e) {}
   if (saved && saved.rawCode && parseCode(saved.rawCode)) {

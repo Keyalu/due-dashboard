@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>游戏大厅 · 双人联机</title>
+<style>
+  :root {
+    --bg: #f2f7fb; --surface: #ffffff; --border: #dce8f2;
+    --text: #2f3644; --dim: #68707d; --bright: #0b1220;
+    --blue: #0284c7; --blue-bg: #e0f2fe; --green: #16a34a; --green-bg: #ecfdf3;
+    --red: #dc2626; --red-bg: #fef1f1;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px 12px 44px; }
+  h1 { font-size: 20px; color: var(--bright); text-align: center; }
+  .subtitle { text-align: center; color: var(--dim); font-size: 12.5px; margin: 4px 0 14px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .panel h3 { font-size: 14.5px; color: var(--bright); margin-bottom: 6px; }
+  .hint { font-size: 12px; color: var(--dim); line-height: 1.6; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  button { border: 1px solid var(--blue); background: var(--blue); color: #fff; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 11px; cursor: pointer; font-family: inherit; }
+  button.secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  input[type="text"] { border: 1px solid var(--border); border-radius: 11px; padding: 9px 12px; font-size: 14px; outline: none; width: 100%; color: var(--bright); background: var(--surface); }
+  input[type="text"]:focus { border-color: var(--blue); }
+  .banner { display: none; border-radius: 12px; padding: 10px 13px; font-size: 13px; margin-bottom: 10px; line-height: 1.6; }
+  .banner.show { display: block; }
+  .banner.error { background: var(--red-bg); color: var(--red); }
+  .banner.info { background: var(--blue-bg); color: var(--blue); }
+  .banner.success { background: var(--green-bg); color: var(--green); }
+  .room-code { font-size: 24px; font-weight: 800; letter-spacing: 1.5px; color: var(--bright); text-align: center; padding: 6px 0 2px; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .chip { font-size: 11.5px; padding: 3px 10px; border-radius: 99px; background: #eef4fa; color: var(--dim); }
+  .chip.on { background: var(--green-bg); color: var(--green); font-weight: 700; }
+  .chip.off { background: var(--red-bg); color: var(--red); }
+  .guess-row { display: flex; gap: 8px; margin-top: 10px; }
+  .guess-row input { flex: 1; }
+  .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  @media (max-width: 560px) { .game-grid { grid-template-columns: 1fr; } }
+  .game-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 13px 14px; background: #fbfdff; }
+  .game-card.clickable { cursor: pointer; }
+  .game-card.clickable:hover { border-color: var(--blue); }
+  .game-card .gn { font-size: 15px; font-weight: 800; color: var(--bright); }
+  .game-card .gd { font-size: 12px; color: var(--dim); line-height: 1.6; margin-top: 3px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>游戏大厅</h1>
+  <p class="subtitle">配对一次，之后房主选游戏，双方自动一起进入</p>
+
+  <!-- 未配对 -->
+  <div id="pairSection">
+    <div class="panel">
+      <h3>我是房主（玩家 A）</h3>
+      <p class="hint">创建配对后会得到一个专属房间码——它会保存在你的手机里，以后每次打开大厅直接就是这个码，不用再换。把码发给对方，对方只需输一次。</p>
+      <div class="btn-row"><button type="button" id="createBtn">创建配对</button></div>
+    </div>
+    <div class="panel">
+      <h3>我是玩家 B</h3>
+      <p class="hint">输入房主给你的房间码。输过一次后这台手机会记住，下次打开大厅自动连上。</p>
+      <div class="guess-row" style="margin-top:8px">
+        <input type="text" id="joinCode" placeholder="房间码，如 E-XXXX-XXXX-XXXX" autocomplete="off">
+        <button type="button" id="joinBtn">加入配对</button>
+      </div>
+    </div>
+    <div class="banner error" id="pairError" role="alert"></div>
+    <div class="banner info" id="pairInfo" role="status"></div>
+    <p class="hint">房间码就是你们俩的钥匙，别发给别人。两部手机不需要在同一网络。</p>
+  </div>
+
+  <!-- 已配对 -->
+  <div id="lobbySection" hidden>
+    <div class="panel" style="padding-bottom:10px">
+      <div class="room-code" id="roomCodeText">—</div>
+      <div class="chips">
+        <span class="chip" id="roleChip">角色：—</span>
+        <span class="chip off" id="connChip">连接：未连接</span>
+        <span class="chip off" id="peerChip">对方：未加入</span>
+      </div>
+      <div class="btn-row" style="justify-content:center">
+        <button type="button" class="secondary" id="copyBtn">复制房间码</button>
+        <button type="button" class="secondary" id="unpairBtn">断开配对</button>
+      </div>
+    </div>
+
+    <div class="banner info" id="lobbyInfo" role="status"></div>
+    <div class="banner success" id="lobbyNotice" role="status"></div>
+
+    <div class="panel">
+      <h3 id="pickTitle">选一款游戏</h3>
+      <p class="hint" id="pickHint"></p>
+      <div class="game-grid" id="gameGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= 配对存档（全游戏共享，localStorage 同源可见） ================= */
+var PAIR_KEY = "xl-pair-v1";        // {role, rawCode}
+var HOST_CODE_KEY = "xl-host-code"; // 房主的持久房间码（只存房主设备）
+var NOW_KEY = "xl-now";             // {game, ts} 房主当前选中的游戏
+var GAME_SESSION_KEYS = ["xlol-v2-session", "drawguess-v1-session", "relaydraw-v1-session", "gomoku-v1-session"];
+var GAMES = [
+  { file: "你画我猜.html", name: "你画我猜", desc: "轮流画、轮流猜 · 10 轮计分" },
+  { file: "心有灵犀.html", name: "心有灵犀", desc: "8 轮内同时说出相同的词" },
+  { file: "接力画.html", name: "接力画", desc: "一人一笔共创 · 拼接怪物" },
+  { file: "五子棋.html", name: "五子棋对战", desc: "15×15 对弈 · 悔棋提和协商" }
+];
+var FOLLOW_FRESH_MS = 15 * 60 * 1000;
+
+function pairLoad() {
+  try { var v = localStorage.getItem(PAIR_KEY); return v ? JSON.parse(v) : null; } catch (e) { return null; }
+}
+function pairSave(p) { try { localStorage.setItem(PAIR_KEY, JSON.stringify(p)); } catch (e) {} }
+function pairClear() {
+  try {
+    localStorage.removeItem(PAIR_KEY);
+    localStorage.removeItem(NOW_KEY);
+    GAME_SESSION_KEYS.forEach(function (k) { localStorage.removeItem(k); sessionStorage.removeItem(k); });
+  } catch (e) {}
+}
+function nowSave(game) { try { localStorage.setItem(NOW_KEY, JSON.stringify({ game: game, ts: Date.now() })); } catch (e) {} }
+function nowLoad() { try { var v = localStorage.getItem(NOW_KEY); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+
+
+/* ================= 极简 MQTT 客户端（原生 WebSocket，无外部库） =================
+ * 只实现本游戏用到的 MQTT 3.1.1 子集：CONNECT / SUBSCRIBE / PUBLISH(QoS0, retain)
+ * / PINGREQ / DISCONNECT，含遗嘱（Last Will）与自动重连。
+ */
+/* 只保留实测可用的公共通道：备用通道（HiveMQ / ConnectMQ / Mosquitto）
+ * 经同一客户端实测无法完成连接，故不启用，避免建房后对方连不进来。 */
+var BROKERS = [
+  { id: "E", label: "EMQX",    url: "wss://broker.emqx.io:8084/mqtt" }
+];
+function brokerById(id) { for (var i = 0; i < BROKERS.length; i++) if (BROKERS[i].id === id) return BROKERS[i]; return null; }
+
+function mqttEncodeString(s) {
+  var bytes = new TextEncoder().encode(s);
+  var out = new Uint8Array(2 + bytes.length);
+  out[0] = (bytes.length >> 8) & 0xff; out[1] = bytes.length & 0xff;
+  out.set(bytes, 2);
+  return out;
+}
+function mqttEncodeLength(len) {
+  var out = [];
+  do { var b = len % 128; len = Math.floor(len / 128); if (len > 0) b |= 0x80; out.push(b); } while (len > 0);
+  return new Uint8Array(out);
+}
+function mqttPacket(typeAndFlags, bodyParts) {
+  var bodyLen = 0, i;
+  for (i = 0; i < bodyParts.length; i++) bodyLen += bodyParts[i].length;
+  var head = mqttEncodeLength(bodyLen);
+  var packet = new Uint8Array(1 + head.length + bodyLen);
+  packet[0] = typeAndFlags; packet.set(head, 1);
+  var off = 1 + head.length;
+  for (i = 0; i < bodyParts.length; i++) { packet.set(bodyParts[i], off); off += bodyParts[i].length; }
+  return packet;
+}
+
+/* === MQTT client === */
+function MqttClient(url, clientId, will) {
+  this.url = url; this.clientId = clientId; this.will = will || null;
+  this.ws = null; this.connected = false; this.intentionalClose = false;
+  this.buffer = new Uint8Array(0); this.packetId = 1; this.pingTimer = null; this.reconnectTimer = null;
+  this.subscriptions = [];
+  this.onConnect = null; this.onMessage = null; this.onStatus = null;
+}
+MqttClient.prototype._status = function (s) { if (this.onStatus) this.onStatus(s); };
+MqttClient.prototype.connect = function () {
+  var self = this;
+  this.intentionalClose = false;
+  this._status("connecting");
+  var ws;
+  try { ws = new WebSocket(this.url, "mqtt"); } catch (e) { this._scheduleReconnect(); return; }
+  this.ws = ws; ws.binaryType = "arraybuffer";
+  ws.onopen = function () { self._sendConnect(); };
+  ws.onmessage = function (ev) { self._onData(new Uint8Array(ev.data)); };
+  ws.onclose = function () {
+    self.connected = false; self._stopPing(); self._status("closed");
+    if (!self.intentionalClose) self._scheduleReconnect();
+  };
+  ws.onerror = function () { try { ws.close(); } catch (e) {} };
+};
+MqttClient.prototype._scheduleReconnect = function () {
+  var self = this;
+  if (this.reconnectTimer || this.intentionalClose) return;
+  this._status("reconnecting");
+  this.reconnectTimer = setTimeout(function () { self.reconnectTimer = null; self.connect(); }, 3000);
+};
+MqttClient.prototype._sendConnect = function () {
+  var flags = 0x02; // clean session
+  var parts = [mqttEncodeString("MQTT"), new Uint8Array([4, 0, 0, 60]), mqttEncodeString(this.clientId)];
+  if (this.will) {
+    flags |= 0x04 | 0x20; // will flag + will retain (QoS 0)
+    parts[1][1] = flags;
+    parts.push(mqttEncodeString(this.will.topic));
+    parts.push(mqttEncodeString(this.will.payload));
+  } else { parts[1][1] = flags; }
+  // keepalive bytes are parts[1][2..3] = 0,60 已设置
+  this.ws.send(mqttPacket(0x10, parts));
+};
+MqttClient.prototype._onConnack = function () {
+  var self = this;
+  this.connected = true; this._status("online");
+  for (var i = 0; i < this.subscriptions.length; i++) this._sendSubscribe(this.subscriptions[i]);
+  this._stopPing();
+  this.pingTimer = setInterval(function () {
+    if (self.ws && self.ws.readyState === 1) self.ws.send(new Uint8Array([0xc0, 0x00]));
+  }, 30000);
+  if (this.onConnect) this.onConnect();
+};
+MqttClient.prototype._stopPing = function () { if (this.pingTimer) { clearInterval(this.pingTimer); this.pingTimer = null; } };
+MqttClient.prototype.subscribe = function (topic) {
+  if (this.subscriptions.indexOf(topic) < 0) this.subscriptions.push(topic);
+  if (this.connected) this._sendSubscribe(topic);
+};
+MqttClient.prototype._sendSubscribe = function (topic) {
+  var id = this.packetId++ & 0xffff; if (id === 0) id = this.packetId++ & 0xffff;
+  var body = [new Uint8Array([(id >> 8) & 0xff, id & 0xff]), mqttEncodeString(topic), new Uint8Array([0])];
+  this.ws.send(mqttPacket(0x82, body));
+};
+MqttClient.prototype.publish = function (topic, payload, retain) {
+  if (!this.connected || !this.ws || this.ws.readyState !== 1) return false;
+  var body = [mqttEncodeString(topic), new TextEncoder().encode(payload)];
+  this.ws.send(mqttPacket(retain ? 0x31 : 0x30, body));
+  return true;
+};
+MqttClient.prototype._onData = function (chunk) {
+  var merged = new Uint8Array(this.buffer.length + chunk.length);
+  merged.set(this.buffer); merged.set(chunk, this.buffer.length);
+  this.buffer = merged;
+  while (true) {
+    if (this.buffer.length < 2) return;
+    var multiplier = 1, remaining = 0, idx = 1, digit;
+    do {
+      if (idx >= this.buffer.length) return;
+      digit = this.buffer[idx++]; remaining += (digit & 0x7f) * multiplier; multiplier *= 128;
+    } while ((digit & 0x80) !== 0);
+    if (this.buffer.length < idx + remaining) return;
+    var packet = this.buffer.slice(idx, idx + remaining);
+    var type = this.buffer[0] >> 4;
+    this.buffer = this.buffer.slice(idx + remaining);
+    this._handlePacket(type, packet);
+  }
+};
+MqttClient.prototype._handlePacket = function (type, body) {
+  if (type === 2) { this._onConnack(); return; }           // CONNACK
+  if (type === 3) {                                          // PUBLISH
+    var tlen = (body[0] << 8) | body[1];
+    var topic = new TextDecoder().decode(body.slice(2, 2 + tlen));
+    var payload = body.slice(2 + tlen);
+    if (this.onMessage) this.onMessage(topic, new TextDecoder().decode(payload));
+    return;
+  }
+  // SUBACK / PINGRESP 等忽略
+};
+MqttClient.prototype.close = function () {
+  this.intentionalClose = true;
+  if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+  this._stopPing();
+  if (this.ws) { try { this.ws.send(new Uint8Array([0xe0, 0x00])); this.ws.close(); } catch (e) {} }
+  this.connected = false;
+};
+/* === End MQTT client === */
+
+
+/* ================= 大厅 glue ================= */
+function $(id) { return document.getElementById(id); }
+function showBanner(el, text, kind) {
+  el.textContent = text || "";
+  el.className = "banner" + (text ? " show " + (kind || "info") : "");
+}
+var CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function genRawCode(brokerId) {
+  var rand = new Uint8Array(12);
+  if ((window.crypto || {}).getRandomValues) crypto.getRandomValues(rand);
+  else rand.forEach(function (v, i) { rand[i] = Math.floor(Math.random() * 256); });
+  var out = brokerId;
+  for (var i = 0; i < 12; i++) out += CODE_ALPHABET[rand[i] % CODE_ALPHABET.length];
+  return out;
+}
+function formatCode(raw) { return raw.slice(0, 1) + "-" + raw.slice(1, 5) + "-" + raw.slice(5, 9) + "-" + raw.slice(9, 13); }
+function parseCode(input) {
+  var raw = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (raw.length !== 13 || !brokerById(raw[0])) return null;
+  return raw;
+}
+
+var pair = null;            // {role, rawCode}
+var client = null, broker = null;
+var peerOnline = false, hostOnline = false;
+var navigating = false;
+
+function controlTopic() { return "keyaluck/lobby/v1/" + pair.rawCode + "/control"; }
+function peerTopic() { return "keyaluck/lobby/v1/" + pair.rawCode + "/peer-b"; }
+function peerATopic() { return "keyaluck/lobby/v1/" + pair.rawCode + "/peer-a"; }
+function clientId(prefix) {
+  return "lb-" + prefix + "-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+function probeBroker(b, done) {
+  var c = new MqttClient(b.url, clientId("probe"), null);
+  var finished = false;
+  var timer = setTimeout(function () { if (!finished) { finished = true; c.close(); done(false); } }, 8000);
+  c.onConnect = function () { if (!finished) { finished = true; clearTimeout(timer); c.close(); done(true); } };
+  c.connect();
+}
+
+function connectLobby() {
+  broker = brokerById(pair.rawCode[0]);
+  if (!broker) { pairClear(); pair = null; render(); return; }
+  var isHost = pair.role === "a";
+  client = new MqttClient(broker.url, clientId(isHost ? "host" : "guest"), isHost
+    ? { topic: peerATopic(), payload: JSON.stringify({ online: false }) }
+    : { topic: peerTopic(), payload: JSON.stringify({ online: false }) });
+  client.onStatus = function (s) {
+    var chip = $("connChip");
+    var map = { connecting: "连接：连接中…", online: "连接：已连接 · " + broker.label, closed: "连接：已断开", reconnecting: "连接：重连中…" };
+    chip.textContent = map[s] || ("连接：" + s);
+    chip.className = "chip " + (s === "online" ? "on" : "off");
+  };
+  client.onConnect = function () {
+    client.subscribe(controlTopic());
+    if (isHost) {
+      client.subscribe(peerTopic());
+      client.publish(peerATopic(), JSON.stringify({ online: true, ts: Date.now() }), true);
+      /* 房主回到大厅：宣布当前无游戏，游戏中的对方会跟随回大厅 */
+      publishNow("");
+    } else {
+      client.subscribe(peerATopic());
+      client.publish(peerTopic(), JSON.stringify({ online: true, ts: Date.now() }), true);
+    }
+    render();
+  };
+  client.onMessage = function (topic, payload) {
+    var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic === peerTopic()) { peerOnline = !!msg.online; render(); return; }
+    if (topic === peerATopic()) { hostOnline = !!msg.online; render(); return; }
+    if (topic === controlTopic() && msg.type === "now") {
+      if (isHost) return;
+      if (msg.game && Date.now() - (msg.ts || 0) < FOLLOW_FRESH_MS) followTo(msg.game);
+      else render();
+    }
+  };
+  client.connect();
+  render();
+}
+
+function publishNow(game) {
+  nowSave(game);
+  if (client) client.publish(controlTopic(), JSON.stringify({ type: "now", game: game, ts: Date.now() }), true);
+}
+function followTo(file) {
+  if (navigating) return;
+  navigating = true;
+  showBanner($("lobbyNotice"), "房主选了游戏，正在带你进入…", "success");
+  setTimeout(function () { location.href = file; }, 600);
+}
+function launch(file) {
+  if (!pair || pair.role !== "a") return;
+  publishNow(file);
+  navigating = true;
+  setTimeout(function () { location.href = file; }, 350);
+}
+
+/* ================= 渲染 ================= */
+function render() {
+  if (!pair) {
+    $("pairSection").hidden = false;
+    $("lobbySection").hidden = true;
+    return;
+  }
+  $("pairSection").hidden = true;
+  $("lobbySection").hidden = false;
+  var isHost = pair.role === "a";
+  $("roomCodeText").textContent = formatCode(pair.rawCode);
+  $("roleChip").textContent = "角色：玩家 " + (isHost ? "A（房主）" : "B");
+  var peerChip = $("peerChip");
+  if (isHost) {
+    peerChip.textContent = "对方（B）：" + (peerOnline ? "在线" : "未加入 / 已离线");
+    peerChip.className = "chip " + (peerOnline ? "on" : "off");
+  } else {
+    peerChip.textContent = "房主（A）：" + (hostOnline ? "在大厅" : "未在大厅（可能在游戏中或离线）");
+    peerChip.className = "chip " + (hostOnline ? "on" : "off");
+  }
+  $("pickTitle").textContent = isHost ? "选一款游戏（点一下，双方一起进入）" : "等房主选游戏";
+  $("pickHint").textContent = isHost
+    ? (peerOnline ? "对方在线，点任意一款就能一起开玩。" : "对方还没打开大厅。你先选也行，对方打开大厅后会在 15 分钟内被自动带进来；不在也没关系，进游戏里等 TA 用大厅跟过来。")
+    : "房主选好后，你会被自动带进同一款游戏，不用再输码。这个页面保持打开就行。";
+  var grid = $("gameGrid");
+  grid.innerHTML = "";
+  GAMES.forEach(function (g) {
+    var d = document.createElement("div");
+    d.className = "game-card" + (isHost ? " clickable" : "");
+    d.innerHTML = '<div class="gn"></div><div class="gd"></div>';
+    d.querySelector(".gn").textContent = g.name;
+    d.querySelector(".gd").textContent = g.desc;
+    if (isHost) d.addEventListener("click", function () { launch(g.file); });
+    grid.appendChild(d);
+  });
+  showBanner($("lobbyInfo"), isHost
+    ? "这就是你们的固定房间。以后玩任何一款游戏，都先回到这个大厅即可。"
+    : "已记住这个房间，以后打开大厅自动连上，不用再输码。", "info");
+}
+
+/* ================= 按钮 ================= */
+$("createBtn").addEventListener("click", function () {
+  showBanner($("pairError"), "", "error");
+  showBanner($("pairInfo"), "正在连接联机通道…", "info");
+  $("createBtn").disabled = true;
+  var savedCode = null;
+  try { savedCode = localStorage.getItem(HOST_CODE_KEY); } catch (e) {}
+  var b = BROKERS[0];
+  probeBroker(b, function (ok) {
+    $("createBtn").disabled = false;
+    showBanner($("pairInfo"), "", "info");
+    if (!ok) { showBanner($("pairError"), "联机通道暂时连接不上，请检查网络后重试。", "error"); return; }
+    var code = savedCode && parseCode(savedCode) ? savedCode : genRawCode(b.id);
+    try { localStorage.setItem(HOST_CODE_KEY, code); } catch (e) {}
+    pair = { role: "a", rawCode: code };
+    pairSave(pair);
+    connectLobby();
+  });
+});
+$("joinBtn").addEventListener("click", function () {
+  var raw = parseCode($("joinCode").value);
+  if (!raw) { showBanner($("pairError"), "房间码格式不对，请检查后重新输入。", "error"); return; }
+  showBanner($("pairError"), "", "error");
+  pair = { role: "b", rawCode: raw };
+  pairSave(pair);
+  connectLobby();
+});
+$("copyBtn").addEventListener("click", function () {
+  var text = formatCode(pair.rawCode);
+  function done() { $("copyBtn").textContent = "已复制"; setTimeout(function () { $("copyBtn").textContent = "复制房间码"; }, 1500); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else done();
+});
+$("unpairBtn").addEventListener("click", function () {
+  if (!confirm("确定要断开配对吗？本机保存的配对与各游戏对局存档都会清掉。房主的房间码本身会保留，下次创建配对还是同一个码。")) return;
+  if (pair && pair.role === "a") publishNow("");
+  pairClear();
+  if (client) client.close();
+  pair = null; client = null;
+  document.location.reload();
+});
+
+/* ================= 启动 ================= */
+(function boot() {
+  var p = pairLoad();
+  if (p && p.rawCode && parseCode(p.rawCode) && (p.role === "a" || p.role === "b")) {
+    pair = p;
+    connectLobby();
+    /* 房主若带着未过期的选中游戏打开大厅，视为回到大厅：已在 connect 时 publishNow("") 广播 */
+  } else {
+    render();
+  }
+})();
+</script>
+</body>
+</html>

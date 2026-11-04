@@ -2,11 +2,10 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<!-- 不再禁用用户缩放：maximum-scale/user-scalable=no 会让系统字体缩放失效，无障碍不达标 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="408 与数学二复习进度、错题本与 R1 复习队列">
-<meta name="theme-color" content="#ffffff">
-<meta name="color-scheme" content="light">
+<meta name="theme-color" id="metaTheme" content="#ffffff">
+<meta name="color-scheme" content="light dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -14,287 +13,435 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>考研进度看板 · 2027考研</title>
+<script>
+/* 主题尽早应用，避免首屏闪烁 */
+(function(){try{var t=localStorage.getItem('dash-theme');if(!t)t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}})();
+</script>
 <style>
   :root {
-    --bg: #f8f9fb;
+    --bg: #f4f5f7;
     --surface: #ffffff;
-    --border: #e8ecf1;
-    --text: #374151;
-    --text-dim: #9ca3af;
-    --text-bright: #111827;
-    --green: #16a34a;
-    --green-bg: #f0fdf4;
-    --yellow: #ca8a04;
-    --yellow-bg: #fefce8;
-    --red: #dc2626;
-    --red-bg: #fef2f2;
-    --blue: #2563eb;
-    --blue-bg: #eff6ff;
-    --cyan: #0891b2;
-    --cyan-bg: #ecfeff;
-    --purple: #7c3aed;
-    --purple-bg: #f5f3ff;
-    --orange: #ea580c;
+    --surface-2: #eef0f4;
+    --border: #e5e7ee;
+    --text: #2f3644;
+    --text-dim: #68707d;
+    --text-faint: #9aa3b2;
+    --text-bright: #0b1220;
+    --green: #16a34a;  --green-bg: #ecfdf3;
+    --yellow: #b97e06; --yellow-bg: #fdf6e0;
+    --red: #dc2626;    --red-bg: #fef1f1;
+    --blue: #2563eb;   --blue-bg: #edf3fe;
+    --cyan: #0891b2;   --cyan-bg: #e8fbfd;
+    --purple: #7c3aed; --purple-bg: #f3efff;
+    --orange: #ea580c; --orange-bg: #fff3ea;
+    --hero-grad: linear-gradient(120deg, #fff8f0 0%, #ffffff 55%, #fff3ea 100%);
+    --glass: rgba(255,255,255,0.82);
+    --shadow-sm: 0 1px 2px rgba(16,24,40,0.05);
+    --shadow-md: 0 1px 3px rgba(16,24,40,0.05), 0 10px 30px -14px rgba(16,24,40,0.14);
+    --r-lg: 16px; --r-md: 12px; --r-sm: 8px;
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #0a0e14;
+    --surface: #131a24;
+    --surface-2: #1b2431;
+    --border: #243041;
+    --text: #c7d0db;
+    --text-dim: #8b96a5;
+    --text-faint: #5d6878;
+    --text-bright: #f0f4f9;
+    --green-bg: rgba(22,163,74,0.15);
+    --yellow-bg: rgba(202,138,4,0.16);
+    --red-bg: rgba(220,38,38,0.15);
+    --blue-bg: rgba(37,99,235,0.16);
+    --cyan-bg: rgba(8,145,178,0.16);
+    --purple-bg: rgba(124,58,237,0.18);
+    --orange-bg: rgba(234,88,12,0.16);
+    --hero-grad: linear-gradient(120deg, #1c1710 0%, #131a24 55%, #20130a 100%);
+    --glass: rgba(15,20,28,0.85);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.35);
+    --shadow-md: 0 1px 3px rgba(0,0,0,0.4), 0 10px 30px -14px rgba(0,0,0,0.6);
+    color-scheme: dark;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, 'SF Pro Display', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; -webkit-text-size-adjust: 100%; }
+  html { scroll-behavior: smooth; }
+  body { font-family: -apple-system, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; -webkit-text-size-adjust: 100%; font-variant-numeric: tabular-nums; }
+  button { font-family: inherit; }
 
   /* 顶部栏 */
-  .app-header { display: flex; align-items: center; gap: 12px; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.04); height: 48px; }
-  .hamburger { cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.2s; user-select: none; flex-shrink: 0; }
-  .hamburger:hover { background: var(--bg); }
-  .hamburger span { display: block; width: 18px; height: 2px; background: var(--text); margin: 3px 0; transition: all 0.3s; border-radius: 1px; }
-  .app-title { font-size: 14px; font-weight: 700; color: var(--text-bright); flex: 1; }
-  .header-countdown { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
-  .header-countdown .num { font-size: 18px; font-weight: 700; color: var(--orange); }
+  .app-header { display: flex; align-items: center; gap: 10px; background: var(--glass); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); border-bottom: 1px solid var(--border); padding: 0 14px; position: sticky; top: 0; z-index: 100; height: 54px; }
+  .hamburger { cursor: pointer; padding: 9px; border-radius: 9px; transition: background 0.2s; user-select: none; flex-shrink: 0; }
+  .hamburger:hover { background: var(--surface-2); }
+  .hamburger span { display: block; width: 18px; height: 2px; background: var(--text); margin: 3.5px 0; border-radius: 1px; }
+  .app-title { font-size: 15.5px; font-weight: 700; color: var(--text-bright); flex: 1; letter-spacing: 0.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .icon-btn { cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 34px; height: 34px; border-radius: 10px; font-size: 15px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 0.15s, background 0.2s; }
+  .icon-btn:hover { background: var(--surface-2); }
+  .icon-btn:active { transform: scale(0.94); }
+  .header-countdown { display: flex; align-items: baseline; gap: 3px; font-size: 11px; color: var(--text-dim); flex-shrink: 0; cursor: pointer; padding: 5px 9px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); }
+  .header-countdown .num { font-size: 18px; font-weight: 800; color: var(--orange); line-height: 1; }
 
-  /* 抽屉遮罩 */
-  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
+  /* 日历弹窗 */
+  .cal-pop { display: none; position: fixed; top: 62px; right: 12px; z-index: 300; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px; box-shadow: var(--shadow-md); min-width: 284px; }
+  .cal-pop-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .cal-pop-head button { border: none; background: var(--surface-2); color: var(--text); cursor: pointer; font-size: 15px; padding: 3px 10px; border-radius: 8px; }
+  .cal-week { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; text-align: center; font-size: 12.5px; }
+  .cal-detail { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--border); font-size: 11.5px; display: none; line-height: 1.65; }
+  .cal-foot { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-dim); text-align: center; }
+
+  /* 抽屉 / 侧边栏 */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(5,8,14,0.45); z-index: 200; opacity: 0; visibility: hidden; transition: opacity 0.3s; }
   .drawer-overlay.active { opacity: 1; visibility: visible; }
-
-  /* 侧边抽屉 */
-  .drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 240px; background: var(--surface); z-index: 201; transform: translateX(-100%); transition: transform 0.3s ease; box-shadow: 2px 0 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+  .drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 248px; background: var(--surface); z-index: 201; transform: translateX(-102%); transition: transform 0.32s cubic-bezier(0.32,0.72,0.24,1); box-shadow: 2px 0 16px rgba(0,0,0,0.12); display: flex; flex-direction: column; }
   .drawer.active { transform: translateX(0); }
-  .drawer-header { padding: 16px; border-bottom: 1px solid var(--border); }
-  .drawer-title { font-size: 14px; font-weight: 700; color: var(--text-bright); }
-  .drawer-subtitle { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
-  .drawer-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
-  .drawer-tab { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-dim); transition: all 0.2s; user-select: none; border-left: 3px solid transparent; }
-  .drawer-tab:hover { background: var(--bg); color: var(--text); }
-  .drawer-tab.active { color: var(--blue); background: var(--blue-bg); border-left-color: var(--blue); font-weight: 600; }
-  .drawer-tab .icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+  .drawer-header { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+  .drawer-title { font-size: 15px; font-weight: 700; color: var(--text-bright); }
+  .drawer-subtitle { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .drawer-nav { flex: 1; overflow-y: auto; padding: 10px 8px; }
+  .drawer-tab { display: flex; align-items: center; gap: 11px; padding: 10px 12px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-dim); border-radius: 10px; transition: all 0.18s; user-select: none; margin-bottom: 2px; }
+  .drawer-tab:hover { background: var(--surface-2); color: var(--text); }
+  .drawer-tab.active { color: var(--orange); background: var(--orange-bg); font-weight: 700; }
+  .drawer-tab .icon { font-size: 15px; width: 21px; text-align: center; flex-shrink: 0; }
+  .drawer-foot { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-faint); }
 
-  .page { display: none; max-width: 1100px; margin: 0 auto; padding: 16px; }
-  .page.active { display: block; }
+  /* 底部标签栏（移动端） */
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 150; display: flex; background: var(--glass); backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
+  .tabbar-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 0 6px; cursor: pointer; color: var(--text-dim); font-size: 10px; user-select: none; transition: color 0.18s; }
+  .tabbar-btn .ti { font-size: 18px; line-height: 1.15; }
+  .tabbar-btn.active { color: var(--orange); font-weight: 700; }
 
-  .grid { display: grid; gap: 12px; margin-bottom: 12px; }
+  .page { display: none; max-width: 1120px; margin: 0 auto; padding: 18px 16px 92px; }
+  .page.active { display: block; animation: pageIn 0.28s ease both; }
+  @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .grid { display: grid; gap: 14px; margin-bottom: 14px; }
   .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
   .grid-2 { grid-template-columns: repeat(2, 1fr); }
   .grid-1 { grid-template-columns: 1fr; }
-  @media (max-width: 768px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-2 { grid-template-columns: 1fr; } .page { padding: 12px; } }
-  @media (max-width: 400px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 820px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } .page { padding: 14px 12px 92px; } }
 
-  /* PWA 独立窗口：状态栏/刘海与底部手势条不再压住顶栏（file:// 下 env() 为 0，无副作用） */
-  @supports (padding: env(safe-area-inset-top)) {
-    .app-header { padding-top: env(safe-area-inset-top); height: calc(48px + env(safe-area-inset-top)); }
-    .drawer { top: env(safe-area-inset-top); bottom: env(safe-area-inset-bottom); }
-    .page { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-  }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow-sm); overflow: hidden; }
+  @media (hover:hover) { .card.hoverable:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); } .card.hoverable { transition: box-shadow 0.25s, transform 0.25s; } }
+  .card-title { font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .card-title-lg { font-size: 15.5px; font-weight: 700; color: var(--text-bright); letter-spacing: 0; text-transform: none; margin-bottom: 10px; }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); overflow: hidden; }
-  .card-title { font-size: 10px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
-  .card-title-lg { font-size: 14px; font-weight: 600; color: var(--text-bright); letter-spacing: 0; text-transform: none; margin-bottom: 10px; }
+  .stat-value { font-size: 27px; font-weight: 800; margin-bottom: 2px; letter-spacing: -0.5px; line-height: 1.15; }
+  .stat-label { font-size: 12px; color: var(--text); font-weight: 600; }
+  .stat-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; line-height: 1.45; }
 
-  .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 2px; letter-spacing: -0.5px; }
-  .stat-label { font-size: 10px; color: var(--text-dim); }
-  .stat-sub { font-size: 9px; color: #b0b8c4; margin-top: 1px; }
+  /* 驾驶舱 Hero */
+  .hero { background: var(--hero-grad); border: 1px solid var(--border); border-radius: 20px; padding: 22px; box-shadow: var(--shadow-md); margin-bottom: 14px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; overflow: hidden; }
+  @media (max-width: 820px) { .hero { grid-template-columns: 1fr; padding: 18px; } }
+  .hero-kicker { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: var(--orange); text-transform: uppercase; margin-bottom: 6px; }
+  .hero-days { display: flex; align-items: baseline; gap: 8px; }
+  .hero-days .n { font-size: 52px; font-weight: 800; line-height: 1; color: var(--text-bright); letter-spacing: -1.5px; }
+  .hero-days .u { font-size: 15px; font-weight: 600; color: var(--text-dim); }
+  .hero-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 7px; line-height: 1.6; }
+  .phase-track { background: var(--surface-2); border-radius: 99px; height: 8px; overflow: hidden; margin-top: 12px; }
+  .phase-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #f59e0b, var(--orange)); transition: width 0.8s ease; }
+  .phase-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+  .hero-right { display: flex; gap: 16px; align-items: center; }
+  .ring { width: 104px; height: 104px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; }
+  .ring::after { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: var(--surface); }
+  .ring-c { position: relative; z-index: 1; text-align: center; }
+  .ring-v { font-size: 21px; font-weight: 800; color: var(--text-bright); line-height: 1.1; }
+  .ring-l { font-size: 10px; color: var(--text-dim); }
+  .hero-facts { flex: 1; min-width: 0; }
+  .hero-fact { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px dashed var(--border); font-size: 12.5px; }
+  .hero-fact:last-child { border-bottom: none; }
+  .hero-fact b { font-size: 14px; color: var(--text-bright); }
 
-  .bar-track { background: #f1f5f9; border-radius: 4px; height: 5px; overflow: hidden; margin: 5px 0; }
-  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  /* 近7日趋势 */
+  .trend { display: flex; gap: 6px; align-items: flex-end; height: 74px; padding-top: 4px; }
+  .trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; }
+  .trend-bar { width: 100%; max-width: 30px; height: 52px; border-radius: 7px; background: var(--surface-2); display: flex; flex-direction: column-reverse; overflow: hidden; }
+  .trend-seg { width: 100%; }
+  .trend-lab { font-size: 10px; color: var(--text-faint); white-space: nowrap; }
+  .trend-col.today .trend-lab { color: var(--orange); font-weight: 700; }
+  .legend { display: flex; gap: 12px; font-size: 11px; color: var(--text-dim); margin-top: 8px; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 4px; }
 
-  .subject-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  /* 复习队列 */
+  .rq-row { display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-radius: var(--r-md); cursor: pointer; transition: background 0.18s; }
+  .rq-row:hover { background: var(--surface-2); }
+  .rq-ic { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .rq-main { flex: 1; min-width: 0; }
+  .rq-name { font-size: 13.5px; font-weight: 600; color: var(--text-bright); }
+  .rq-desc { font-size: 11.5px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rq-num { font-size: 19px; font-weight: 800; }
+  .rq-arrow { color: var(--text-faint); font-size: 15px; }
+
+  .bar-track { background: var(--surface-2); border-radius: 99px; height: 7px; overflow: hidden; margin: 6px 0; }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.7s ease; }
+
+  .subject-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
   .subject-row:last-child { margin-bottom: 0; }
-  .subject-label { font-size: 11px; min-width: 72px; flex-shrink: 0; color: var(--text); }
+  .subject-label { font-size: 12.5px; min-width: 76px; flex-shrink: 0; color: var(--text); font-weight: 600; }
   .subject-bar-wrap { flex: 1; min-width: 0; }
-  .subject-pct { font-size: 12px; font-weight: 600; min-width: 36px; text-align: right; }
+  .subject-pct { font-size: 13px; font-weight: 700; min-width: 40px; text-align: right; }
 
-  /* Heatmap */
-  .heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 5px; }
-  .heat-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 6px 3px; text-align: center; }
-  .heat-cell .hn { font-size: 9px; color: var(--text-dim); margin-bottom: 1px; }
-  .heat-cell .hv { font-size: 13px; font-weight: 700; }
-  .heat-cell .hl { font-size: 8px; color: #b0b8c4; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px; }
+  .heat-cell { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 7px 3px; text-align: center; }
+  .heat-cell .hn { font-size: 10px; color: var(--text-dim); margin-bottom: 1px; }
+  .heat-cell .hv { font-size: 14px; font-weight: 700; }
+  .heat-cell .hl { font-size: 9px; color: var(--text-faint); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bl-green { border-left: 3px solid var(--green); }
   .bl-yellow { border-left: 3px solid var(--yellow); }
   .bl-red { border-left: 3px solid var(--red); }
-  .bl-gray { border-left: 3px solid #d1d5db; }
+  .bl-gray { border-left: 3px solid var(--text-faint); }
 
-  /* Queue */
-  .q-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 5px; font-size: 11px; }
-  .q-today { background: var(--blue-bg); border: 1px solid #bfdbfe; }
-  .q-date { min-width: 30px; font-weight: 600; font-size: 10px; flex-shrink: 0; }
-  .q-content { flex: 1; line-height: 1.4; min-width: 0; }
-  .q-count { font-size: 9px; color: var(--text-dim); margin-left: 3px; white-space: nowrap; }
-  .tag { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600; margin-left: 3px; }
-  .tag-g { background: var(--green-bg); color: var(--green); border: 1px solid #bbf7d0; }
+  .q-row { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 8px; font-size: 12px; }
+  .q-today { background: var(--blue-bg); border: 1px solid var(--blue); border-color: color-mix(in srgb, var(--blue) 35%, transparent); }
+  .q-date { min-width: 34px; font-weight: 700; font-size: 11px; flex-shrink: 0; }
+  .q-content { flex: 1; line-height: 1.45; min-width: 0; }
+  .q-count { font-size: 10px; color: var(--text-dim); margin-left: 4px; white-space: nowrap; }
+  .tag { display: inline-block; padding: 1px 6px; border-radius: 5px; font-size: 10px; font-weight: 700; margin-left: 4px; }
+  .tag-g { background: var(--green-bg); color: var(--green); border: 1px solid color-mix(in srgb, var(--green) 35%, transparent); }
 
-  /* Rows */
-  .w-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f1f5f9; font-size: 11px; }
+  .w-row { display: flex; align-items: center; gap: 9px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
   .w-row:last-child { border-bottom: none; }
   .w-info { flex: 1; min-width: 0; }
-  .w-name { font-size: 11px; }
+  .w-name { font-size: 12.5px; line-height: 1.5; }
 
-  /* R1 list */
-  .r1-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f1f5f9; font-size: 11px; flex-wrap: wrap; }
+  .r1-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; flex-wrap: wrap; }
   .r1-row:last-child { border-bottom: none; }
-  .r1-name { min-width: 120px; font-weight: 500; font-size: 11px; }
-  .r1-bar { flex: 1; min-width: 80px; }
-  .r1-count { min-width: 40px; text-align: right; font-weight: 600; font-size: 11px; }
-  .r1-items { width: 100%; font-size: 9px; color: var(--text-dim); padding-left: 2px; line-height: 1.4; }
+  .r1-name { min-width: 128px; font-weight: 600; font-size: 12.5px; }
+  .r1-bar { flex: 1; min-width: 90px; }
+  .r1-count { min-width: 44px; text-align: right; font-weight: 700; font-size: 12.5px; }
+  .r1-items { width: 100%; font-size: 10.5px; color: var(--text-dim); padding-left: 2px; line-height: 1.5; }
 
-  /* Chapter table */
-  .ch-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  .ch-table td { padding: 5px 6px; border-bottom: 1px solid #f3f4f6; word-break: break-word; overflow-wrap: anywhere; }
-  .badge-sm { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 600; }
-  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid #bbf7d0; }
-  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid #fde68a; }
-  .badge-gray { background: #f9fafb; color: #b0b8c4; border: 1px solid var(--border); }
-  .badge-red { background: var(--red-bg); color: var(--red); border: 1px solid #fecaca; }
-  .badge-cyan { background: var(--cyan-bg); color: var(--cyan); border: 1px solid #a5f3fc; }
+  .ch-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .ch-table td { padding: 6px; border-bottom: 1px solid var(--border); word-break: break-word; overflow-wrap: anywhere; }
+  .badge-sm { display: inline-block; padding: 1.5px 7px; border-radius: 6px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .badge-gray { background: var(--surface-2); color: var(--text-faint); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-cyan { background: var(--cyan-bg); color: var(--cyan); }
 
-  /* Timeline */
-  .tl { position: relative; padding-left: 18px; }
-  .tl::before { content: ''; position: absolute; left: 5px; top: 2px; bottom: 0; width: 1px; background: #e5e7eb; }
-  .tl-item { position: relative; margin-bottom: 10px; }
-  .tl-item::before { content: ''; position: absolute; left: -15px; top: 2px; width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; border: 2px solid var(--surface); }
+  .tl { position: relative; padding-left: 19px; }
+  .tl::before { content: ''; position: absolute; left: 5px; top: 3px; bottom: 0; width: 1.5px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 11px; }
+  .tl-item::before { content: ''; position: absolute; left: -16.5px; top: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); border: 2px solid var(--surface); }
   .tl-item.done::before { background: var(--green); }
-  .tl-item.active::before { background: var(--orange); box-shadow: 0 0 0 3px rgba(234,179,8,0.15); }
-  .tl-date { font-size: 9px; color: var(--text-dim); }
-  .tl-title { font-size: 11px; color: var(--text); font-weight: 500; }
-  .tl-desc { font-size: 9px; color: #b0b8c4; }
+  .tl-item.active::before { background: var(--orange); box-shadow: 0 0 0 4px var(--orange-bg); }
+  .tl-date { font-size: 10px; color: var(--text-dim); }
+  .tl-title { font-size: 12.5px; color: var(--text); font-weight: 600; }
+  .tl-desc { font-size: 10.5px; color: var(--text-faint); }
 
-  /* Knowledge map */
-  .km-section { margin-bottom: 12px; }
-  .km-title { font-size: 11px; font-weight: 600; color: var(--text-bright); margin-bottom: 4px; }
-  .km-item { font-size: 10px; color: #6b7280; padding: 2px 0 2px 12px; line-height: 1.5; }
+  .km-section { margin-bottom: 13px; }
+  .km-title { font-size: 12.5px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
+  .km-item { font-size: 11.5px; color: var(--text-dim); padding: 2px 0 2px 12px; line-height: 1.55; }
 
-  .tip { font-size: 9px; color: #b0b8c4; margin-top: 5px; }
-  .tip-warn { font-size: 9px; color: var(--red); margin-top: 5px; }
+  .tip { font-size: 10.5px; color: var(--text-faint); margin-top: 6px; }
+  .tip-warn { font-size: 10.5px; color: var(--red); margin-top: 6px; }
 
-  /* 错题本 */
-  .mk-filter { padding: 4px 10px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); font-size: 11px; cursor: pointer; color: var(--text-dim); user-select: none; }
-  .mk-filter.active { background: var(--blue-bg); color: var(--blue); border-color: #bfdbfe; font-weight: 600; }
-  .mk-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
-  .mk-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-  .mk-title { font-size: 13px; font-weight: 700; color: var(--text-bright); }
-  .mk-rate { font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 10px; }
-  .mk-chip { display: inline-block; background: #f8fafc; border: 1px solid var(--border); border-radius: 5px; padding: 3px 8px; font-size: 10px; margin: 0 6px 6px 0; color: var(--text); }
-  .mk-chip b { color: var(--text-dim); font-weight: 600; }
-  .mk-group { margin-top: 8px; font-size: 11px; line-height: 1.6; color: #4b5563; }
+  .mk-filter { padding: 5px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; cursor: pointer; color: var(--text-dim); user-select: none; transition: all 0.18s; }
+  .mk-filter.active { background: var(--blue-bg); color: var(--blue); border-color: color-mix(in srgb, var(--blue) 40%, transparent); font-weight: 700; }
+  .mk-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px 18px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
+  .mk-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 9px; }
+  .mk-title { font-size: 14px; font-weight: 700; color: var(--text-bright); }
+  .mk-rate { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+  .mk-chip { display: inline-block; background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; padding: 3.5px 9px; font-size: 11px; margin: 0 6px 6px 0; color: var(--text); }
+  .mk-chip b { color: var(--text-dim); font-weight: 700; }
+  .mk-group { margin-top: 9px; font-size: 12px; line-height: 1.65; color: var(--text); }
   .mk-group-name { font-weight: 700; color: var(--text-bright); }
-  .mk-count { font-size: 10px; color: var(--text-dim); }
-  .mk-empty { text-align: center; color: var(--text-dim); font-size: 11px; padding: 24px 0; }
+  .mk-count { font-size: 11px; color: var(--text-dim); }
+  .mk-empty { text-align: center; color: var(--text-dim); font-size: 12px; padding: 26px 0; }
 
-  /* 每日记录表格 */
-  .log-table { width: 100%; border-collapse: collapse; font-size: 10px; }
-  .log-table th { background: var(--bg); padding: 6px 4px; text-align: left; font-weight: 600; color: var(--text-dim); border-bottom: 2px solid var(--border); position: sticky; top: 0; white-space: nowrap; }
-  .log-table td { padding: 5px 4px; border-bottom: 1px solid #f3f4f6; vertical-align: top; line-height: 1.4; }
-  .log-table tr:hover { background: #f9fafb; }
-  .log-date { font-weight: 600; color: var(--text-bright); white-space: nowrap; }
-  .log-empty { color: #d1d5db; }
+  .log-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  .log-table th { background: var(--surface-2); padding: 7px 5px; text-align: left; font-weight: 700; color: var(--text-dim); border-bottom: 2px solid var(--border); position: sticky; top: 0; white-space: nowrap; }
+  .log-table td { padding: 6px 5px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+  .log-table tr:hover { background: var(--surface-2); }
+  .log-date { font-weight: 700; color: var(--text-bright); white-space: nowrap; }
+  .log-empty { color: var(--text-faint); }
 
-  /* 规划问题卡片 */
-  .problem-card { background: var(--bg); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; border-left: 3px solid var(--orange); }
-  .problem-title { font-size: 12px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
-  .problem-status { font-size: 10px; color: var(--text-dim); margin-bottom: 6px; }
-  .problem-solutions { font-size: 10px; color: #4b5563; line-height: 1.7; }
-  .problem-solutions li { margin-left: 16px; }
+  .problem-card { background: var(--surface-2); border-radius: var(--r-md); padding: 13px 15px; margin-bottom: 11px; border-left: 3.5px solid var(--orange); }
+  .problem-title { font-size: 13px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
+  .problem-status { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; }
+  .problem-solutions { font-size: 11px; color: var(--text); line-height: 1.7; }
+  .problem-solutions li { margin-left: 17px; }
 
-  /* 关于页 */
-  .about-row { display: flex; padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px; }
+  .about-row { display: flex; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
   .about-row:last-child { border-bottom: none; }
-  .about-label { min-width: 70px; color: var(--text-dim); font-weight: 600; }
+  .about-label { min-width: 74px; color: var(--text-dim); font-weight: 600; }
   .about-value { flex: 1; color: var(--text); }
-  .index-item { padding: 5px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px; }
+  .index-item { padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
   .index-item:last-child { border-bottom: none; }
   .index-item a { color: var(--blue); text-decoration: none; }
   .index-item a:hover { text-decoration: underline; }
-  .index-desc { font-size: 9px; color: var(--text-dim); margin-top: 1px; }
+  .index-desc { font-size: 10.5px; color: var(--text-dim); margin-top: 1px; }
 
-  /* Markdown 渲染内容 */
-  .md-content { font-size: 11px; line-height: 1.7; color: var(--text); }
-  .md-content h1 { font-size: 16px; font-weight: 700; margin: 12px 0 8px; color: var(--text-bright); }
-  .md-content h2 { font-size: 14px; font-weight: 700; margin: 10px 0 6px; color: var(--text-bright); }
-  .md-content h3 { font-size: 12px; font-weight: 700; margin: 8px 0 4px; color: var(--text-bright); }
+  .md-content { font-size: 12.5px; line-height: 1.75; color: var(--text); }
+  .md-content h1 { font-size: 17px; font-weight: 700; margin: 13px 0 8px; color: var(--text-bright); }
+  .md-content h2 { font-size: 15px; font-weight: 700; margin: 11px 0 6px; color: var(--text-bright); }
+  .md-content h3 { font-size: 13px; font-weight: 700; margin: 9px 0 4px; color: var(--text-bright); }
   .md-content p { margin: 6px 0; }
-  .md-content ul, .md-content ol { margin: 6px 0; padding-left: 20px; }
+  .md-content ul, .md-content ol { margin: 6px 0; padding-left: 21px; }
   .md-content li { margin: 2px 0; }
-  .md-content blockquote { border-left: 3px solid var(--border); padding-left: 10px; color: var(--text-dim); margin: 8px 0; }
-  .md-content hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
-  .md-content code { background: var(--bg); padding: 1px 5px; border-radius: 3px; font-size: 10px; font-family: monospace; }
+  .md-content blockquote { border-left: 3px solid var(--border); padding-left: 11px; color: var(--text-dim); margin: 8px 0; }
+  .md-content hr { border: none; border-top: 1px solid var(--border); margin: 13px 0; }
+  .md-content code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 11px; font-family: ui-monospace, monospace; }
   .md-content strong { color: var(--text-bright); }
-  .md-content table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10px; }
-  .md-content th { background: var(--bg); padding: 5px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
-  .md-content td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
+  .md-content table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 11px; }
+  .md-content th { background: var(--surface-2); padding: 6px 8px; text-align: left; font-weight: 700; border-bottom: 2px solid var(--border); }
+  .md-content td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
 
-  /* 英语政治状态徽章 */
-  .ep-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .ep-badge { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; }
   .ep-done { background: var(--green-bg); color: var(--green); }
   .ep-doing { background: var(--yellow-bg); color: var(--yellow); }
-  .ep-todo { background: #f9fafb; color: var(--text-dim); }
-  .ep-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f3f4f6; font-size: 11px; }
+  .ep-todo { background: var(--surface-2); color: var(--text-dim); }
+  .ep-row { display: flex; align-items: center; gap: 9px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
   .ep-row:last-child { border-bottom: none; }
-  .ep-label { min-width: 60px; color: var(--text-dim); }
-  .ep-note { flex: 1; font-size: 9px; color: var(--text-dim); text-align: right; }
-  .fc-card { border:1px solid var(--border); border-radius:8px; margin-bottom:10px; overflow:hidden; }
-  .fc-q { padding:12px 14px; cursor:pointer; font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center; background:var(--bg); }
-  .fc-q:hover { background:var(--blue-bg); }
-  .fc-tag { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:500; margin-right:8px; }
-  .fc-tag.DS { background:#fef3c7; color:#92400e; }
-  .fc-tag.OS { background:#dbeafe; color:#1e40af; }
-  .fc-tag.CO { background:#fce7f3; color:#9d174d; }
-  .fc-tag.CN { background:#d1fae5; color:#065f46; }
-  .fc-tag.EN { background:#ede9fe; color:#5b21b6; }
-  .fc-filter-btn { padding:4px 12px; border:1px solid var(--border); border-radius:14px; background:var(--bg); cursor:pointer; font-size:12px; }
-  .fc-filter-btn.active { background:var(--text); color:var(--bg); }
-  .en-word { background:#fef08a; color:#713f12; padding:0 4px; border-radius:3px; font-weight:600; }
-  .fc-a { padding:12px 14px; font-size:12px; line-height:1.6; color:var(--text); display:none; border-top:1px solid var(--border); }
-  .fc-a.show { display:block; }
-  .fc-btn { font-size:11px; color:var(--blue); white-space:nowrap; }
-  .fc-hard { color:var(--red); font-size:10px; margin-left:6px; }
+  .ep-label { min-width: 64px; color: var(--text-dim); }
+  .ep-note { flex: 1; font-size: 10.5px; color: var(--text-dim); text-align: right; }
+  .fc-card { border: 1px solid var(--border); border-radius: var(--r-md); margin-bottom: 11px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow-sm); }
+  .fc-q { padding: 13px 15px; cursor: pointer; font-size: 13.5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--surface); transition: background 0.18s; }
+  .fc-q:hover { background: var(--blue-bg); }
+  .fc-tag { font-size: 10.5px; padding: 2px 8px; border-radius: 99px; font-weight: 700; margin-right: 8px; }
+  .fc-tag.DS { background: #fef3c7; color: #92400e; }
+  .fc-tag.OS { background: #dbeafe; color: #1e40af; }
+  .fc-tag.CO { background: #fce7f3; color: #9d174d; }
+  .fc-tag.CN { background: #d1fae5; color: #065f46; }
+  .fc-tag.EN { background: #ede9fe; color: #5b21b6; }
+  [data-theme="dark"] .fc-tag.DS { background: rgba(245,158,11,0.18); color: #fbbf24; }
+  [data-theme="dark"] .fc-tag.OS { background: rgba(59,130,246,0.18); color: #93c5fd; }
+  [data-theme="dark"] .fc-tag.CO { background: rgba(236,72,153,0.16); color: #f9a8d4; }
+  [data-theme="dark"] .fc-tag.CN { background: rgba(16,185,129,0.16); color: #6ee7b7; }
+  [data-theme="dark"] .fc-tag.EN { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+  .fc-filter-btn { padding: 5px 13px; border: 1px solid var(--border); border-radius: 99px; background: var(--surface); color: var(--text); cursor: pointer; font-size: 12.5px; transition: all 0.18s; }
+  .fc-filter-btn.active { background: var(--text-bright); color: var(--bg); border-color: var(--text-bright); font-weight: 700; }
+  .en-word { background: #fef08a; color: #713f12; padding: 0 4px; border-radius: 3px; font-weight: 700; }
+  [data-theme="dark"] .en-word { background: rgba(250,204,21,0.28); color: #fde68a; }
+  .fc-a { padding: 13px 15px; font-size: 12.5px; line-height: 1.7; color: var(--text); display: none; border-top: 1px solid var(--border); }
+  .fc-a.show { display: block; animation: pageIn 0.22s ease both; }
+  .fc-btn { font-size: 11.5px; color: var(--blue); white-space: nowrap; font-weight: 600; }
+  .fc-hard { color: var(--red); font-size: 10.5px; margin-left: 6px; font-weight: 700; }
+
+  /* 全局搜索 */
+  .search-overlay { position: fixed; inset: 0; z-index: 400; background: rgba(5,8,14,0.5); backdrop-filter: blur(3px); display: none; }
+  .search-overlay.open { display: block; }
+  .search-panel { max-width: 620px; margin: 8vh auto 0; background: var(--surface); border-radius: 18px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--border); }
+  @media (max-width: 700px) { .search-panel { margin: 4vh 10px 0; } }
+  .search-input { width: 100%; border: none; outline: none; padding: 16px 18px; font-size: 16px; background: var(--surface); color: var(--text-bright); border-bottom: 1px solid var(--border); }
+  .search-results { max-height: 56vh; overflow-y: auto; padding: 8px; }
+  .search-item { display: flex; gap: 10px; align-items: baseline; padding: 9px 10px; border-radius: 10px; cursor: pointer; }
+  .search-item:hover { background: var(--surface-2); }
+  .search-kind { font-size: 10px; font-weight: 700; padding: 1.5px 7px; border-radius: 99px; background: var(--orange-bg); color: var(--orange); flex-shrink: 0; }
+  .search-main { flex: 1; min-width: 0; }
+  .search-title { font-size: 13px; font-weight: 600; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-sub { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-empty { text-align: center; color: var(--text-dim); font-size: 12.5px; padding: 22px 0; }
+
+  select, input[type="text"], textarea { color: var(--text); }
+  select { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; font-size: 12.5px; }
+
+  @supports (padding: env(safe-area-inset-top)) {
+    .app-header { padding-top: env(safe-area-inset-top); height: calc(54px + env(safe-area-inset-top)); }
+  }
+  @media (min-width: 1024px) {
+    .drawer { transform: none; box-shadow: none; border-right: 1px solid var(--border); }
+    .drawer-overlay { display: none !important; }
+    .hamburger { display: none; }
+    .tabbar { display: none; }
+    body { padding-left: 248px; }
+    .page { padding-bottom: 28px; }
+    .cal-pop { right: 24px; }
+  }
 </style>
 </head>
 <body>
-<!-- 顶部栏 -->
 <div class="app-header">
   <div class="hamburger" onclick="toggleDrawer()">
     <span></span><span></span><span></span>
   </div>
   <div class="app-title">考研进度看板</div>
-  <div class="header-countdown" id="countdownBtn" onclick="toggleCalendar()" style="cursor:pointer" title="点击查看日历"><span class="num" id="daysLeft">--</span><span>天</span></div>
+  <button class="icon-btn" id="searchBtn" onclick="openSearch()" title="全局搜索" aria-label="全局搜索">🔍</button>
+  <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="切换深色/浅色" aria-label="切换主题">🌙</button>
+  <div class="header-countdown" id="countdownBtn" onclick="toggleCalendar()" title="点击查看日历"><span class="num" id="daysLeft">--</span><span>天</span></div>
 </div>
 
-<!-- 日历弹窗 -->
-<div id="calendarPop" style="display:none;position:fixed;top:54px;right:12px;z-index:200;background:rgba(255,255,255,.65);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.4);border-radius:16px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:280px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <button onclick="changeMonth(-1)" style="border:none;background:none;cursor:pointer;font-size:16px;padding:4px 8px;">‹</button>
-    <div id="calTitle" style="font-weight:600;font-size:14px;"></div>
-    <button onclick="changeMonth(1)" style="border:none;background:none;cursor:pointer;font-size:16px;padding:4px 8px;">›</button>
+<div class="cal-pop" id="calendarPop">
+  <div class="cal-pop-head">
+    <button onclick="changeMonth(-1)">‹</button>
+    <div id="calTitle" style="font-weight:700;font-size:14.5px;color:var(--text-bright);"></div>
+    <button onclick="changeMonth(1)">›</button>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px;color:var(--text-dim);margin-bottom:4px;">
+  <div class="cal-week">
     <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div style="color:var(--orange)">六</div><div style="color:var(--orange)">日</div>
   </div>
-  <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;"></div>
-  <div id="calDetail" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;display:none;"></div>
-  <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-dim);text-align:center;">
+  <div class="cal-grid" id="calGrid"></div>
+  <div class="cal-detail" id="calDetail"></div>
+  <div class="cal-foot">
     🎯 考研日 <b style="color:var(--orange)">2026-12-19</b>
   </div>
 </div>
-<!-- 抽屉遮罩 -->
+
 <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
 
-<!-- 侧边抽屉 -->
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <div class="drawer-title">📚 考研管理</div>
     <div class="drawer-subtitle">2027考研 · 22408</div>
   </div>
   <div class="drawer-nav">
-    <div class="drawer-tab active" onclick="switchTab('overview')"><span class="icon">📊</span>总览</div>
-    <div class="drawer-tab" onclick="switchTab('math')"><span class="icon">📐</span>数学</div>
-    <div class="drawer-tab" onclick="switchTab('four8')"><span class="icon">💻</span>408</div>
-    <div class="drawer-tab" onclick="switchTab('engpol')"><span class="icon">📖</span>英语·政治</div>
-    <div class="drawer-tab" onclick="switchTab('r1')"><span class="icon">✅</span>R1清单</div>
-    <div class="drawer-tab" onclick="switchTab('mistakes')"><span class="icon">❌</span>错题本</div>
-    <div class="drawer-tab" onclick="switchTab('wrongbook')"><span class="icon">💣</span>错题集</div>
-    <div class="drawer-tab" onclick="switchTab('wangdao')"><span class="icon">✉️</span>王道提交</div>
-    <div class="drawer-tab" onclick="switchTab('daily')"><span class="icon">📝</span>每日记录</div>
-    <div class="drawer-tab" onclick="switchTab('flashcard')"><span class="icon">📋</span>闪卡</div>
+    <div class="drawer-tab active" data-t="overview" onclick="switchTab('overview')"><span class="icon">📊</span>总览</div>
+    <div class="drawer-tab" data-t="math" onclick="switchTab('math')"><span class="icon">📐</span>数学</div>
+    <div class="drawer-tab" data-t="four8" onclick="switchTab('four8')"><span class="icon">💻</span>408</div>
+    <div class="drawer-tab" data-t="engpol" onclick="switchTab('engpol')"><span class="icon">📖</span>英语·政治</div>
+    <div class="drawer-tab" data-t="r1" onclick="switchTab('r1')"><span class="icon">✅</span>R1清单</div>
+    <div class="drawer-tab" data-t="mistakes" onclick="switchTab('mistakes')"><span class="icon">❌</span>错题本</div>
+    <div class="drawer-tab" data-t="wrongbook" onclick="switchTab('wrongbook')"><span class="icon">💣</span>错题集</div>
+    <div class="drawer-tab" data-t="wangdao" onclick="switchTab('wangdao')"><span class="icon">✉️</span>王道提交</div>
+    <div class="drawer-tab" data-t="daily" onclick="switchTab('daily')"><span class="icon">📝</span>每日记录</div>
+    <div class="drawer-tab" data-t="flashcard" onclick="switchTab('flashcard')"><span class="icon">📋</span>闪卡</div>
+  </div>
+  <div class="drawer-foot">数据由 生成看板.py 同步 · 深色模式点右上角 🌙</div>
+</div>
+
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-panel">
+    <input class="search-input" id="searchInput" type="text" placeholder="搜索知识点 / 错题 / 闪卡 / 章节…" autocomplete="off">
+    <div class="search-results" id="searchResults"><div class="search-empty">输入关键词，跨错题本、闪卡、讲次与章节搜索</div></div>
   </div>
 </div>
 
-<!-- ========== 总览 ========== -->
+<div class="tabbar" id="tabbar">
+  <div class="tabbar-btn active" data-t="overview" onclick="switchTab('overview')"><span class="ti">📊</span>总览</div>
+  <div class="tabbar-btn" data-t="math" onclick="switchTab('math')"><span class="ti">📐</span>数学</div>
+  <div class="tabbar-btn" data-t="four8" onclick="switchTab('four8')"><span class="ti">💻</span>408</div>
+  <div class="tabbar-btn" data-t="mistakes" onclick="switchTab('mistakes')"><span class="ti">❌</span>错题</div>
+  <div class="tabbar-btn" data-t="flashcard" onclick="switchTab('flashcard')"><span class="ti">📋</span>闪卡</div>
+</div>
+
+<!-- ========== 总览（驾驶舱） ========== -->
 <div id="page-overview" class="page active">
+  <div class="hero">
+    <div>
+      <div class="hero-kicker">2027 考研 · 22408 冲刺</div>
+      <div class="hero-days"><span class="n" id="heroDays">--</span><span class="u">天后初试</span></div>
+      <div class="hero-sub" id="heroSub"></div>
+      <div class="phase-track"><div class="phase-fill" id="phaseFill" style="width:0%"></div></div>
+      <div class="phase-meta"><span id="phaseName"></span><span id="phasePct"></span></div>
+    </div>
+    <div class="hero-right">
+      <div class="ring" id="sprintRing"><div class="ring-c"><div class="ring-v" id="ringV">--%</div><div class="ring-l">备考总进程</div></div></div>
+      <div class="hero-facts" id="heroFacts"></div>
+    </div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">📅 近 7 日学习轨迹</div>
+      <div class="trend" id="weekTrend"></div>
+      <div class="legend"><span><i style="background:var(--purple)"></i>数学</span><span><i style="background:var(--blue)"></i>408</span><span><i style="background:var(--green)"></i>英语</span></div>
+      <div class="tip" id="streakTip"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔁 复习队列</div>
+      <div id="reviewQueue"></div>
+    </div>
+  </div>
   <div class="grid grid-4" id="ovCards"></div>
   <div class="grid grid-2">
     <div class="card">
@@ -310,11 +457,10 @@
     <div class="card">
       <div class="card-title" id="r1BarTitle"></div>
       <div id="r1Bar"></div>
-      <div id="r1Queue" style="max-height:240px;overflow-y:auto;"></div>
+      <div id="r1Queue" style="max-height:250px;overflow-y:auto;"></div>
     </div>
   </div>
 </div>
-
 <!-- ========== 数学 ========== -->
 <div id="page-math" class="page">
   <div class="grid grid-2">
@@ -8219,15 +8365,39 @@ const DATA = {
 // ==== DATA:GENERATED-END ====
 
 const catColors = { 极限:'var(--blue)', 微分:'var(--purple)', 积分:'var(--yellow)', 多元:'var(--red)', 方程:'var(--cyan)' };
+
+/* ===== 主题 ===== */
+function applyTheme(t){
+  document.documentElement.dataset.theme=t;
+  var b=document.getElementById('themeBtn'); if(b) b.textContent = t==='dark' ? '☀️' : '🌙';
+  var m=document.getElementById('metaTheme'); if(m) m.setAttribute('content', t==='dark' ? '#0a0e14' : '#ffffff');
+}
+function toggleTheme(){
+  var t = document.documentElement.dataset.theme==='dark' ? 'light' : 'dark';
+  try{ localStorage.setItem('dash-theme', t); }catch(e){}
+  applyTheme(t);
+}
+applyTheme(document.documentElement.dataset.theme || 'light');
+
+/* ===== 导航 ===== */
 function switchTab(id) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.drawer-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('.drawer-tab').forEach(t=>{
-    if(t.getAttribute('onclick') && t.getAttribute('onclick').includes("'"+id+"'")) t.classList.add('active');
-  });
+  var pg=document.getElementById('page-'+id); if(pg) pg.classList.add('active');
+  document.querySelectorAll('.drawer-tab').forEach(t=>t.classList.toggle('active', t.dataset.t===id));
+  document.querySelectorAll('.tabbar-btn').forEach(t=>t.classList.toggle('active', t.dataset.t===id));
   closeDrawer();
+  window.scrollTo({top:0});
 }
+function toggleDrawer() {
+  document.getElementById('drawer').classList.toggle('active');
+  document.getElementById('drawerOverlay').classList.toggle('active');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('active');
+  document.getElementById('drawerOverlay').classList.remove('active');
+}
+
+/* ===== 闪卡 ===== */
 const FLASHCARDS = [
   {sub:'DS', hard:false, q:'循环队列判空、判满条件？', a:'判空：front == rear<br>判满：(rear+1) % MaxSize == front（牺牲一个单元法）'},
   {sub:'DS', hard:false, q:'哪些排序算法不稳定？', a:'口诀：冒插归基稳定，快选堆希不稳定（快速、选择、堆、希尔）'},
@@ -8283,19 +8453,11 @@ document.querySelectorAll('.fc-filter-btn').forEach(btn=>{
   };
 });
 
-function toggleDrawer() {
-  document.getElementById('drawer').classList.toggle('active');
-  document.getElementById('drawerOverlay').classList.toggle('active');
-}
-function closeDrawer() {
-  document.getElementById('drawer').classList.remove('active');
-  document.getElementById('drawerOverlay').classList.remove('active');
-}
+/* ===== 倒计时与日历 ===== */
 function updateCountdown() {
   const diff=Math.max(0,Math.ceil((new Date('2026-12-19')-new Date())/86400000));
   document.getElementById('daysLeft').textContent=diff;
 }
-// ==== 日历弹窗 ====
 const CALENDAR_DATA = {
   '2026-09-07':{math:'15讲1ka R1(12错)',cs:'CN 2.1-2.3物理层(64/75/89%)',en:'2015text1+单词',note:'1ka R1 12错'},
   '2026-09-08':{cs:'CN 3.1-3.4数据链路层(4+1+8+25题)',note:'3.4窗口规则待巩固'},
@@ -8350,7 +8512,7 @@ const CALENDAR_DATA = {
 let calYear, calMonth;
 function toggleCalendar(){
   const p=document.getElementById('calendarPop');
-  if(p.style.display==='none'){
+  if(p.style.display==='none'||!p.style.display){
     const now=new Date();
     calYear=now.getFullYear(); calMonth=now.getMonth();
     renderCalendar();
@@ -8371,7 +8533,7 @@ function showCalDetail(y,m,d){
   const today=new Date();
   const isToday=key===today.getFullYear()+'-'+pad(today.getMonth())+'-'+pad(today.getDate());
   if(data||isToday){
-    let html='<div style="font-weight:600;margin-bottom:4px;color:var(--text-bright)">'+y+'/'+(m+1)+'/'+d+(isToday?' · 今天':'')+'</div>';
+    let html='<div style="font-weight:700;margin-bottom:4px;color:var(--text-bright)">'+y+'/'+(m+1)+'/'+d+(isToday?' · 今天':'')+'</div>';
     if(data){
       if(data.math) html+='<div style="margin:2px 0">📐 '+data.math+'</div>';
       if(data.cs) html+='<div style="margin:2px 0">💻 '+data.cs+'</div>';
@@ -8409,10 +8571,9 @@ function renderCalendar(){
     if(isToday){bg='var(--blue)';color='#fff';}
     if(isExam){bg='var(--orange)';color='#fff';}
     const dot=hasData?'<div style="width:4px;height:4px;border-radius:50%;background:'+(isToday?'#fff':'var(--green)')+';margin:2px auto 0;"></div>':'';
-    grid.innerHTML+='<div onclick="showCalDetail('+calYear+','+calMonth+','+d+')" style="padding:4px 0;border-radius:4px;background:'+bg+';color:'+color+';font-weight:'+(isToday||isExam?'700':'400')+';cursor:'+(hasData||isToday?'pointer':'default')+'">'+d+dot+'</div>';
+    grid.innerHTML+='<div onclick="showCalDetail('+calYear+','+calMonth+','+d+')" style="padding:4px 0;border-radius:6px;background:'+bg+';color:'+color+';font-weight:'+(isToday||isExam?'700':'400')+';cursor:'+(hasData||isToday?'pointer':'default')+'">'+d+dot+'</div>';
   }
 }
-// 点击外部关闭日历
 document.addEventListener('click',function(e){
   const p=document.getElementById('calendarPop');
   const btn=document.getElementById('countdownBtn');
@@ -8420,32 +8581,126 @@ document.addEventListener('click',function(e){
     p.style.display='none';
   }
 });
+
+/* ===== 通用统计卡 ===== */
 function statCard(c){
-  return `<div class="card"><div class="stat-value" style="color:${c.color||'var(--text)'}">${c.value}</div><div class="stat-label">${c.label}</div><div class="stat-sub">${c.sub||''}</div></div>`;
+  return `<div class="card hoverable"><div class="stat-value" style="color:${c.color||'var(--text-bright)'}">${c.value}</div><div class="stat-label">${c.label}</div><div class="stat-sub">${c.sub||''}</div></div>`;
 }
-// Overview cards（距初试动态 + DATA.cards.overview）
+
+/* ===== 驾驶舱 Hero ===== */
 (function(){
-  const diff=Math.max(0,Math.ceil((new Date('2026-12-19')-new Date())/86400000));
-  document.getElementById('ovCards').innerHTML=
-    statCard({value:diff,label:'距初试',sub:'2026.12.19',color:'var(--orange)'})+
-    DATA.cards.overview.map(statCard).join('');
+  const now=new Date(); now.setHours(0,0,0,0);
+  const exam=new Date('2026-12-19');
+  const diff=Math.max(0,Math.ceil((exam-new Date())/86400000));
+  document.getElementById('heroDays').textContent=diff;
+  const phases=[
+    {name:'阶段一 · 补漏建体系', from:new Date('2026-11-05'), to:new Date('2026-11-24')},
+    {name:'阶段二 · 真题套卷', from:new Date('2026-11-25'), to:new Date('2026-12-09')},
+    {name:'阶段三 · 模拟冲刺', from:new Date('2026-12-10'), to:new Date('2026-12-18')}
+  ];
+  let phaseName, phasePct, heroSub;
+  const cur=phases.find(p=>now>=p.from&&now<=p.to);
+  if(now<phases[0].from){
+    phaseName='阶段一 · 补漏建体系（11/5 启动）';
+    phasePct=Math.round((now-new Date('2026-11-04'))/86400000)>=0?0:0;
+    heroSub='45 天冲刺计划明日启动：前 20 天补漏建体系（线代主线 + 408 四科专题），随后真题套卷与模拟冲刺。';
+  } else if(cur){
+    phaseName=cur.name+'（'+(cur.from.getMonth()+1)+'/'+cur.from.getDate()+' – '+(cur.to.getMonth()+1)+'/'+cur.to.getDate()+'）';
+    phasePct=Math.min(100,Math.max(0,Math.round((now-cur.from)/(cur.to-cur.from+86400000)*100)));
+    heroSub='当前阶段进行中：按逐日规划推进，每日上限 7 小时，欠账按优先级顺延。';
+  } else if(now>=exam&&now<=new Date('2026-12-20')){
+    phaseName='初试进行时'; phasePct=100; heroSub='稳住节奏，先易后难。祝顺利上岸。';
+  } else {
+    phaseName='初试已结束'; phasePct=100; heroSub='辛苦了，接下来是复试与新的阶段。';
+  }
+  document.getElementById('phaseName').textContent=phaseName;
+  document.getElementById('phasePct').textContent='阶段进度 '+phasePct+'%';
+  document.getElementById('phaseFill').style.width=phasePct+'%';
+  document.getElementById('heroSub').textContent=heroSub;
+  // 备考总进程：以每日记录首日 2026-06-17 为起点
+  const start=new Date('2026-06-17');
+  const totalPct=Math.min(100,Math.max(0,Math.round((now-start)/(exam-start)*100)));
+  document.getElementById('ringV').textContent=totalPct+'%';
+  document.getElementById('sprintRing').style.background='conic-gradient(var(--orange) '+(totalPct*3.6)+'deg, var(--surface-2) 0deg)';
+  // Hero 事实列
+  const mkTotal=DATA.mistakes.f408.reduce((s,x)=>s+(x.items?x.items.length:0),0)+DATA.mistakes.math.reduce((s,x)=>s+(x.rows?x.rows.length:0),0);
+  const facts=[
+    ['初试日期','12.19 – 12.20'],
+    ['R1 错题进度', DATA.r1Summary.pct+'%'],
+    ['错题本收录', mkTotal+' 条'],
+    ['闪卡总量', FLASHCARDS.length+' 张']
+  ];
+  document.getElementById('heroFacts').innerHTML=facts.map(f=>'<div class="hero-fact"><span style="color:var(--text-dim)">'+f[0]+'</span><b>'+f[1]+'</b></div>').join('');
 })();
-// 408 cards
+
+/* ===== 近 7 日轨迹 + 连续记录 ===== */
+(function(){
+  const box=document.getElementById('weekTrend');
+  const wk=['日','一','二','三','四','五','六'];
+  const today=new Date(); today.setHours(0,0,0,0);
+  let html='', activeCount=0;
+  const isActive=e=>!!e&&(e.math||e.cs||e.en||(e.note&&e.note!=='今日无新记录'));
+  for(let i=6;i>=0;i--){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const key=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    const e=CALENDAR_DATA[key];
+    const act=isActive(e);
+    if(act) activeCount++;
+    let segs='';
+    if(e&&e.math) segs+='<div class="trend-seg" style="height:17px;background:var(--purple)"></div>';
+    if(e&&e.cs) segs+='<div class="trend-seg" style="height:17px;background:var(--blue)"></div>';
+    if(e&&e.en) segs+='<div class="trend-seg" style="height:17px;background:var(--green)"></div>';
+    html+='<div class="trend-col'+(i===0?' today':'')+'"><div class="trend-bar">'+segs+'</div><div class="trend-lab">'+(d.getMonth()+1)+'/'+d.getDate()+' 周'+wk[d.getDay()]+'</div></div>';
+  }
+  box.innerHTML=html;
+  let streak=0;
+  for(let i=0;i<400;i++){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const key=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    if(isActive(CALENDAR_DATA[key])) streak++;
+    else if(i===0) continue;
+    else break;
+  }
+  document.getElementById('streakTip').textContent='近 7 天活跃 '+activeCount+' 天 · 连续记录 '+streak+' 天（数据源：日历记录，同步后更新）';
+})();
+
+/* ===== 复习队列（聚合入口） ===== */
+(function(){
+  const r1Left=DATA.r1.reduce((s,r)=>s+Math.max(r.total-r.done,0),0);
+  const mkTotal=DATA.mistakes.f408.reduce((s,x)=>s+(x.items?x.items.length:0),0)+DATA.mistakes.math.reduce((s,x)=>s+(x.rows?x.rows.length:0),0);
+  const hardN=FLASHCARDS.filter(f=>f.hard).length;
+  const ts=(new Date().getMonth()+1)+'/'+(new Date().getDate());
+  const todayQ=DATA.r1Queue.filter(q=>q.date.startsWith(ts));
+  const rows=[
+    {ic:'✅', bg:'var(--blue-bg)', name:'R1 今日到期', desc: todayQ.length? todayQ.map(q=>q.txt).join('；') : '今日暂无到期项，去 R1 清单看看总量', num: todayQ.reduce((s,q)=>s+(typeof q.n==='number'?q.n:0),0)||r1Left, color:'var(--blue)', tab:'r1'},
+    {ic:'❌', bg:'var(--red-bg)', name:'错题本复盘', desc:'数学与 408 错题知识点，点开可搜索定位', num: mkTotal, color:'var(--red)', tab:'mistakes'},
+    {ic:'📋', bg:'var(--purple-bg)', name:'闪卡硬伤', desc:'标 ★ 的高频易错卡，优先翻这批', num: hardN, color:'var(--purple)', tab:'flashcard'}
+  ];
+  document.getElementById('reviewQueue').innerHTML=rows.map(r=>
+    '<div class="rq-row" onclick="switchTab(\''+r.tab+'\')"><div class="rq-ic" style="background:'+r.bg+'">'+r.ic+'</div><div class="rq-main"><div class="rq-name">'+r.name+'</div><div class="rq-desc">'+r.desc+'</div></div><div class="rq-num" style="color:'+r.color+'">'+r.num+'</div><div class="rq-arrow">›</div></div>'
+  ).join('');
+})();
+
+/* ===== 总览卡片与各科进度 ===== */
+(function(){
+  const ts=(new Date().getMonth()+1)+'/'+(new Date().getDate());
+  const todayQ=DATA.r1Queue.filter(q=>q.date.startsWith(ts));
+  const n=todayQ.reduce((s,q)=>s+(typeof q.n==='number'?q.n:0),0);
+  const todayCard={value: todayQ.length? String(n) : '—', label:'今日 R1 到期', sub: todayQ.length? todayQ[0].txt : '今日暂无到期安排', color:'var(--blue)'};
+  document.getElementById('ovCards').innerHTML=[todayCard].concat(DATA.cards.overview).map(statCard).join('');
+})();
 document.getElementById('f8Cards').innerHTML=DATA.cards.four8.map(statCard).join('');
-// R1 tab cards + R1进度条
 (function(){
   document.getElementById('r1Cards').innerHTML=DATA.cards.r1.map(statCard).join('');
   const s=DATA.r1Summary;
   document.getElementById('r1BarTitle').textContent=s.title;
-  document.getElementById('r1Bar').innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:${s.pct}%;background:var(--green);"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--green);">${s.pct}%</div></div>`;
+  document.getElementById('r1Bar').innerHTML=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:${s.pct}%;background:var(--green);"></div></div></div><div style="font-size:14px;font-weight:800;color:var(--green);">${s.pct}%</div></div>`;
 })();
-
-// Overview
 (function(){
   const c=document.getElementById('overviewProgress');
   DATA.subjects.forEach(s=>{
     const r=document.createElement('div');r.className='subject-row';
-    r.innerHTML=`<div class="subject-label">${s.name}</div><div class="subject-bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:${Math.max(s.pct,s.pct>0?2:0)}%;background:${s.color};"></div></div><div style="font-size:9px;color:var(--text-dim);">${s.note}</div></div><div class="subject-pct" style="color:${s.color}">${s.pct}%</div>`;
+    r.innerHTML=`<div class="subject-label">${s.name}</div><div class="subject-bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:${Math.max(s.pct,s.pct>0?2:0)}%;background:${s.color};"></div></div><div style="font-size:10.5px;color:var(--text-dim);">${s.note}</div></div><div class="subject-pct" style="color:${s.color}">${s.pct}%</div>`;
     c.appendChild(r);
   });
 })();
@@ -8453,7 +8708,7 @@ document.getElementById('f8Cards').innerHTML=DATA.cards.four8.map(statCard).join
   const c=document.getElementById('priorities');
   DATA.priorities.forEach(p=>{
     const d=document.createElement('div');d.className='w-row';
-    d.innerHTML=`<div style="min-width:14px;font-size:9px;color:${p.urgent?'var(--red)':'var(--text-dim)'}">${p.urgent?'●':'○'}</div><div class="w-info"><div class="w-name">${p.text}</div></div>`;
+    d.innerHTML=`<div style="min-width:14px;font-size:10px;color:${p.urgent?'var(--red)':'var(--text-faint)'}">${p.urgent?'●':'○'}</div><div class="w-info"><div class="w-name">${p.text}</div></div>`;
     c.appendChild(d);
   });
 })();
@@ -8468,7 +8723,7 @@ document.getElementById('f8Cards').innerHTML=DATA.cards.four8.map(statCard).join
   });
 })();
 
-// Math
+/* ===== 数学 ===== */
 (function(){
   const c=document.getElementById('mathHeatmap');
   const sorted=[...DATA.lectures].sort((a,b)=>a.pct-b.pct);
@@ -8491,8 +8746,8 @@ document.getElementById('f8Cards').innerHTML=DATA.cards.four8.map(statCard).join
   Object.entries(groups).forEach(([name,g])=>{
     const avg=Math.round(g.lectures.filter(l=>!l.skip).reduce((s,l)=>s+l.pct,0)/Math.max(g.lectures.filter(l=>!l.skip).length,1));
     const color=catColors[name]||'var(--text-dim)';
-    const d=document.createElement('div');d.style.marginBottom='10px';
-    d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;"><span style="font-size:11px;font-weight:600;color:${color};">${name}</span><span style="font-size:10px;color:var(--text-dim);">均${avg}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(avg,2)}%;background:${color};opacity:0.7;"></div></div><div style="font-size:9px;color:var(--text-dim);margin-top:2px;">${g.lectures.map(l=>`L${l.num}(${l.pct}%)`).join(' · ')}</div>`;
+    const d=document.createElement('div');d.style.marginBottom='11px';
+    d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;"><span style="font-size:12.5px;font-weight:700;color:${color};">${name}</span><span style="font-size:11px;color:var(--text-dim);">均${avg}%</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(avg,2)}%;background:${color};opacity:0.75;"></div></div><div style="font-size:10.5px;color:var(--text-dim);margin-top:2px;">${g.lectures.map(l=>`L${l.num}(${l.pct}%)`).join(' · ')}</div>`;
     c.appendChild(d);
   });
 })();
@@ -8526,7 +8781,7 @@ document.getElementById('f8Cards').innerHTML=DATA.cards.four8.map(statCard).join
   c.appendChild(table);
 })();
 
-// 408
+/* ===== 408 ===== */
 function renderChapterTable(items,container){
   const table=document.createElement('table');table.className='ch-table';
   items.forEach(ch=>{
@@ -8536,7 +8791,7 @@ function renderChapterTable(items,container){
     else if(ch.status==='progress')badge='<span class="badge-sm badge-yellow">进行中</span>';
     else if(ch.status==='skip')badge='<span class="badge-sm badge-cyan">略过</span>';
     else badge='<span class="badge-sm badge-gray">未开始</span>';
-    tr.innerHTML=`<td>${ch.name}</td><td style="font-size:10px;color:var(--text-dim)">${ch.note||''}</td><td style="text-align:right">${badge}</td>`;
+    tr.innerHTML=`<td>${ch.name}</td><td style="font-size:11px;color:var(--text-dim)">${ch.note||''}</td><td style="text-align:right">${badge}</td>`;
     table.appendChild(tr);
   });
   document.getElementById(container).appendChild(table);
@@ -8546,7 +8801,7 @@ renderChapterTable(DATA.ds,'dsChapters');
 renderChapterTable(DATA.os,'osChapters');
 renderChapterTable(DATA.net,'netChapters');
 
-// R1
+/* ===== R1 清单 ===== */
 (function(){
   const c=document.getElementById('r1List');
   DATA.r1.forEach(r=>{
@@ -8564,21 +8819,21 @@ renderChapterTable(DATA.net,'netChapters');
   });
 })();
 
-// 英语·政治（数据驱动）
+/* ===== 英语·政治 ===== */
 (function(){
   const ep = DATA.engpol;
-  // 单词
   const wordC = document.getElementById('engWord');
   ep.words.forEach(w => {
     const cls = w.status === '完成' ? 'ep-done' : w.status === '进行中' ? 'ep-doing' : 'ep-todo';
     wordC.innerHTML += `<div class="ep-row"><span class="ep-label">${w.round}</span><span class="ep-badge ${cls}">${w.status}</span><span class="ep-note">${w.note||''}</span></div>`;
   });
-  // 阅读
   const readC = document.getElementById('engReading');
   const doneCount = ep.readings.reduce((n, r) => n + ['t1','t2','t3','t4'].filter(c => r[c] === '完成').length, 0);
+  const totalTexts = ep.readings.length * 4;
+  const readPct = totalTexts ? Math.round(doneCount/totalTexts*100) : 0;
   readC.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-    <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:${Math.max(doneCount*10,2)}%;background:${doneCount>=5?'var(--yellow)':'var(--red)'}"></div></div></div>
-    <div style="font-size:12px;font-weight:700;color:${doneCount>=5?'var(--yellow)':'var(--red)'}">${doneCount}篇</div>
+    <div style="flex:1"><div class="bar-track"><div class="bar-fill" style="width:${Math.max(readPct,2)}%;background:${readPct>=50?'var(--yellow)':'var(--red)'}"></div></div></div>
+    <div style="font-size:13px;font-weight:800;color:${readPct>=50?'var(--yellow)':'var(--red)'}">${doneCount}篇</div>
   </div>`;
   ep.readings.forEach(r => {
     if (r.t1 === '完成' || r.year === '2010') {
@@ -8586,19 +8841,16 @@ renderChapterTable(DATA.net,'netChapters');
       readC.innerHTML += `<div class="ep-row"><span class="ep-label">${r.year}</span><span class="ep-badge ${cls}">${r.t1==='完成'?'完成':'未做'}</span><span class="ep-note">${r.rate||''} ${r.date||''}</span></div>`;
     }
   });
-  // 小三门+作文
   const smallC = document.getElementById('engSmall3');
   ep.small3.forEach(s => {
     const cls = s.round1 === '未开始' ? 'ep-todo' : 'ep-doing';
     smallC.innerHTML += `<div class="ep-row"><span class="ep-label">${s.module}</span><span class="ep-badge ${cls}">${s.round1}</span><span class="ep-note">${s.note||''}</span></div>`;
   });
-  // 政治状态
   const polC = document.getElementById('polStatus');
   const allTodo = ep.politics.every(p => p.status === '未开始');
   const currentStage = ep.politics.find(p => p.status !== '未开始');
-  polC.innerHTML = `<div style="font-size:13px;font-weight:700;color:${allTodo?'var(--text-dim)':'var(--orange)'}">${allTodo?'未开始':currentStage.stage}</div>`
+  polC.innerHTML = `<div style="font-size:14px;font-weight:800;color:${allTodo?'var(--text-dim)':'var(--orange)'}">${allTodo?'未开始':currentStage.stage}</div>`
     + (allTodo ? '<div class="tip-warn">需尽快启动</div>' : `<div class="tip">当前：${currentStage.content}</div>`);
-  // 政治规划时间线
   const planC = document.getElementById('polPlan');
   const tl = document.createElement('div'); tl.className = 'tl';
   ep.politics.forEach(p => {
@@ -8611,7 +8863,7 @@ renderChapterTable(DATA.net,'netChapters');
   planC.appendChild(tl);
 })();
 
-// 每日记录
+/* ===== 每日记录 ===== */
 (function(){
   const logs = DATA.dailyLog;
   const limitSel = document.getElementById('dailyLimit');
@@ -8631,7 +8883,59 @@ renderChapterTable(DATA.net,'netChapters');
   render();
 })();
 
+/* ===== 全局搜索 ===== */
+function stripTags(s){ const d=document.createElement('div'); d.innerHTML=s||''; return (d.textContent||'').trim(); }
+const SEARCH_INDEX=[];
+(function buildSearchIndex(){
+  DATA.mistakes.f408.forEach(sec=>{
+    (sec.items||[]).forEach(i=>SEARCH_INDEX.push({kind:'错题本', title:sec.subj+' · '+sec.title, sub:(i.q?'题'+i.q+' · ':'')+(i.kp||''), act:'mistakes', kw:(i.kp||'').slice(0,12)}));
+    (sec.groups||[]).forEach(g=>SEARCH_INDEX.push({kind:'错题本', title:sec.subj+' · '+sec.title, sub:(g.name||'')+' '+(g.nums||''), act:'mistakes', kw:(g.name||'').slice(0,12)}));
+  });
+  DATA.mistakes.math.forEach(ch=>{
+    (ch.rows||[]).forEach(r=>SEARCH_INDEX.push({kind:'错题本', title:ch.name, sub:(r.q||'')+' · '+(r.cause||'待补错因'), act:'mistakes', kw:(r.cause||r.q||'').slice(0,12)}));
+  });
+  FLASHCARDS.forEach(f=>SEARCH_INDEX.push({kind:'闪卡', title:stripTags(f.q), sub:f.sub+' 闪卡'+(f.hard?' · ★硬伤':''), act:'flashcard', kw:''}));
+  DATA.lectures.forEach(l=>SEARCH_INDEX.push({kind:'数学', title:'第'+l.num+'讲 '+l.name, sub:'正确率 '+l.pct+'% · '+l.cat, act:'math', kw:''}));
+  [['计组',DATA.coop],['数据结构',DATA.ds],['操作系统',DATA.os],['计网',DATA.net],['线代',DATA.la]].forEach(function(pair){
+    pair[1].forEach(ch=>SEARCH_INDEX.push({kind:'408', title:ch.name, sub:pair[0]+' · '+(ch.note||''), act:'four8', kw:''}));
+  });
+  DATA.r1.forEach(r=>SEARCH_INDEX.push({kind:'R1', title:r.ch, sub:(r.items||'')+' · 剩 '+(r.total-r.done)+' 道', act:'r1', kw:''}));
+})();
+function openSearch(){
+  document.getElementById('searchOverlay').classList.add('open');
+  const inp=document.getElementById('searchInput');
+  inp.value=''; doSearch('');
+  setTimeout(()=>inp.focus(), 30);
+}
+function closeSearch(){ document.getElementById('searchOverlay').classList.remove('open'); }
+function doSearch(q){
+  const box=document.getElementById('searchResults');
+  q=(q||'').trim().toLowerCase();
+  if(!q){ box.innerHTML='<div class="search-empty">输入关键词，跨错题本、闪卡、讲次与章节搜索</div>'; return; }
+  const hits=SEARCH_INDEX.filter(x=>(x.title+' '+x.sub).toLowerCase().includes(q)).slice(0,30);
+  if(!hits.length){ box.innerHTML='<div class="search-empty">没有找到「'+q+'」相关内容</div>'; return; }
+  box.innerHTML='';
+  hits.forEach(h=>{
+    const d=document.createElement('div'); d.className='search-item';
+    d.innerHTML='<span class="search-kind">'+h.kind+'</span><div class="search-main"><div class="search-title"></div><div class="search-sub"></div></div>';
+    d.querySelector('.search-title').textContent=h.title;
+    d.querySelector('.search-sub').textContent=h.sub;
+    d.onclick=function(){
+      closeSearch();
+      switchTab(h.act);
+      if(h.act==='mistakes'&&h.kw){
+        const inp=document.getElementById('mkSearch');
+        if(inp){ inp.value=h.kw; inp.dispatchEvent(new Event('input')); }
+      }
+    };
+    box.appendChild(d);
+  });
+}
+document.getElementById('searchInput').addEventListener('input', function(e){ doSearch(e.target.value); });
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeSearch(); });
+
 updateCountdown();
+
 </script>
 <script>
 // 错题本渲染（独立脚本块，由 DATA.mistakes 驱动）

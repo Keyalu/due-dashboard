@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>五子棋对战 · 双人联机</title>
+<style>
+  :root {
+    --bg: #f2f7fb; --surface: #ffffff; --border: #dce8f2;
+    --text: #2f3644; --dim: #68707d; --bright: #0b1220;
+    --blue: #0284c7; --blue-bg: #e0f2fe; --green: #16a34a; --green-bg: #ecfdf3;
+    --red: #dc2626; --red-bg: #fef1f1;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 16px 12px 44px; }
+  h1 { font-size: 20px; color: var(--bright); text-align: center; }
+  .subtitle { text-align: center; color: var(--dim); font-size: 12.5px; margin: 4px 0 14px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .panel h3 { font-size: 14.5px; color: var(--bright); margin-bottom: 6px; }
+  .hint { font-size: 12px; color: var(--dim); line-height: 1.6; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  button { border: 1px solid var(--blue); background: var(--blue); color: #fff; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 11px; cursor: pointer; font-family: inherit; }
+  button.secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  input[type="text"] { border: 1px solid var(--border); border-radius: 11px; padding: 9px 12px; font-size: 14px; outline: none; width: 100%; color: var(--bright); background: var(--surface); }
+  input[type="text"]:focus { border-color: var(--blue); }
+  .banner { display: none; border-radius: 12px; padding: 10px 13px; font-size: 13px; margin-bottom: 10px; line-height: 1.6; }
+  .banner.show { display: block; }
+  .banner.error { background: var(--red-bg); color: var(--red); }
+  .banner.info { background: var(--blue-bg); color: var(--blue); }
+  .banner.success { background: var(--green-bg); color: var(--green); }
+  .room-code { font-size: 24px; font-weight: 800; letter-spacing: 1.5px; color: var(--bright); text-align: center; padding: 6px 0 2px; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .chip { font-size: 11.5px; padding: 3px 10px; border-radius: 99px; background: #eef4fa; color: var(--dim); }
+  .chip.on { background: var(--green-bg); color: var(--green); font-weight: 700; }
+  .chip.off { background: var(--red-bg); color: var(--red); }
+  .scorebar { display: flex; gap: 10px; margin-bottom: 10px; }
+  .score { flex: 1; text-align: center; background: #f6fafd; border: 1px solid var(--border); border-radius: 13px; padding: 8px 4px; }
+  .score .who { font-size: 11.5px; color: var(--dim); }
+  .score .pts { font-size: 19px; font-weight: 800; color: var(--bright); line-height: 1.25; }
+  .score.turn { border-color: var(--blue); background: var(--blue-bg); }
+  .stone-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
+  .dot-b { background: #1f2937; }
+  .dot-w { background: #fff; border: 1.5px solid #9ca3af; }
+  .board-box { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #e9c48a; }
+  canvas { display: block; width: 100%; aspect-ratio: 1 / 1; touch-action: none; }
+  .guess-row { display: flex; gap: 8px; margin-top: 10px; }
+  .guess-row input { flex: 1; }
+  .big-result { text-align: center; font-size: 19px; font-weight: 800; color: var(--bright); padding: 10px 0 2px; }
+  .verdict { text-align: center; color: var(--dim); font-size: 13px; line-height: 1.7; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>五子棋对战</h1>
+  <p class="subtitle">双人异地联机 · 15×15 棋盘，连成五子获胜</p>
+
+  <!-- 入口 -->
+  <div id="landingSection">
+    <div class="panel">
+      <h3>我是房主（玩家 A）</h3>
+      <p class="hint">创建房间后，把房间码发给对方。你的手机负责主持对局，请保持本页打开。</p>
+      <div class="btn-row"><button type="button" id="createBtn">创建房间</button></div>
+    </div>
+    <div class="panel">
+      <h3>我是玩家 B</h3>
+      <p class="hint">输入房主给你的房间码加入。</p>
+      <div class="guess-row" style="margin-top:8px">
+        <input type="text" id="joinCode" placeholder="房间码，如 E-XXXX-XXXX-XXXX" autocomplete="off">
+        <button type="button" id="joinBtn">加入房间</button>
+      </div>
+    </div>
+    <div class="banner error" id="landingError" role="alert"></div>
+    <div class="banner info" id="landingInfo" role="status"></div>
+    <p class="hint">两部手机打开同一个本页面即可，不需要在同一网络。刷新页面会自动恢复对局；只有点「清空本页并退出」才会真正清局。</p>
+  </div>
+
+  <!-- 房间与对局 -->
+  <div id="roomSection" hidden>
+    <div class="panel" style="padding-bottom:10px">
+      <div class="room-code" id="roomCodeText">—</div>
+      <div class="chips">
+        <span class="chip" id="roleChip">角色：—</span>
+        <span class="chip off" id="connChip">连接：未连接</span>
+        <span class="chip off" id="peerChip">对方：未加入</span>
+      </div>
+      <div class="btn-row" style="justify-content:center">
+        <button type="button" class="secondary" id="copyBtn">复制房间码</button>
+        <button type="button" class="secondary" id="leaveBtn">清空本页并退出</button>
+      </div>
+    </div>
+
+    <div class="banner error" id="gameError" role="alert"></div>
+    <div class="banner info" id="gameInfo" role="status"></div>
+    <div class="banner success" id="noticeBanner" role="status"></div>
+    <div class="banner info" id="undoBanner" role="status" hidden>
+      <span id="undoText"></span>
+      <div class="btn-row">
+        <button type="button" id="undoAgreeBtn">同意悔棋</button>
+        <button type="button" class="secondary" id="undoRefuseBtn">拒绝</button>
+        <button type="button" class="secondary" id="undoCancelBtn" hidden>取消我的请求</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="scorebar">
+        <div class="score" id="scoreA"><div class="who">玩家 A</div><div class="pts">0 胜</div></div>
+        <div class="score" id="scoreB"><div class="who">玩家 B</div><div class="pts">0 胜</div></div>
+      </div>
+      <div class="board-box"><canvas id="board" width="750" height="750"></canvas></div>
+      <div class="btn-row">
+        <button type="button" class="secondary" id="undoBtn">悔一手</button>
+        <button type="button" class="secondary" id="drawBtn">提和</button>
+        <button type="button" id="againBtn" hidden>再来一局</button>
+      </div>
+      <div class="big-result" id="resultText" hidden></div>
+      <div class="verdict" id="verdictText" hidden></div>
+      <p class="hint" style="margin-top:8px">规则：黑棋先行，横竖斜任意连成五子即胜（长连也算）；轮到谁谁点棋盘落子。悔棋要对方同意：若对方还没回子，撤掉你刚下的；若已经回子，连同回子一起撤（共两手）。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= 五子棋核心（房主权威，DOM 无关） ================= */
+var BOARD_N = 15;
+function createCore(saved) {
+  var S = saved || null;
+  var state = {
+    phase: "playing",          // playing | done
+    gameNo: 1,
+    moves: [],                 // [{x, y}] 顺序即手顺，黑白由手数奇偶 + 本局先手决定
+    winner: "",                // "" | "a" | "b" | "draw"
+    winLine: [],               // 获胜五子坐标
+    stats: { a: 0, b: 0, draws: 0 },
+    undoReq: null,             // {from}
+    drawReq: null,             // {from}
+    notice: "",
+    peerIn: false
+  };
+  if (S) { for (var k in S) state[k] = S[k]; }
+  function blackOf() { return state.gameNo % 2 === 1 ? "a" : "b"; }   /* 奇数局 A 执黑，偶数局 B 执黑 */
+  function playerAt(moveIdx) { return moveIdx % 2 === 0 ? blackOf() : (blackOf() === "a" ? "b" : "a"); }
+  function turnOf() { return playerAt(state.moves.length); }
+  function board() {
+    var b = [];
+    for (var i = 0; i < BOARD_N * BOARD_N; i++) b.push(0);
+    for (var m = 0; m < state.moves.length; m++) {
+      b[state.moves[m].y * BOARD_N + state.moves[m].x] = playerAt(m) === blackOf() ? 1 : 2;
+    }
+    return b;
+  }
+  function checkWin(b, x, y, color) {
+    var dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
+    for (var d = 0; d < 4; d++) {
+      var dx = dirs[d][0], dy = dirs[d][1];
+      var line = [[x, y]];
+      var nx = x + dx, ny = y + dy;
+      while (nx >= 0 && nx < BOARD_N && ny >= 0 && ny < BOARD_N && b[ny * BOARD_N + nx] === color) { line.push([nx, ny]); nx += dx; ny += dy; }
+      nx = x - dx; ny = y - dy;
+      while (nx >= 0 && nx < BOARD_N && ny >= 0 && ny < BOARD_N && b[ny * BOARD_N + nx] === color) { line.unshift([nx, ny]); nx -= dx; ny -= dy; }
+      if (line.length >= 5) return line;
+    }
+    return null;
+  }
+  function move(player, x, y) {
+    if (state.phase !== "playing") return false;
+    if (player !== turnOf()) return false;
+    if (x < 0 || x >= BOARD_N || y < 0 || y >= BOARD_N) return false;
+    var b = board();
+    if (b[y * BOARD_N + x] !== 0) return false;
+    state.moves.push({ x: x, y: y });
+    state.undoReq = null; state.drawReq = null;
+    var color = player === blackOf() ? 1 : 2;
+    var line = checkWin(board(), x, y, color);
+    if (line) {
+      state.phase = "done"; state.winner = player; state.winLine = line;
+      state.stats[player] += 1;
+    } else if (state.moves.length >= BOARD_N * BOARD_N) {
+      state.phase = "done"; state.winner = "draw"; state.stats.draws += 1;
+    }
+    return true;
+  }
+  function nextGame() {
+    state.gameNo += 1;
+    state.moves = []; state.winner = ""; state.winLine = [];
+    state.phase = "playing"; state.undoReq = null; state.drawReq = null; state.notice = "";
+  }
+  function requestUndo(player) {
+    if (state.phase !== "playing" || state.undoReq) return false;
+    /* 必须有属于自己的已落子可以撤 */
+    var mine = 0;
+    for (var m = 0; m < state.moves.length; m++) if (playerAt(m) === player) mine++;
+    if (!mine) return false;
+    state.undoReq = { from: player };
+    return true;
+  }
+  function respondUndo(player, agree) {
+    if (!state.undoReq || state.undoReq.from === player) return false;
+    var from = state.undoReq.from;
+    state.undoReq = null;
+    if (!agree) { state.notice = "对方没有同意悔棋"; return true; }
+    /* 轮到请求方时撤 2 手（对方回子+自己上一步），否则撤 1 手（自己刚落的子） */
+    var n = turnOf() === from && state.moves.length >= 2 ? 2 : 1;
+    state.moves = state.moves.slice(0, state.moves.length - n);
+    state.notice = "已悔棋，撤回 " + n + " 手";
+    return true;
+  }
+  function cancelUndo(player) {
+    if (state.undoReq && state.undoReq.from === player) { state.undoReq = null; return true; }
+    return false;
+  }
+  function requestDraw(player) {
+    if (state.phase !== "playing" || state.drawReq) return false;
+    if (state.moves.length < 10) return false;
+    state.drawReq = { from: player };
+    return true;
+  }
+  function respondDraw(player, agree) {
+    if (!state.drawReq || state.drawReq.from === player) return false;
+    state.drawReq = null;
+    if (!agree) { state.notice = "对方没有同意和棋"; return true; }
+    state.phase = "done"; state.winner = "draw"; state.stats.draws += 1;
+    return true;
+  }
+  function cancelDraw(player) {
+    if (state.drawReq && state.drawReq.from === player) { state.drawReq = null; return true; }
+    return false;
+  }
+  function viewFor(player) {
+    return {
+      phase: state.phase, gameNo: state.gameNo, moves: state.moves,
+      turn: turnOf(), blackOf: blackOf(), winner: state.winner, winLine: state.winLine,
+      stats: state.stats, undoReq: state.undoReq, drawReq: state.drawReq,
+      notice: state.notice, peerIn: state.peerIn
+    };
+  }
+  return {
+    state: state, move: move, nextGame: nextGame,
+    requestUndo: requestUndo, respondUndo: respondUndo, cancelUndo: cancelUndo,
+    requestDraw: requestDraw, respondDraw: respondDraw, cancelDraw: cancelDraw,
+    guestJoin: function () { state.peerIn = true; },
+    guestLeave: function () { state.peerIn = false; },
+    viewFor: viewFor,
+    serialize: function () { var c = {}; for (var k in state) c[k] = state[k]; return c; }
+  };
+}
+
+
+/* ================= 极简 MQTT 客户端（原生 WebSocket，无外部库） =================
+ * 只实现本游戏用到的 MQTT 3.1.1 子集：CONNECT / SUBSCRIBE / PUBLISH(QoS0, retain)
+ * / PINGREQ / DISCONNECT，含遗嘱（Last Will）与自动重连。
+ */
+/* 只保留实测可用的公共通道：备用通道（HiveMQ / ConnectMQ / Mosquitto）
+ * 经同一客户端实测无法完成连接，故不启用，避免建房后对方连不进来。 */
+var BROKERS = [
+  { id: "E", label: "EMQX",    url: "wss://broker.emqx.io:8084/mqtt" }
+];
+function brokerById(id) { for (var i = 0; i < BROKERS.length; i++) if (BROKERS[i].id === id) return BROKERS[i]; return null; }
+
+function mqttEncodeString(s) {
+  var bytes = new TextEncoder().encode(s);
+  var out = new Uint8Array(2 + bytes.length);
+  out[0] = (bytes.length >> 8) & 0xff; out[1] = bytes.length & 0xff;
+  out.set(bytes, 2);
+  return out;
+}
+function mqttEncodeLength(len) {
+  var out = [];
+  do { var b = len % 128; len = Math.floor(len / 128); if (len > 0) b |= 0x80; out.push(b); } while (len > 0);
+  return new Uint8Array(out);
+}
+function mqttPacket(typeAndFlags, bodyParts) {
+  var bodyLen = 0, i;
+  for (i = 0; i < bodyParts.length; i++) bodyLen += bodyParts[i].length;
+  var head = mqttEncodeLength(bodyLen);
+  var packet = new Uint8Array(1 + head.length + bodyLen);
+  packet[0] = typeAndFlags; packet.set(head, 1);
+  var off = 1 + head.length;
+  for (i = 0; i < bodyParts.length; i++) { packet.set(bodyParts[i], off); off += bodyParts[i].length; }
+  return packet;
+}
+
+/* === MQTT client === */
+function MqttClient(url, clientId, will) {
+  this.url = url; this.clientId = clientId; this.will = will || null;
+  this.ws = null; this.connected = false; this.intentionalClose = false;
+  this.buffer = new Uint8Array(0); this.packetId = 1; this.pingTimer = null; this.reconnectTimer = null;
+  this.subscriptions = [];
+  this.onConnect = null; this.onMessage = null; this.onStatus = null;
+}
+MqttClient.prototype._status = function (s) { if (this.onStatus) this.onStatus(s); };
+MqttClient.prototype.connect = function () {
+  var self = this;
+  this.intentionalClose = false;
+  this._status("connecting");
+  var ws;
+  try { ws = new WebSocket(this.url, "mqtt"); } catch (e) { this._scheduleReconnect(); return; }
+  this.ws = ws; ws.binaryType = "arraybuffer";
+  ws.onopen = function () { self._sendConnect(); };
+  ws.onmessage = function (ev) { self._onData(new Uint8Array(ev.data)); };
+  ws.onclose = function () {
+    self.connected = false; self._stopPing(); self._status("closed");
+    if (!self.intentionalClose) self._scheduleReconnect();
+  };
+  ws.onerror = function () { try { ws.close(); } catch (e) {} };
+};
+MqttClient.prototype._scheduleReconnect = function () {
+  var self = this;
+  if (this.reconnectTimer || this.intentionalClose) return;
+  this._status("reconnecting");
+  this.reconnectTimer = setTimeout(function () { self.reconnectTimer = null; self.connect(); }, 3000);
+};
+MqttClient.prototype._sendConnect = function () {
+  var flags = 0x02; // clean session
+  var parts = [mqttEncodeString("MQTT"), new Uint8Array([4, 0, 0, 60]), mqttEncodeString(this.clientId)];
+  if (this.will) {
+    flags |= 0x04 | 0x20; // will flag + will retain (QoS 0)
+    parts[1][1] = flags;
+    parts.push(mqttEncodeString(this.will.topic));
+    parts.push(mqttEncodeString(this.will.payload));
+  } else { parts[1][1] = flags; }
+  // keepalive bytes are parts[1][2..3] = 0,60 已设置
+  this.ws.send(mqttPacket(0x10, parts));
+};
+MqttClient.prototype._onConnack = function () {
+  var self = this;
+  this.connected = true; this._status("online");
+  for (var i = 0; i < this.subscriptions.length; i++) this._sendSubscribe(this.subscriptions[i]);
+  this._stopPing();
+  this.pingTimer = setInterval(function () {
+    if (self.ws && self.ws.readyState === 1) self.ws.send(new Uint8Array([0xc0, 0x00]));
+  }, 30000);
+  if (this.onConnect) this.onConnect();
+};
+MqttClient.prototype._stopPing = function () { if (this.pingTimer) { clearInterval(this.pingTimer); this.pingTimer = null; } };
+MqttClient.prototype.subscribe = function (topic) {
+  if (this.subscriptions.indexOf(topic) < 0) this.subscriptions.push(topic);
+  if (this.connected) this._sendSubscribe(topic);
+};
+MqttClient.prototype._sendSubscribe = function (topic) {
+  var id = this.packetId++ & 0xffff; if (id === 0) id = this.packetId++ & 0xffff;
+  var body = [new Uint8Array([(id >> 8) & 0xff, id & 0xff]), mqttEncodeString(topic), new Uint8Array([0])];
+  this.ws.send(mqttPacket(0x82, body));
+};
+MqttClient.prototype.publish = function (topic, payload, retain) {
+  if (!this.connected || !this.ws || this.ws.readyState !== 1) return false;
+  var body = [mqttEncodeString(topic), new TextEncoder().encode(payload)];
+  this.ws.send(mqttPacket(retain ? 0x31 : 0x30, body));
+  return true;
+};
+MqttClient.prototype._onData = function (chunk) {
+  var merged = new Uint8Array(this.buffer.length + chunk.length);
+  merged.set(this.buffer); merged.set(chunk, this.buffer.length);
+  this.buffer = merged;
+  while (true) {
+    if (this.buffer.length < 2) return;
+    var multiplier = 1, remaining = 0, idx = 1, digit;
+    do {
+      if (idx >= this.buffer.length) return;
+      digit = this.buffer[idx++]; remaining += (digit & 0x7f) * multiplier; multiplier *= 128;
+    } while ((digit & 0x80) !== 0);
+    if (this.buffer.length < idx + remaining) return;
+    var packet = this.buffer.slice(idx, idx + remaining);
+    var type = this.buffer[0] >> 4;
+    this.buffer = this.buffer.slice(idx + remaining);
+    this._handlePacket(type, packet);
+  }
+};
+MqttClient.prototype._handlePacket = function (type, body) {
+  if (type === 2) { this._onConnack(); return; }           // CONNACK
+  if (type === 3) {                                          // PUBLISH
+    var tlen = (body[0] << 8) | body[1];
+    var topic = new TextDecoder().decode(body.slice(2, 2 + tlen));
+    var payload = body.slice(2 + tlen);
+    if (this.onMessage) this.onMessage(topic, new TextDecoder().decode(payload));
+    return;
+  }
+  // SUBACK / PINGRESP 等忽略
+};
+MqttClient.prototype.close = function () {
+  this.intentionalClose = true;
+  if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+  this._stopPing();
+  if (this.ws) { try { this.ws.send(new Uint8Array([0xe0, 0x00])); this.ws.close(); } catch (e) {} }
+  this.connected = false;
+};
+/* === End MQTT client === */
+
+
+/* ================= 双端联机 glue + 棋盘渲染 ================= */
+function $(id) { return document.getElementById(id); }
+function showBanner(el, text, kind) {
+  el.textContent = text || "";
+  el.className = "banner" + (text ? " show " + (kind || "info") : "");
+}
+
+var SESSION_KEY = "gomoku-v1-session";
+var memoryStore = null;
+function storeSave(obj) {
+  memoryStore = obj;
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(obj)); } catch (e) {}
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function storeLoad() {
+  try { var v = localStorage.getItem(SESSION_KEY); if (v) return JSON.parse(v); } catch (e) {}
+  try { var v2 = sessionStorage.getItem(SESSION_KEY); if (v2) return JSON.parse(v2); } catch (e) {}
+  return memoryStore;
+}
+function storeClear() {
+  memoryStore = null;
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+}
+function saveSession() {
+  if (!role || !rawCode) return;
+  if (role === "a" && core) storeSave({ role: "a", rawCode: rawCode, core: core.serialize() });
+  else if (role === "b") storeSave({ role: "b", rawCode: rawCode, view: guestView });
+}
+
+var CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function genRawCode(brokerId) {
+  var rand = new Uint8Array(12);
+  if ((window.crypto || {}).getRandomValues) crypto.getRandomValues(rand);
+  else rand.forEach(function (v, i) { rand[i] = Math.floor(Math.random() * 256); });
+  var out = brokerId;
+  for (var i = 0; i < 12; i++) out += CODE_ALPHABET[rand[i] % CODE_ALPHABET.length];
+  return out;
+}
+function formatCode(raw) { return raw.slice(0, 1) + "-" + raw.slice(1, 5) + "-" + raw.slice(5, 9) + "-" + raw.slice(9, 13); }
+function parseCode(input) {
+  var raw = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (raw.length !== 13 || !brokerById(raw[0])) return null;
+  return raw;
+}
+
+var role = null, core = null, client = null;
+var rawCode = "", topicBase = "", broker = null;
+var peerOnline = false, hostOnline = false, guestView = null;
+
+function topics() {
+  return { state: topicBase + "/state", action: topicBase + "/action", peer: topicBase + "/peer-b" };
+}
+function clientId(prefix) {
+  return "gm-" + prefix + "-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+function probeBroker(b, done) {
+  var c = new MqttClient(b.url, clientId("probe"), null);
+  var finished = false;
+  var timer = setTimeout(function () { if (!finished) { finished = true; c.close(); done(false); } }, 8000);
+  c.onConnect = function () { if (!finished) { finished = true; clearTimeout(timer); c.close(); done(true); } };
+  c.connect();
+}
+function currentView() {
+  if (role === "a" && core) return core.viewFor("a");
+  if (role === "b") return guestView;
+  return null;
+}
+function afterCoreChange() {
+  if (role === "a" && core && client) {
+    client.publish(topics().state, JSON.stringify({ type: "view", view: core.viewFor("b"), ts: Date.now() }), true);
+  }
+  saveSession();
+  render();
+}
+
+function connectHost(b, code, coreInstance) {
+  broker = b; rawCode = code;
+  topicBase = "keyaluck/gomoku/v1/" + rawCode;
+  role = "a"; core = coreInstance;
+  client = new MqttClient(b.url, clientId("host"), {
+    topic: topics().state, payload: JSON.stringify({ type: "host-offline" })
+  });
+  wireStatus();
+  client.onConnect = function () {
+    client.subscribe(topics().action);
+    client.subscribe(topics().peer);
+    afterCoreChange();
+  };
+  client.onMessage = function (topic, payload) {
+    var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic === topics().peer) {
+      peerOnline = !!msg.online;
+      if (msg.online) core.guestJoin(); else core.guestLeave();
+      afterCoreChange(); return;
+    }
+    if (topic === topics().action) {
+      if (msg.type === "join") core.guestJoin();
+      else if (msg.type === "move") core.move("b", msg.x, msg.y);
+      else if (msg.type === "again") { if (core.state.phase === "done") core.nextGame(); }
+      else if (msg.type === "undo-request") core.requestUndo("b");
+      else if (msg.type === "undo-response") core.respondUndo("b", !!msg.agree);
+      else if (msg.type === "undo-cancel") core.cancelUndo("b");
+      else if (msg.type === "draw-request") core.requestDraw("b");
+      else if (msg.type === "draw-response") core.respondDraw("b", !!msg.agree);
+      else if (msg.type === "draw-cancel") core.cancelDraw("b");
+      afterCoreChange();
+    }
+  };
+  client.connect();
+  saveSession();
+  render();
+}
+
+function startHost() {
+  showBanner($("landingError"), "", "error");
+  showBanner($("landingInfo"), "正在连接联机通道…", "info");
+  $("createBtn").disabled = true;
+  var idx = 0;
+  (function tryNext() {
+    if (idx >= BROKERS.length) {
+      showBanner($("landingInfo"), "", "info");
+      showBanner($("landingError"), "联机通道暂时连接不上，请检查网络后重试。", "error");
+      $("createBtn").disabled = false;
+      return;
+    }
+    var b = BROKERS[idx++];
+    probeBroker(b, function (ok) {
+      if (!ok) { tryNext(); return; }
+      connectHost(b, genRawCode(b.id), createCore(null));
+    });
+  })();
+}
+
+function restoreHost(saved) {
+  var b = brokerById(saved.rawCode[0]);
+  if (!b) { storeClear(); return; }
+  showBanner($("landingInfo"), "正在恢复上次对局…", "info");
+  probeBroker(b, function (ok) {
+    if (!ok) {
+      showBanner($("landingError"), "联机通道暂时连接不上，上次对局已保留在本机，稍后刷新页面会再次恢复。", "error");
+      return;
+    }
+    connectHost(b, saved.rawCode, createCore(saved.core));
+  });
+}
+
+function startGuest(raw, restoredView) {
+  rawCode = raw; broker = brokerById(raw[0]);
+  topicBase = "keyaluck/gomoku/v1/" + rawCode;
+  role = "b"; hostOnline = false; guestView = restoredView || null;
+  client = new MqttClient(broker.url, clientId("guest"), {
+    topic: topics().peer, payload: JSON.stringify({ online: false })
+  });
+  wireStatus();
+  client.onConnect = function () {
+    client.subscribe(topics().state);
+    client.publish(topics().peer, JSON.stringify({ online: true, ts: Date.now() }), true);
+    client.publish(topics().action, JSON.stringify({ type: "join" }), false);
+    render();
+  };
+  client.onMessage = function (topic, payload) {
+    var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic !== topics().state) return;
+    if (msg.type === "host-offline") { hostOnline = false; render(); return; }
+    if (msg.type === "room-closed") {
+      storeClear();
+      if (client) client.close();
+      role = null; guestView = null;
+      document.location.reload();
+      return;
+    }
+    if (msg.type === "view") {
+      hostOnline = true;
+      guestView = msg.view;
+      saveSession();
+      render();
+    }
+  };
+  client.connect();
+  saveSession();
+  render();
+}
+
+function wireStatus() {
+  client.onStatus = function (s) {
+    var chip = $("connChip");
+    var map = { connecting: "连接：连接中…", online: "连接：已连接 · " + (broker ? broker.label : ""),
+                closed: "连接：已断开", reconnecting: "连接：重连中…" };
+    chip.textContent = map[s] || ("连接：" + s);
+    chip.className = "chip " + (s === "online" ? "on" : "off");
+  };
+}
+function sendAction(msg) { if (client) client.publish(topics().action, JSON.stringify(msg), false); }
+
+/* ================= 棋盘绘制与落子 ================= */
+var canvas = $("board"), ctx = canvas.getContext("2d");
+var MARGIN = 42, CELL = (750 - MARGIN * 2) / (15 - 1);
+function cellCenter(i) { return MARGIN + i * CELL; }
+function drawBoard(view) {
+  ctx.clearRect(0, 0, 750, 750);
+  ctx.fillStyle = "#e9c48a";
+  ctx.fillRect(0, 0, 750, 750);
+  ctx.strokeStyle = "rgba(90,60,20,0.55)";
+  ctx.lineWidth = 1;
+  for (var i = 0; i < 15; i++) {
+    ctx.beginPath(); ctx.moveTo(cellCenter(i), cellCenter(0)); ctx.lineTo(cellCenter(i), cellCenter(14)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cellCenter(0), cellCenter(i)); ctx.lineTo(cellCenter(14), cellCenter(i)); ctx.stroke();
+  }
+  ctx.fillStyle = "rgba(90,60,20,0.8)";
+  [[3, 3], [11, 3], [7, 7], [3, 11], [11, 11]].forEach(function (p) {
+    ctx.beginPath(); ctx.arc(cellCenter(p[0]), cellCenter(p[1]), 4.5, 0, Math.PI * 2); ctx.fill();
+  });
+  if (!view) return;
+  var black = view.blackOf;
+  view.moves.forEach(function (m, idx) {
+    var isBlack = idx % 2 === 0;
+    var cx = cellCenter(m.x), cy = cellCenter(m.y);
+    ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.44, 0, Math.PI * 2);
+    if (isBlack) { ctx.fillStyle = "#1f2937"; ctx.fill(); }
+    else { ctx.fillStyle = "#ffffff"; ctx.fill(); ctx.strokeStyle = "#9ca3af"; ctx.lineWidth = 1.2; ctx.stroke(); }
+    if (idx === view.moves.length - 1 && view.phase === "playing") {
+      ctx.strokeStyle = "#dc2626"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, cy, CELL * 0.52, 0, Math.PI * 2); ctx.stroke();
+    }
+  });
+  if (view.winLine && view.winLine.length >= 2) {
+    var a = view.winLine[0], b2 = view.winLine[view.winLine.length - 1];
+    ctx.strokeStyle = "rgba(220,38,38,0.85)"; ctx.lineWidth = 4; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(cellCenter(a[0]), cellCenter(a[1])); ctx.lineTo(cellCenter(b2[0]), cellCenter(b2[1])); ctx.stroke();
+  }
+}
+canvas.addEventListener("pointerdown", function (e) {
+  var view = currentView();
+  if (!view || view.phase !== "playing" || view.turn !== role) return;
+  var r = canvas.getBoundingClientRect();
+  var px = (e.clientX - r.left) / r.width * 750;
+  var py = (e.clientY - r.top) / r.height * 750;
+  var x = Math.round((px - MARGIN) / CELL), y = Math.round((py - MARGIN) / CELL);
+  if (x < 0 || x > 14 || y < 0 || y > 14) return;
+  if (Math.abs(px - cellCenter(x)) > CELL * 0.5 || Math.abs(py - cellCenter(y)) > CELL * 0.5) return;
+  if (role === "a" && core) { if (core.move("a", x, y)) afterCoreChange(); }
+  else sendAction({ type: "move", x: x, y: y });
+});
+
+/* ================= 渲染 ================= */
+function activeRequest(view) {
+  if (view.undoReq) return { kind: "undo", from: view.undoReq.from };
+  if (view.drawReq) return { kind: "draw", from: view.drawReq.from };
+  return null;
+}
+function render() {
+  if (!role) return;
+  $("landingSection").hidden = true;
+  $("roomSection").hidden = false;
+  var view = currentView();
+  var me = role, other = me === "a" ? "b" : "a";
+  $("roomCodeText").textContent = formatCode(rawCode);
+  $("roleChip").textContent = "角色：玩家 " + me.toUpperCase() + (me === "a" ? "（房主）" : "");
+  var peerChip = $("peerChip");
+  if (me === "a") {
+    peerChip.textContent = "对方（B）：" + (peerOnline ? "在线" : "未加入 / 已离线");
+    peerChip.className = "chip " + (peerOnline ? "on" : "off");
+  } else {
+    peerChip.textContent = "房主（A）：" + (hostOnline ? "在线" : "离线 / 未同步");
+    peerChip.className = "chip " + (hostOnline ? "on" : "off");
+  }
+  if (!view) { showBanner($("gameInfo"), "正在等待房主同步对局…请确认房主页面保持打开。", "info"); drawBoard(null); return; }
+
+  drawBoard(view);
+
+  var black = view.blackOf, white = black === "a" ? "b" : "a";
+  function scoreHtml(p) {
+    var dot = p === black ? '<span class="stone-dot dot-b"></span>' : '<span class="stone-dot dot-w"></span>';
+    return { who: "玩家 " + p.toUpperCase() + (p === me ? "（我）" : "") + " · " + dot + (p === black ? "黑" : "白"),
+             pts: view.stats[p] + " 胜" };
+  }
+  var sA = scoreHtml("a"), sB = scoreHtml("b");
+  $("scoreA").querySelector(".who").innerHTML = sA.who;
+  $("scoreA").querySelector(".pts").textContent = sA.pts;
+  $("scoreB").querySelector(".who").innerHTML = sB.who;
+  $("scoreB").querySelector(".pts").textContent = sB.pts;
+  $("scoreA").className = "score" + (view.phase === "playing" && view.turn === "a" ? " turn" : "");
+  $("scoreB").className = "score" + (view.phase === "playing" && view.turn === "b" ? " turn" : "");
+
+  var req = activeRequest(view);
+  var banner = $("undoBanner");
+  if (req && view.phase === "playing") {
+    banner.hidden = false;
+    banner.className = "banner show info";
+    var mine = req.from === me;
+    $("undoText").textContent = req.kind === "undo"
+      ? (mine ? "你已请求悔一手，等对方同意…" : "对方想悔一手，同意吗？")
+      : (mine ? "你已提议和棋，等对方同意…" : "对方提议和棋，同意吗？");
+    $("undoAgreeBtn").hidden = mine;
+    $("undoRefuseBtn").hidden = mine;
+    $("undoCancelBtn").hidden = !mine;
+  } else banner.hidden = true;
+
+  $("undoBtn").disabled = view.phase !== "playing" || !!view.undoReq;
+  $("drawBtn").disabled = view.phase !== "playing" || !!view.drawReq || view.moves.length < 10;
+  $("againBtn").hidden = view.phase !== "done";
+
+  var rt = $("resultText"), vt = $("verdictText");
+  if (view.phase === "done") {
+    rt.hidden = false; vt.hidden = false;
+    if (view.winner === "draw") {
+      rt.textContent = "和棋";
+      vt.textContent = "这一局不分胜负。总战绩 A " + view.stats.a + " 胜 · B " + view.stats.b + " 胜 · 和 " + view.stats.draws + " 局。";
+    } else {
+      var iWon = view.winner === me;
+      rt.textContent = iWon ? "你赢了！" : "对方赢了";
+      vt.textContent = "第 " + view.gameNo + " 局结束。总战绩 A " + view.stats.a + " 胜 · B " + view.stats.b + " 胜 · 和 " + view.stats.draws + " 局。下一局换 " + (view.gameNo % 2 === 1 ? "B" : "A") + " 执黑先行。";
+    }
+  } else { rt.hidden = true; vt.hidden = true; }
+
+  var info = "";
+  if (view.phase === "playing") {
+    info = "第 " + view.gameNo + " 局 · 已下 " + view.moves.length + " 手 · " +
+      (view.turn === me ? "轮到你落子（你是" + (me === black ? "黑棋" : "白棋") + "）。" : "等对方落子（对方是" + (other === black ? "黑棋" : "白棋") + "）。");
+    if (me === "a" && !peerOnline && view.moves.length === 0) info = "等待玩家 B 用上面的房间码加入。把这个页面和房间码一起发给对方即可。";
+  } else info = "本局结束，点「再来一局」继续（任意一方点都可以）。";
+  if (me === "a" && view.phase === "playing" && view.moves.length > 0 && !peerOnline) info += "（注意：对方当前不在线，对方重连即可回到本局。）";
+  if (me === "b" && !hostOnline) info = "房主当前不在线，等对方回到页面后自动继续。";
+  showBanner($("gameInfo"), info, "info");
+  showBanner($("noticeBanner"), view.notice && view.phase === "playing" ? view.notice : "", "success");
+  showBanner($("gameError"), "", "error");
+}
+
+/* ================= 按钮 ================= */
+$("createBtn").addEventListener("click", startHost);
+$("joinBtn").addEventListener("click", function () {
+  var raw = parseCode($("joinCode").value);
+  if (!raw) { showBanner($("landingError"), "房间码格式不对，请检查后重新输入。", "error"); return; }
+  showBanner($("landingError"), "", "error");
+  startGuest(raw, null);
+});
+function doRequest(kind) {
+  if (role === "a" && core) {
+    var ok = kind === "undo" ? core.requestUndo("a") : core.requestDraw("a");
+    if (ok) afterCoreChange();
+  } else sendAction({ type: kind + "-request" });
+}
+$("undoBtn").addEventListener("click", function () { doRequest("undo"); });
+$("drawBtn").addEventListener("click", function () { doRequest("draw"); });
+$("undoAgreeBtn").addEventListener("click", function () {
+  var view = currentView(); if (!view) return;
+  var req = activeRequest(view); if (!req) return;
+  if (role === "a" && core) {
+    if (req.kind === "undo") core.respondUndo("a", true); else core.respondDraw("a", true);
+    afterCoreChange();
+  } else sendAction({ type: req.kind + "-response", agree: true });
+});
+$("undoRefuseBtn").addEventListener("click", function () {
+  var view = currentView(); if (!view) return;
+  var req = activeRequest(view); if (!req) return;
+  if (role === "a" && core) {
+    if (req.kind === "undo") core.respondUndo("a", false); else core.respondDraw("a", false);
+    afterCoreChange();
+  } else sendAction({ type: req.kind + "-response", agree: false });
+});
+$("undoCancelBtn").addEventListener("click", function () {
+  var view = currentView(); if (!view) return;
+  var req = activeRequest(view); if (!req) return;
+  if (role === "a" && core) {
+    if (req.kind === "undo") core.cancelUndo("a"); else core.cancelDraw("a");
+    afterCoreChange();
+  } else sendAction({ type: req.kind + "-cancel" });
+});
+$("againBtn").addEventListener("click", function () {
+  if (role === "a" && core) { if (core.state.phase === "done") { core.nextGame(); afterCoreChange(); } }
+  else sendAction({ type: "again" });
+});
+$("copyBtn").addEventListener("click", function () {
+  var text = formatCode(rawCode);
+  function done() { $("copyBtn").textContent = "已复制"; setTimeout(function () { $("copyBtn").textContent = "复制房间码"; }, 1500); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else done();
+});
+$("leaveBtn").addEventListener("click", function () {
+  if (!confirm("确定要清空本页并退出吗？本局将结束，双方都要重新建房/加入。")) return;
+  if (!confirm("再确认一次：清空后无法恢复本局。")) return;
+  if (role === "a" && client) client.publish(topics().state, JSON.stringify({ type: "room-closed" }), true);
+  storeClear();
+  if (client) client.close();
+  document.location.reload();
+});
+
+/* ================= 启动：恢复会话或显示入口 ================= */
+(function boot() {
+  drawBoard(null);
+  var saved = storeLoad();
+  if (saved && saved.rawCode) {
+    if (saved.role === "a" && saved.core) restoreHost(saved);
+    else if (saved.role === "b") startGuest(saved.rawCode, saved.view || null);
+  }
+})();
+</script>
+</body>
+</html>

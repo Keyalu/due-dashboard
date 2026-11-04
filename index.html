@@ -473,6 +473,16 @@
       <div id="reviewQueue"></div>
     </div>
   </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title"><svg class="ic"><use href="#i-chart"/></svg> <span id="focusMonthTitle">番茄专注 · 本月</span></div>
+      <div id="focusMonth"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg class="ic"><use href="#i-repeat"/></svg> 番茄专注 · 累计</div>
+      <div id="focusTotal"></div>
+    </div>
+  </div>
   <div class="grid grid-4" id="ovCards"></div>
   <div class="grid grid-2">
     <div class="card">
@@ -8394,6 +8404,7 @@ const DATA = {
   ]
 };
 // ==== DATA:GENERATED-END ====
+const FOCUS = {"source": "番茄ToDo 统计数据页截图（用户 2026-11-04 提供，共 11 张：统计页长图 + 当日 + 4~11 月分布图）", "updated": "2026-11-04", "note": "月度 by_label 分钟数已逐月验算：分项之和与截图印刷总计逐分钟吻合。累计 714h34（42874 分）含 2026-04 之前未截图时段，故大于下方月度之和（4~11 月合计 37745 分 = 629h05，差额 85h29 为更早数据）。", "cumulative": {"sessions": 751, "minutes": 42874, "avg_per_day_min": 210, "days": 204}, "daily": {"2026-11-04": {"total": 121, "sessions": 1, "by_label": {"数学": 121}}}, "monthly": {"2026-04": {"total": 4815, "days": 30, "by_label": {"高数1轮": 2855, "每日红宝书": 1382, "课程": 323, "数据结构": 255}}, "2026-05": {"total": 5750, "days": 31, "by_label": {"高数1轮": 2004, "每日红宝书": 1468, "数据结构": 1077, "课程": 1061, "英语阅读": 140}}, "2026-06": {"total": 4368, "days": 30, "by_label": {"计组": 1457, "高数1轮": 1283, "数据结构": 1130, "课程": 433, "英语阅读": 40, "每日红宝书": 25}}, "2026-07": {"total": 6424, "days": 31, "by_label": {"计组": 2334, "高数二轮": 1640, "线代": 1629, "操作系统": 499, "英语阅读": 237, "高数1轮": 49, "复盘": 36}}, "2026-08": {"total": 6011, "days": 31, "by_label": {"操作系统": 2464, "线代": 1542, "高数二轮": 1140, "英语阅读": 331, "每日红宝书": 172, "复盘": 165, "国网模拟": 137, "计网": 60}}, "2026-09": {"total": 6755, "days": 30, "by_label": {"计网": 2358, "高数二轮": 1377, "408": 899, "数学": 895, "每日红宝书": 604, "大观园": 283, "英语阅读": 260, "政治刷题": 79}}, "2026-10": {"total": 2866, "days": 31, "by_label": {"408": 800, "计网": 575, "数学": 505, "大观园": 404, "每日红宝书": 351, "英语阅读": 131, "政治刷题": 100}}, "2026-11": {"total": 756, "days": 4, "partial": true, "by_label": {"408": 380, "数学": 301, "英语阅读": 50, "复盘": 25}}}};
 
 const catColors = { 极限:'var(--blue)', 微分:'var(--purple)', 积分:'var(--yellow)', 多元:'var(--red)', 方程:'var(--cyan)' };
 function ic(name){ return '<svg class="ic"><use href="#i-'+name+'"/></svg>'; }
@@ -8913,6 +8924,27 @@ renderChapterTable(DATA.net,'netChapters');
   }
   limitSel.addEventListener('change', render);
   render();
+})();
+
+/* ===== 番茄专注（数据来自番茄ToDo截图解析 focus-log.json） ===== */
+function fmtMin(m){ if(m>=60){ const h=Math.floor(m/60), r=m%60; return h+'小时'+(r? r+'分':''); } return m+'分'; }
+(function(){
+  const months=Object.keys(FOCUS.monthly).sort();
+  const mk=months[months.length-1];
+  const cur=FOCUS.monthly[mk];
+  document.getElementById('focusMonthTitle').textContent='番茄专注 · '+mk.replace('-','年')+'月'+(cur.partial?'（进行中）':'');
+  const entries=Object.entries(cur.by_label).sort((a,b)=>b[1]-a[1]);
+  const colors={'数学':'var(--purple)','高数1轮':'var(--purple)','高数二轮':'var(--purple)','线代':'var(--purple)','408':'var(--blue)','计网':'var(--blue)','计组':'var(--blue)','操作系统':'var(--blue)','数据结构':'var(--blue)','英语阅读':'var(--green)','每日红宝书':'var(--green)','政治刷题':'var(--red)'};
+  let html='<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap;"><span style="font-size:22px;font-weight:800;color:var(--text-bright)">'+fmtMin(cur.total)+'</span><span style="font-size:11.5px;color:var(--text-dim)">本月总专注 · 日均 '+fmtMin(Math.round(cur.total/cur.days))+'</span></div>';
+  entries.forEach(([k,v])=>{
+    const pct=Math.round(v/cur.total*100);
+    html+='<div class="subject-row"><div class="subject-label">'+k+'</div><div class="subject-bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:'+Math.max(pct,2)+'%;background:'+(colors[k]||'var(--cyan)')+';"></div></div></div><div class="subject-pct" style="color:var(--text);min-width:74px;">'+fmtMin(v)+'</div></div>';
+  });
+  document.getElementById('focusMonth').innerHTML=html;
+  const c=FOCUS.cumulative;
+  const rows=[['累计专注时长', fmtMin(c.minutes)],['专注天数', c.days+' 天'],['累计次数', c.sessions+' 次'],['长期日均', fmtMin(c.avg_per_day_min)]];
+  document.getElementById('focusTotal').innerHTML=rows.map(r=>'<div class="hero-fact"><span style="color:var(--text-dim)">'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')
+    +'<div class="tip">数据来源：番茄ToDo 统计截图（更新于 '+FOCUS.updated+'）。之后每周发一张「周」视图截图，近 7 日轨迹即可换成真实专注时长。</div>';
 })();
 
 /* ===== 全局搜索 ===== */

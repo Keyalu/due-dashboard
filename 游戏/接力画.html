@@ -167,7 +167,7 @@
 "use strict";
 /* ================= 参数 ================= */
 var RELAY_TOTAL_STROKES = 16;
-var TURN_SECONDS = 60;
+var TURN_SECONDS = 120;
 var STAGE_SECONDS = 240;
 var CANVAS_H = 750;
 var BAND_TOP = 315, BAND_BOTTOM = 435;   /* 拼接模式衔接带（画布坐标，750 高）*/
@@ -228,10 +228,8 @@ function createCore(saved) {
   }
   function tick() {
     if (state.phase === "relay" && Date.now() >= state.endsAt) {
-      /* 超时自动过笔，也消耗一笔，避免卡局 */
-      state.strokesLeft -= 1;
-      state.notice = "上一笔超时，自动跳过";
-      if (state.strokesLeft <= 0) { state.phase = "done"; return true; }
+      /* 超时只过手、不烧笔数：没画不算用掉份额，避免对方没反应过来就丢回合 */
+      state.notice = "上一位超时未画，自动过手（不消耗笔数）";
       state.turnOf = other(state.turnOf);
       state.endsAt = Date.now() + TURN_SECONDS * 1000;
       return true;
@@ -725,6 +723,7 @@ function onDrawMessage(msg) {
     renderCanvas();
     return;
   }
+  if (msg.t === "void") { delete openStrokes[msg.id]; return; }
   if (msg.t === "clear") {
     localLog = localLog.filter(function (s) { return s.stage !== msg.stage; });
     if (role === "a" && core) {
@@ -794,6 +793,7 @@ canvas.addEventListener("pointerdown", function (e) {
 });
 canvas.addEventListener("pointermove", function (e) {
   if (!curStroke) return;
+  if (e.cancelable) e.preventDefault();
   var p = canvasPos(e);
   if (curStrokeLast) drawSegLive(curStrokeLast[0], curStrokeLast[1], p[0], p[1], curStroke.color, curStroke.w);
   curStrokeLast = p;
@@ -801,8 +801,15 @@ canvas.addEventListener("pointermove", function (e) {
   pendingPts.push(p);
   if (pendingPts.length >= 14) flushPts();
 });
-function endStroke() {
+function endStroke(fromCancel) {
   if (!curStroke) return;
+  if (fromCancel && curStroke.pts.length <= 1) {
+    /* 手势刚落下就被浏览器接管（如页面被拖动滚动）：整笔作废，不入日志、不换回合 */
+    publishDraw({ t: "void", id: curStroke.id, from: role });
+    curStroke = null; curStrokeLast = null; pendingPts = [];
+    if (flushTimer) { clearInterval(flushTimer); flushTimer = null; }
+    return;
+  }
   flushPts();
   publishDraw({ t: "end", id: curStroke.id, from: role });
   var finished = curStroke;
@@ -818,8 +825,10 @@ function endStroke() {
   }
   renderCanvas();
 }
-canvas.addEventListener("pointerup", endStroke);
-canvas.addEventListener("pointercancel", endStroke);
+canvas.addEventListener("pointerup", function () { endStroke(false); });
+canvas.addEventListener("pointercancel", function () { endStroke(true); });
+/* 部分 App 内置 WebView 不认 touch-action:none，手指一动页面就滚动并打断笔迹：直接拦截画布上的 touchmove */
+canvas.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
 
 $("clearBtn").addEventListener("click", function () {
   var view = currentView();
@@ -959,7 +968,7 @@ function render() {
   if (view.phase === "lobby") info = me === "a"
     ? (peerOnline ? "对方已加入，选个模式开始吧。" : "等待玩家 B 用上面的房间码加入。把这个页面和房间码一起发给对方即可。")
     : "已加入房间，等房主选模式。";
-  else if (view.phase === "relay") info = painter ? "轮到你：画一笔（按下到抬手算一笔），抬手自动轮到对方。每笔限时 60 秒。" : "对方在画这一笔，看着就好。";
+  else if (view.phase === "relay") info = painter ? "轮到你：画一笔（按下到抬手算一笔），抬手自动轮到对方。每笔限时 120 秒。" : "对方在画这一笔，看着就好。";
   else if (view.phase === "stage1") info = me === "a" ? "你先画上半身：头、身体画到虚线附近，腿先别画。画完点「我画完了」。" : "等 A 画上半身，你看不见，保密中。";
   else if (view.phase === "stage2") info = me === "b" ? "轮到你画下半身：中间的衔接带是 A 留下的线索，对着它往下接。画完点「我画完了」。" : "等 B 画下半身，你看不见，马上揭晓。";
   else if (view.phase === "done") info = "这一幅完成了。房主点「再来一幅」可以回大厅重选模式（任意一方点也会同步）。";

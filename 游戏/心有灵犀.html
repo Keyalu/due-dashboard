@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心有灵犀 · 联机版</title>
+<style>
+  :root{
+    --bg:#f6f3ee; --card:#fff; --ink:#25211c; --muted:#6f6a61; --line:#e5ddd1;
+    --accent:#d9534f; --accent-dark:#b93a36;
+    --me:#2563eb; --me-bg:#eff5ff; --op:#0f766e; --op-bg:#ecfdf8;
+    --ok:#15803d; --ok-bg:#ecfdf3; --err:#b42318; --err-bg:#fef2f2; --radius:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  main{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+  header{text-align:center;padding:14px 0 6px}
+  h1{margin:0;font-size:2rem;letter-spacing:.12em}
+  .round-badge{display:inline-block;margin-top:8px;padding:4px 14px;border-radius:999px;background:var(--ink);color:#fff;font-size:.95rem}
+  .subtitle{color:var(--muted);margin:8px 0 0}
+  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-top:16px}
+  h2{margin:0 0 12px;font-size:1.1rem}
+  label{display:block;font-weight:600;margin:10px 0 6px}
+  input[type="text"],textarea{width:100%;padding:12px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-family:inherit}
+  textarea{min-height:72px;resize:vertical}
+  input:focus,textarea:focus{outline:2px solid #f0b8b4;outline-offset:1px;border-color:var(--accent)}
+  button{min-height:48px;min-width:44px;padding:12px 22px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;touch-action:manipulation;font-family:inherit}
+  button:hover{background:var(--accent-dark)}
+  button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  button.secondary:hover{background:#faf7f2}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .btn-row button{flex:1}
+  .hint{color:var(--muted);font-size:.92rem;margin:8px 0 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .panel{border:1px solid var(--line);border-radius:14px;padding:16px}
+  .panel.me{background:var(--me-bg);border-color:#c7dbff}
+  .panel.op{background:var(--op-bg);border-color:#bfe9dd}
+  .panel h3{margin:0 0 4px;font-size:1.05rem}
+  .status-box{text-align:center;padding:24px 10px;color:var(--muted);font-weight:600}
+  .room-code{font-size:1.7rem;font-weight:800;letter-spacing:.14em;text-align:center;padding:14px;background:#faf3e7;border:1px dashed var(--accent);border-radius:12px;word-break:break-all}
+  .chip{display:inline-block;padding:4px 12px;border-radius:999px;background:#faf3e7;border:1px solid var(--line);font-weight:700;margin:2px 4px 2px 0}
+  .chip.on{background:var(--ok-bg);color:var(--ok);border-color:#bfe6cc}
+  .chip.off{background:#f2f0ec;color:var(--muted)}
+  .banner{border-radius:12px;padding:12px 14px;margin-top:14px;display:none}
+  .banner.show{display:block}
+  .banner.error{background:var(--err-bg);color:var(--err);border:1px solid #f3c2bd}
+  .banner.success{background:var(--ok-bg);color:var(--ok);border:1px solid #bfe6cc}
+  .banner.info{background:#fff8e8;color:#7a5410;border:1px solid #ecd9a0}
+  .reveal-word{font-size:2rem;font-weight:800;letter-spacing:.2em;margin:6px 0;text-align:center}
+  .thought{text-align:left;color:var(--muted);white-space:pre-wrap;word-break:break-word;background:#faf8f4;border-radius:10px;padding:10px;min-height:44px}
+  .thought:empty::before{content:"（没有填写心理活动）";color:#aaa49a}
+  .result{text-align:center;padding:10px 0}
+  .result .big{font-size:1.5rem;font-weight:800;margin:6px 0}
+  table{width:100%;border-collapse:collapse;font-size:.94rem}
+  th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top;word-break:break-word}
+  th{color:var(--muted);font-weight:600;white-space:nowrap}
+  .tag{display:inline-block;padding:1px 9px;border-radius:999px;font-size:.82rem;font-weight:700;white-space:nowrap}
+  .tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.no{background:#f2f0ec;color:var(--muted)} .tag.bad{background:var(--err-bg);color:var(--err)}
+  .empty{color:var(--muted);text-align:center;padding:14px 0 4px}
+  [hidden]{display:none !important}
+  @media (max-width:720px){
+    .grid2{grid-template-columns:1fr}
+    h1{font-size:1.7rem} main{padding:14px 12px 40px} section{padding:14px}
+    .room-code{font-size:1.3rem} table{font-size:.88rem} th,td{padding:8px 5px}
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>心有灵犀</h1>
+    <div><span class="round-badge" id="roundBadge">联机版 · 未入房</span></div>
+    <p class="subtitle">双人异地联机 · 在 8 轮内同时说出完全相同的词</p>
+  </header>
+
+  <!-- 入口：建房 / 入房 -->
+  <section id="landingSection">
+    <h2>选择你的角色</h2>
+    <div class="grid2">
+      <div class="panel me">
+        <h3>我是玩家 A（房主）</h3>
+        <p class="hint">创建房间后，把房间码发给对方。你的手机负责主持对局，请保持本页打开。</p>
+        <div class="btn-row"><button type="button" id="createBtn">创建房间</button></div>
+      </div>
+      <div class="panel op">
+        <h3>我是玩家 B</h3>
+        <label for="joinCode">输入房主给你的房间码</label>
+        <input type="text" id="joinCode" placeholder="例如 E-XXXX-XXXX-XXXX" autocomplete="off" style="text-transform:uppercase">
+        <div class="btn-row"><button type="button" id="joinBtn">加入房间</button></div>
+      </div>
+    </div>
+    <div class="banner error" id="landingError" role="alert"></div>
+    <div class="banner info" id="landingInfo" role="status"></div>
+    <p class="hint">两部手机打开同一个本页面即可（把这个文件发给对方，或两边都打开同一链接）。不需要在同一网络。</p>
+  </section>
+
+  <!-- 房间信息 -->
+  <section id="roomSection" hidden>
+    <h2>房间</h2>
+    <div class="room-code" id="roomCodeText">—</div>
+    <p style="text-align:center;margin:10px 0 0">
+      <span class="chip" id="roleChip">角色：—</span>
+      <span class="chip off" id="connChip">连接：未连接</span>
+      <span class="chip off" id="peerChip">对方：未加入</span>
+    </p>
+    <div class="btn-row" id="hostRoomBtns">
+      <button type="button" class="secondary" id="copyBtn">复制房间码</button>
+      <button type="button" class="secondary" id="rrBtn" hidden>重启本轮</button>
+      <button type="button" class="secondary" id="leaveBtn">清空本页并退出</button>
+    </div>
+    <p class="hint">刷新页面不会丢失本局（会自动恢复）；只有点击「清空本页并退出」并通过两级确认，才会真正清空。</p>
+    <div class="banner success" id="noticeBanner" role="status"></div>
+    <div class="banner info" id="rrBanner" role="status" hidden>
+      <div id="rrText"></div>
+      <div class="btn-row">
+        <button type="button" id="rrAgreeBtn">同意重启本轮</button>
+        <button type="button" class="secondary" id="rrRefuseBtn">拒绝</button>
+        <button type="button" class="secondary" id="rrCancelBtn" hidden>取消我的请求</button>
+      </div>
+    </div>
+    <div class="banner error" id="gameError" role="alert"></div>
+    <div class="banner info" id="gameInfo" role="status"></div>
+  </section>
+
+  <!-- 初始词设置（双方各设自己的） -->
+  <section id="setupSection" hidden>
+    <h2>开局：设置你的初始词</h2>
+    <p class="hint">请尽量设置风格迥异的词。双方各在自己手机上设置自己的初始词，都设置完成后同时公布为第 1 轮。词可以是汉字、英文、数字，或它们的组合（2～4 个字符，英文字母不区分大小写）。</p>
+    <form id="initForm" autocomplete="off">
+      <label for="initWord">我的初始词（2～4 个字符）</label>
+      <input type="text" id="initWord" maxlength="10" placeholder="例如：火锅" autocomplete="off">
+      <div class="btn-row"><button type="submit" id="initSubmitBtn">提交初始词</button></div>
+    </form>
+    <div class="status-box" id="initLockedBox" hidden>✓ 你已设置初始词，等待对方设置</div>
+    <p class="hint" id="initPeerStatus">对方：尚未设置</p>
+  </section>
+
+  <!-- 提交区 -->
+  <section id="playSection" hidden>
+    <h2>游戏区</h2>
+    <p style="margin:0">
+      <span class="hint" style="margin:0">上一轮：</span>
+      <span class="chip">A：<span id="prevA">—</span></span>
+      <span class="chip">B：<span id="prevB">—</span></span>
+    </p>
+    <div class="grid2" style="margin-top:14px">
+      <div class="panel me">
+        <h3>我（<span class="myRoleName">A</span>）</h3>
+        <form id="wordForm" autocomplete="off">
+          <label for="myWord">词语（2～4 个字符：汉字 / 字母 / 数字）</label>
+          <input type="text" id="myWord" maxlength="10" placeholder="输入本轮词语，如 moon、星空、A1" autocomplete="off">
+          <label for="myThought">心理活动（选填）</label>
+          <textarea id="myThought" placeholder="为什么由上一轮的词联想到这个词？"></textarea>
+          <div class="btn-row"><button type="submit">提交</button></div>
+        </form>
+        <div class="status-box" id="myLockedBox" hidden>✓ 已提交，等待对方</div>
+      </div>
+      <div class="panel op">
+        <h3>对方（<span class="opRoleName">B</span>）</h3>
+        <div class="status-box" id="opStatusBox">等待对方提交…</div>
+      </div>
+    </div>
+    <div class="btn-row" id="revealRow" hidden><button type="button" id="revealBtn">同时揭晓</button></div>
+  </section>
+
+  <!-- 揭晓 / 结果 -->
+  <section id="revealSection" hidden>
+    <h2 id="revealTitle">本轮揭晓</h2>
+    <div class="grid2">
+      <div class="panel"><h3 style="text-align:center">玩家 A</h3><div class="reveal-word" id="revealWordA"></div><div class="thought" id="revealThoughtA"></div></div>
+      <div class="panel"><h3 style="text-align:center">玩家 B</h3><div class="reveal-word" id="revealWordB"></div><div class="thought" id="revealThoughtB"></div></div>
+    </div>
+    <div class="banner" id="roundVerdict"></div>
+    <div class="btn-row" id="nextRow" hidden><button type="button" id="nextBtn">进入下一轮</button></div>
+    <div id="resultArea" hidden>
+      <div class="result">
+        <div class="big" id="resultText"></div>
+        <p class="hint" id="resultSub"></p>
+        <div class="btn-row" style="max-width:320px;margin-left:auto;margin-right:auto"><button type="button" id="restartBtn">重新开始</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 两级确认弹窗 -->
+  <div id="confirmModal" hidden style="position:fixed;inset:0;background:rgba(30,25,20,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#fff;border-radius:16px;padding:20px;max-width:420px;width:100%">
+      <h2 id="cmTitle" style="margin-top:0">确认</h2>
+      <p id="cmBody"></p>
+      <p class="hint" id="cmStep"></p>
+      <div class="btn-row">
+        <button type="button" class="secondary" id="cmCancelBtn">取消</button>
+        <button type="button" id="cmNextBtn">继续</button>
+        <button type="button" id="cmFinalBtn" hidden>确认执行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 历史 -->
+  <section id="historySection" hidden>
+    <h2>历史记录</h2>
+    <div id="historyEmpty" class="empty">暂无记录</div>
+    <div style="overflow-x:auto">
+      <table id="historyTable" hidden>
+        <thead><tr><th>轮次</th><th>A 词</th><th>B 词</th><th>A 心理活动</th><th>B 心理活动</th><th>结果</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ================= 词语校验（与同屏版同一套规则） ================= */
+/* === Pure validation === */
+/* 规则（已放宽）：词语为 2～4 个字符，字符可以是汉字、英文字母、数字，
+ * 不允许标点、空格、表情等其他字符。英文字母不区分大小写：
+ * 重复判定、与上一轮的相同字符计算、以及最后“猜中”的判定，
+ * 都按 canonWord 归一化后比较（显示时仍保留原文）。 */
+function canonWord(word) {
+  return String(word == null ? "" : word).replace(/[A-Z]/g, function (c) { return c.toLowerCase(); });
+}
+function isAllowedWordChars(str) { return /^[\p{Script=Han}A-Za-z0-9]+$/u.test(str); }
+function validateWord(player, word, previousWords, usedWords) {
+  var label = "玩家 " + player;
+  if (typeof word !== "string" || word.length === 0) {
+    return { valid: false, reason: label + " 的词语不能为空，请输入 2～4 个字符" };
+  }
+  var chars = Array.from(word);
+  if (chars.length < 2 || chars.length > 4) {
+    return { valid: false, reason: label + " 的词语必须是 2～4 个字符（当前 " + chars.length + " 个字符），请重新提交" };
+  }
+  if (!isAllowedWordChars(word)) {
+    return { valid: false, reason: label + " 的词语只能包含汉字、英文字母和数字，不允许标点、空格或表情，请重新提交" };
+  }
+  var canon = canonWord(word);
+  if (usedWords) {
+    var dup = false;
+    usedWords.forEach(function (u) { if (canonWord(u) === canon) dup = true; });
+    if (dup) {
+      return { valid: false, reason: label + " 的词语‘" + word + "’之前已经出现过，不得重复，请重新提交" };
+    }
+  }
+  var wordSet = new Set(Array.from(canon));
+  var prevList = previousWords || [];
+  for (var i = 0; i < prevList.length; i++) {
+    var prev = prevList[i];
+    var prevSet = new Set(Array.from(canonWord(prev)));
+    var shared = [];
+    wordSet.forEach(function (ch) { if (prevSet.has(ch)) shared.push(ch); });
+    if (shared.length >= 2) {
+      return { valid: false, reason: player + " 的词语与上一轮‘" + prev + "’有 " + shared.length +
+        " 个相同字符，请重新提交（相同的字符：" + shared.join("、") + "）" };
+    }
+  }
+  return { valid: true };
+}
+/* === End pure validation === */
+
+/* ================= 极简 MQTT 客户端（原生 WebSocket，无外部库） =================
+ * 只实现本游戏用到的 MQTT 3.1.1 子集：CONNECT / SUBSCRIBE / PUBLISH(QoS0, retain)
+ * / PINGREQ / DISCONNECT，含遗嘱（Last Will）与自动重连。
+ */
+/* 只保留实测可用的公共通道：备用通道（HiveMQ / ConnectMQ / Mosquitto）
+ * 经同一客户端实测无法完成连接，故不启用，避免建房后对方连不进来。 */
+var BROKERS = [
+  { id: "E", label: "EMQX",    url: "wss://broker.emqx.io:8084/mqtt" }
+];
+function brokerById(id) { for (var i = 0; i < BROKERS.length; i++) if (BROKERS[i].id === id) return BROKERS[i]; return null; }
+
+function mqttEncodeString(s) {
+  var bytes = new TextEncoder().encode(s);
+  var out = new Uint8Array(2 + bytes.length);
+  out[0] = (bytes.length >> 8) & 0xff; out[1] = bytes.length & 0xff;
+  out.set(bytes, 2);
+  return out;
+}
+function mqttEncodeLength(len) {
+  var out = [];
+  do { var b = len % 128; len = Math.floor(len / 128); if (len > 0) b |= 0x80; out.push(b); } while (len > 0);
+  return new Uint8Array(out);
+}
+function mqttPacket(typeAndFlags, bodyParts) {
+  var bodyLen = 0, i;
+  for (i = 0; i < bodyParts.length; i++) bodyLen += bodyParts[i].length;
+  var head = mqttEncodeLength(bodyLen);
+  var packet = new Uint8Array(1 + head.length + bodyLen);
+  packet[0] = typeAndFlags; packet.set(head, 1);
+  var off = 1 + head.length;
+  for (i = 0; i < bodyParts.length; i++) { packet.set(bodyParts[i], off); off += bodyParts[i].length; }
+  return packet;
+}
+
+/* === MQTT client === */
+function MqttClient(url, clientId, will) {
+  this.url = url; this.clientId = clientId; this.will = will || null;
+  this.ws = null; this.connected = false; this.intentionalClose = false;
+  this.buffer = new Uint8Array(0); this.packetId = 1; this.pingTimer = null; this.reconnectTimer = null;
+  this.subscriptions = [];
+  this.onConnect = null; this.onMessage = null; this.onStatus = null;
+}
+MqttClient.prototype._status = function (s) { if (this.onStatus) this.onStatus(s); };
+MqttClient.prototype.connect = function () {
+  var self = this;
+  this.intentionalClose = false;
+  this._status("connecting");
+  var ws;
+  try { ws = new WebSocket(this.url, "mqtt"); } catch (e) { this._scheduleReconnect(); return; }
+  this.ws = ws; ws.binaryType = "arraybuffer";
+  ws.onopen = function () { self._sendConnect(); };
+  ws.onmessage = function (ev) { self._onData(new Uint8Array(ev.data)); };
+  ws.onclose = function () {
+    self.connected = false; self._stopPing(); self._status("closed");
+    if (!self.intentionalClose) self._scheduleReconnect();
+  };
+  ws.onerror = function () { try { ws.close(); } catch (e) {} };
+};
+MqttClient.prototype._scheduleReconnect = function () {
+  var self = this;
+  if (this.reconnectTimer || this.intentionalClose) return;
+  this._status("reconnecting");
+  this.reconnectTimer = setTimeout(function () { self.reconnectTimer = null; self.connect(); }, 3000);
+};
+MqttClient.prototype._sendConnect = function () {
+  var flags = 0x02; // clean session
+  var parts = [mqttEncodeString("MQTT"), new Uint8Array([4, 0, 0, 60]), mqttEncodeString(this.clientId)];
+  if (this.will) {
+    flags |= 0x04 | 0x20; // will flag + will retain (QoS 0)
+    parts[1][1] = flags;
+    parts.push(mqttEncodeString(this.will.topic));
+    parts.push(mqttEncodeString(this.will.payload));
+  } else { parts[1][1] = flags; }
+  // keepalive bytes are parts[1][2..3] = 0,60 已设置
+  this.ws.send(mqttPacket(0x10, parts));
+};
+MqttClient.prototype._onConnack = function () {
+  var self = this;
+  this.connected = true; this._status("online");
+  for (var i = 0; i < this.subscriptions.length; i++) this._sendSubscribe(this.subscriptions[i]);
+  this._stopPing();
+  this.pingTimer = setInterval(function () {
+    if (self.ws && self.ws.readyState === 1) self.ws.send(new Uint8Array([0xc0, 0x00]));
+  }, 30000);
+  if (this.onConnect) this.onConnect();
+};
+MqttClient.prototype._stopPing = function () { if (this.pingTimer) { clearInterval(this.pingTimer); this.pingTimer = null; } };
+MqttClient.prototype.subscribe = function (topic) {
+  if (this.subscriptions.indexOf(topic) < 0) this.subscriptions.push(topic);
+  if (this.connected) this._sendSubscribe(topic);
+};
+MqttClient.prototype._sendSubscribe = function (topic) {
+  var id = this.packetId++ & 0xffff; if (id === 0) id = this.packetId++ & 0xffff;
+  var body = [new Uint8Array([(id >> 8) & 0xff, id & 0xff]), mqttEncodeString(topic), new Uint8Array([0])];
+  this.ws.send(mqttPacket(0x82, body));
+};
+MqttClient.prototype.publish = function (topic, payload, retain) {
+  if (!this.connected || !this.ws || this.ws.readyState !== 1) return false;
+  var body = [mqttEncodeString(topic), new TextEncoder().encode(payload)];
+  this.ws.send(mqttPacket(retain ? 0x31 : 0x30, body));
+  return true;
+};
+MqttClient.prototype._onData = function (chunk) {
+  var merged = new Uint8Array(this.buffer.length + chunk.length);
+  merged.set(this.buffer); merged.set(chunk, this.buffer.length);
+  this.buffer = merged;
+  while (true) {
+    if (this.buffer.length < 2) return;
+    var multiplier = 1, remaining = 0, idx = 1, digit;
+    do {
+      if (idx >= this.buffer.length) return;
+      digit = this.buffer[idx++]; remaining += (digit & 0x7f) * multiplier; multiplier *= 128;
+    } while ((digit & 0x80) !== 0);
+    if (this.buffer.length < idx + remaining) return;
+    var packet = this.buffer.slice(idx, idx + remaining);
+    var type = this.buffer[0] >> 4;
+    this.buffer = this.buffer.slice(idx + remaining);
+    this._handlePacket(type, packet);
+  }
+};
+MqttClient.prototype._handlePacket = function (type, body) {
+  if (type === 2) { this._onConnack(); return; }           // CONNACK
+  if (type === 3) {                                          // PUBLISH
+    var tlen = (body[0] << 8) | body[1];
+    var topic = new TextDecoder().decode(body.slice(2, 2 + tlen));
+    var payload = body.slice(2 + tlen);
+    if (this.onMessage) this.onMessage(topic, new TextDecoder().decode(payload));
+    return;
+  }
+  // SUBACK / PINGRESP 等忽略
+};
+MqttClient.prototype.close = function () {
+  this.intentionalClose = true;
+  if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+  this._stopPing();
+  if (this.ws) { try { this.ws.send(new Uint8Array([0xe0, 0x00])); this.ws.close(); } catch (e) {} }
+  this.connected = false;
+};
+/* === End MQTT client === */
+
+/* ================= 对局核心（房主权威，DOM 无关，可独立测试） =================
+ * phase: lobby / setup / roundResult / waitingSubmit / readyReveal / gameOver
+ * 房主（A 的手机）运行本核心；B 的动作通过网络发来后同样走这里的方法。
+ */
+/* === Game core === */
+var MAX_ROUND = 8;
+function createGameCore(saved) {
+  var s = {
+    phase: "lobby",
+    round: 1,
+    guestJoined: false,
+    initial: { a: { word: "", locked: false }, b: { word: "", locked: false } },
+    initialWords: { a: "", b: "" },
+    submitted: { a: { word: "", thought: "", locked: false }, b: { word: "", thought: "", locked: false } },
+    history: [],
+    previousRoundWords: [],
+    usedWords: new Set(),
+    lastReveal: null,   // {aWord,bWord,aThought,bThought,verdict,isSuccess,kind}
+    result: null,       // {success,text,sub}
+    lastError: null,    // {id,text,player}
+    errorSeq: 0,
+    roundRestartRequest: null,  // {id, from:"a"|"b"}
+    reqSeq: 0,
+    notice: null,       // {id,text}
+    noticeSeq: 0
+  };
+  if (saved) {
+    s.phase = saved.phase; s.round = saved.round; s.guestJoined = !!saved.guestJoined;
+    s.initial = saved.initial; s.initialWords = saved.initialWords;
+    s.submitted = saved.submitted; s.history = saved.history || [];
+    s.previousRoundWords = saved.previousRoundWords || [];
+    s.usedWords = new Set(saved.usedWords || []);
+    s.lastReveal = saved.lastReveal || null; s.result = saved.result || null;
+    s.lastError = saved.lastError || null; s.errorSeq = saved.errorSeq || 0;
+    s.roundRestartRequest = saved.roundRestartRequest || null; s.reqSeq = saved.reqSeq || 0;
+    s.notice = saved.notice || null; s.noticeSeq = saved.noticeSeq || 0;
+  }
+  function setError(player, text) { s.lastError = { id: ++s.errorSeq, text: text, player: player }; }
+  function setNotice(text) { s.notice = { id: ++s.noticeSeq, text: text }; }
+
+  function snapshotForB() {
+    /* 给 B 的视图：未揭晓的 A 词 / A 心理活动绝不出现在这里。
+       作废记录里把 A 的词和心理活动打码（B 只保留自己的）。 */
+    var hist = s.history.map(function (h) {
+      if (!h.valid) {
+        return { round: h.round, aWord: "••", bWord: h.bWord, aThought: "", bThought: h.bThought,
+                 isSame: false, valid: false, error: h.error };
+      }
+      return { round: h.round, aWord: h.aWord, bWord: h.bWord, aThought: h.aThought, bThought: h.bThought,
+               isSame: h.isSame, valid: true, error: "" };
+    });
+    return {
+      phase: s.phase, round: s.round, guestJoined: s.guestJoined,
+      initialLocked: { a: s.initial.a.locked, b: s.initial.b.locked },
+      submittedLocked: { a: s.submitted.a.locked, b: s.submitted.b.locked },
+      previousRoundWords: s.previousRoundWords.slice(),
+      history: hist,
+      lastReveal: s.lastReveal, result: s.result, lastError: s.lastError,
+      roundRestartRequest: s.roundRestartRequest, notice: s.notice
+    };
+  }
+  function snapshotForA() {
+    return {
+      phase: s.phase, round: s.round, guestJoined: s.guestJoined,
+      initialLocked: { a: s.initial.a.locked, b: s.initial.b.locked },
+      submittedLocked: { a: s.submitted.a.locked, b: s.submitted.b.locked },
+      previousRoundWords: s.previousRoundWords.slice(),
+      history: s.history, lastReveal: s.lastReveal, result: s.result, lastError: s.lastError,
+      roundRestartRequest: s.roundRestartRequest, notice: s.notice
+    };
+  }
+
+  var api = {
+    state: s,
+    viewForB: snapshotForB,
+    viewForA: snapshotForA,
+
+    guestJoin: function () {
+      if (!s.guestJoined) { s.guestJoined = true; if (s.phase === "lobby") s.phase = "setup"; }
+    },
+    guestLeave: function () { s.guestJoined = false; },
+
+    submitInitial: function (player, word) {
+      if (s.phase !== "setup") return;
+      var slot = s.initial[player];
+      if (slot.locked) return;
+      var check = validateWord(player.toUpperCase(), word, [], new Set());
+      if (!check.valid) { setError(player, check.reason + "。请重新设置你的初始词。"); return; }
+      slot.word = word; slot.locked = true; s.lastError = null;
+      if (s.initial.a.locked && s.initial.b.locked) {
+        if (canonWord(s.initial.a.word) === canonWord(s.initial.b.word)) {
+          var same = s.initial.a.word;
+          s.initial = { a: { word: "", locked: false }, b: { word: "", locked: false } };
+          setError("", "两个初始词完全相同（‘" + same + "’），请双方重新设置初始词。");
+          return;
+        }
+        s.initialWords = { a: s.initial.a.word, b: s.initial.b.word };
+        s.usedWords.add(s.initialWords.a); s.usedWords.add(s.initialWords.b);
+        s.previousRoundWords = [s.initialWords.a, s.initialWords.b];
+        s.history.push({ round: 1, aWord: s.initialWords.a, bWord: s.initialWords.b,
+                         aThought: "", bThought: "", isSame: false, valid: true, error: "" });
+        s.lastReveal = { aWord: s.initialWords.a, bWord: s.initialWords.b, aThought: "", bThought: "",
+                         verdict: "第 1 轮是初始词：A 是‘" + s.initialWords.a + "’，B 是‘" + s.initialWords.b +
+                                  "’，不相同。从第 2 轮开始，请各自根据上一轮双方的词联想新词。",
+                         isSuccess: false, kind: "initial" };
+        s.phase = "roundResult";
+      }
+    },
+
+    submit: function (player, word, thought) {
+      if (s.phase !== "waitingSubmit" && s.phase !== "readyReveal") return;
+      var slot = s.submitted[player];
+      if (slot.locked) return;
+      thought = thought || "";
+      var other = player === "a" ? "b" : "a";
+      var check = validateWord(player.toUpperCase(), word, s.previousRoundWords, s.usedWords);
+      if (!check.valid) {
+        if (s.submitted[other].locked) {
+          var entry = { round: s.round, aWord: "", bWord: "", aThought: "", bThought: "",
+                        isSame: false, valid: false, error: check.reason };
+          entry.aWord = player === "a" ? word : s.submitted.a.word;
+          entry.bWord = player === "b" ? word : s.submitted.b.word;
+          entry.aThought = player === "a" ? thought : s.submitted.a.thought;
+          entry.bThought = player === "b" ? thought : s.submitted.b.thought;
+          s.history.push(entry);
+          s.submitted = { a: { word: "", thought: "", locked: false }, b: { word: "", thought: "", locked: false } };
+          s.phase = "waitingSubmit";
+        }
+        setError(player, check.reason + "。本轮作废，轮次不变，请双方重新提交。");
+        return;
+      }
+      slot.word = word; slot.thought = thought; slot.locked = true; s.lastError = null;
+      if (s.submitted.a.locked && s.submitted.b.locked) s.phase = "readyReveal";
+    },
+
+    reveal: function () {
+      if (s.phase !== "readyReveal") return;
+      var a = s.submitted.a, b = s.submitted.b;
+      var isSame = canonWord(a.word) === canonWord(b.word);
+      s.usedWords.add(a.word); s.usedWords.add(b.word);
+      s.previousRoundWords = [a.word, b.word];
+      s.history.push({ round: s.round, aWord: a.word, bWord: b.word, aThought: a.thought,
+                       bThought: b.thought, isSame: isSame, valid: true, error: "" });
+      if (isSame) {
+        s.phase = "gameOver";
+        s.lastReveal = { aWord: a.word, bWord: b.word, aThought: a.thought, bThought: b.thought,
+                         verdict: "完全相同！本轮词语都是‘" + a.word + "’。", isSuccess: true, kind: "round" };
+        s.result = { success: true, text: "心有灵犀！第 " + s.round + " 轮猜中：" + a.word,
+                     sub: "两名玩家在第 " + s.round + " 轮同时说出了完全相同的词，挑战成功。" };
+      } else if (s.round >= MAX_ROUND) {
+        s.phase = "gameOver";
+        s.lastReveal = { aWord: a.word, bWord: b.word, aThought: a.thought, bThought: b.thought,
+                         verdict: "第 8 轮词语仍不相同。", isSuccess: false, kind: "round" };
+        s.result = { success: false, text: "挑战失败，第 8 轮仍未猜中", sub: "8 轮已经用完，双方词语仍未完全相同。" };
+      } else {
+        s.phase = "roundResult";
+        s.lastReveal = { aWord: a.word, bWord: b.word, aThought: a.thought, bThought: b.thought,
+                         verdict: "不相同：A 是‘" + a.word + "’，B 是‘" + b.word + "’。根据这一轮双方的词，继续联想下一轮。",
+                         isSuccess: false, kind: "round" };
+      }
+    },
+
+    next: function () {
+      if (s.phase !== "roundResult") return;
+      s.round += 1;
+      s.submitted = { a: { word: "", thought: "", locked: false }, b: { word: "", thought: "", locked: false } };
+      s.phase = "waitingSubmit";
+    },
+
+    restart: function () {
+      var joined = s.guestJoined;
+      var fresh = createGameCore();
+      s.phase = joined ? "setup" : "lobby"; s.round = 1; s.guestJoined = joined;
+      s.initial = fresh.state.initial; s.initialWords = { a: "", b: "" };
+      s.submitted = fresh.state.submitted; s.history = []; s.previousRoundWords = [];
+      s.usedWords = new Set(); s.lastReveal = null; s.result = null; s.lastError = null;
+      s.roundRestartRequest = null; s.notice = null;
+    },
+
+    /* ---- 重启本轮（未结束的轮次内，任意一方发起、另一方同意） ---- */
+    requestRoundRestart: function (player) {
+      if (s.phase !== "setup" && s.phase !== "waitingSubmit" && s.phase !== "readyReveal") return;
+      if (s.roundRestartRequest) {
+        if (s.roundRestartRequest.from !== player) {
+          /* 对方在本请求待处理时也点了重启本轮，视为同意 */
+          api._doRestartRound();
+        }
+        return;
+      }
+      s.roundRestartRequest = { id: ++s.reqSeq, from: player };
+    },
+    cancelRoundRestart: function (player) {
+      if (s.roundRestartRequest && s.roundRestartRequest.from === player) {
+        s.roundRestartRequest = null;
+        setNotice("重启本轮请求已取消。");
+      }
+    },
+    respondRoundRestart: function (player, agree) {
+      if (!s.roundRestartRequest || s.roundRestartRequest.from === player) return;
+      if (agree) api._doRestartRound();
+      else { s.roundRestartRequest = null; setNotice("对方拒绝了重启本轮，本轮继续。"); }
+    },
+    _doRestartRound: function () {
+      s.roundRestartRequest = null;
+      s.lastError = null;
+      if (s.phase === "setup") {
+        s.initial = { a: { word: "", locked: false }, b: { word: "", locked: false } };
+      } else {
+        s.submitted = { a: { word: "", thought: "", locked: false }, b: { word: "", thought: "", locked: false } };
+        s.phase = "waitingSubmit";
+        /* 本轮的作废记录一并清掉，上一轮与更早的历史/用词不受影响 */
+        s.history = s.history.filter(function (h) { return !(h.round === s.round && !h.valid); });
+      }
+      setNotice("双方已同意，本轮已重启：请重新填写本轮的词。");
+    },
+
+    /* ---- 状态存档（房主刷新页面后恢复用） ---- */
+    serialize: function () {
+      return {
+        phase: s.phase, round: s.round, guestJoined: s.guestJoined,
+        initial: s.initial, initialWords: s.initialWords, submitted: s.submitted,
+        history: s.history, previousRoundWords: s.previousRoundWords,
+        usedWords: Array.from(s.usedWords),
+        lastReveal: s.lastReveal, result: s.result,
+        lastError: s.lastError, errorSeq: s.errorSeq,
+        roundRestartRequest: s.roundRestartRequest, reqSeq: s.reqSeq,
+        notice: s.notice, noticeSeq: s.noticeSeq
+      };
+    }
+  };
+  return api;
+}
+/* === End game core === */
+
+/* ================= 双端联机 glue + 渲染 ================= */
+function $(id) { return document.getElementById(id); }
+function escapeHtml(str) {
+  return String(str == null ? "" : str).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function showBanner(el, text, kind) {
+  el.textContent = text || "";
+  el.className = "banner" + (text ? " show " + (kind || "info") : "");
+}
+
+/* 本地存档：刷新页面靠它恢复对局；不可用时退回内存（本次打开期间有效） */
+var SESSION_KEY = "xlol-v2-session";
+var memoryStore = null;
+function storeSave(obj) {
+  memoryStore = obj;
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(obj)); } catch (e) {}
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function storeLoad() {
+  try { var v = localStorage.getItem(SESSION_KEY); if (v) return JSON.parse(v); } catch (e) {}
+  try { var v2 = sessionStorage.getItem(SESSION_KEY); if (v2) return JSON.parse(v2); } catch (e) {}
+  return memoryStore;
+}
+function storeClear() {
+  memoryStore = null;
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+}
+function saveSession() {
+  if (!role || !rawCode) return;
+  if (role === "a" && core) storeSave({ role: "a", rawCode: rawCode, core: core.serialize() });
+  else if (role === "b") storeSave({ role: "b", rawCode: rawCode, view: guestView });
+}
+
+var CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function genRawCode(brokerId) {
+  var rand = new Uint8Array(12);
+  (window.crypto || {}).getRandomValues ? crypto.getRandomValues(rand) : rand.forEach(function (v, i) { rand[i] = Math.floor(Math.random() * 256); });
+  var out = brokerId;
+  for (var i = 0; i < 12; i++) out += CODE_ALPHABET[rand[i] % CODE_ALPHABET.length];
+  return out;
+}
+function formatCode(raw) { return raw.slice(0, 1) + "-" + raw.slice(1, 5) + "-" + raw.slice(5, 9) + "-" + raw.slice(9, 13); }
+function parseCode(input) {
+  var raw = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (raw.length !== 13 || !brokerById(raw[0])) return null;
+  return raw;
+}
+
+var role = null;              // "a" 房主 | "b" 客人
+var core = null;              // 仅房主运行
+var client = null;
+var rawCode = "", topicBase = "", broker = null;
+var peerOnline = false, hostOnline = false;
+var guestView = null;         // B 收到的房主视图
+var guestPending = null;      // B 已发送、等待房主确认的动作 {kind, errorId}
+var lastSeenErrorId = 0;
+var lastMySubmit = null;      // 房主本轮自己的提交，用于对方违规作废后还原输入
+var lastMyInitial = "";
+var pendingRestore = null;    // {word, thought} 作废后待还原到我的输入框
+var pendingRestoreInit = false;
+
+function topics() {
+  return { state: topicBase + "/state", action: topicBase + "/action", peer: topicBase + "/peer-b" };
+}
+function clientId(prefix) {
+  return "xl-" + prefix + "-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+
+/* 探测某个 broker 是否可达（无遗嘱的临时连接） */
+function probeBroker(b, done) {
+  var c = new MqttClient(b.url, clientId("probe"), null);
+  var finished = false;
+  var timer = setTimeout(function () { if (!finished) { finished = true; c.close(); done(false); } }, 8000);
+  c.onConnect = function () { if (!finished) { finished = true; clearTimeout(timer); c.close(); done(true); } };
+  c.connect();
+}
+
+function currentView() {
+  if (role === "a" && core) return core.viewForA();
+  if (role === "b") return guestView;
+  return null;
+}
+
+function afterCoreChange() {
+  if (role === "a" && core && client) {
+    client.publish(topics().state, JSON.stringify({ type: "view", view: core.viewForB(), ts: Date.now() }), true);
+  }
+  saveSession();
+  render();
+}
+
+function connectHost(b, code, coreInstance) {
+  broker = b; rawCode = code;
+  topicBase = "keyaluck/xinyoulingxi/v1/" + rawCode;
+  role = "a"; core = coreInstance;
+  client = new MqttClient(b.url, clientId("host"), {
+    topic: topics().state, payload: JSON.stringify({ type: "host-offline" })
+  });
+  wireStatus();
+  client.onConnect = function () {
+    client.subscribe(topics().action);
+    client.subscribe(topics().peer);
+    afterCoreChange();
+  };
+  client.onMessage = function (topic, payload) {
+    var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic === topics().peer) {
+      peerOnline = !!msg.online;
+      if (msg.online) core.guestJoin(); else core.guestLeave();
+      afterCoreChange(); render(); return;
+    }
+    if (topic === topics().action) {
+      var aInitWasLocked = core.state.initial.a.locked;
+      var aWasLocked = core.state.submitted.a.locked;
+      if (msg.type === "join") core.guestJoin();
+      else if (msg.type === "submitInitial") core.submitInitial("b", msg.word || "");
+      else if (msg.type === "submit") core.submit("b", msg.word || "", msg.thought || "");
+      else if (msg.type === "reveal") core.reveal();
+      else if (msg.type === "next") core.next();
+      else if (msg.type === "restart") core.restart();
+      else if (msg.type === "rr-request") core.requestRoundRestart("b");
+      else if (msg.type === "rr-cancel") core.cancelRoundRestart("b");
+      else if (msg.type === "rr-response") core.respondRoundRestart("b", !!msg.agree);
+      /* 对方违规/重启本轮导致我的锁定被清掉时，把我的输入还原，方便改后重交 */
+      if (aInitWasLocked && !core.state.initial.a.locked && (core.state.lastError || core.state.notice)) pendingRestoreInit = true;
+      if (aWasLocked && !core.state.submitted.a.locked && (core.state.lastError || core.state.notice) && lastMySubmit) pendingRestore = lastMySubmit;
+      afterCoreChange();
+    }
+  };
+  client.connect();
+  saveSession();
+  render();
+}
+
+function startHost() {
+  showBanner($("landingError"), "", "error");
+  showBanner($("landingInfo"), "正在连接联机通道…", "info");
+  $("createBtn").disabled = true;
+  var idx = 0;
+  (function tryNext() {
+    if (idx >= BROKERS.length) {
+      showBanner($("landingInfo"), "", "info");
+      showBanner($("landingError"), "联机通道暂时连接不上，请检查网络后重试。", "error");
+      $("createBtn").disabled = false;
+      return;
+    }
+    var b = BROKERS[idx++];
+    probeBroker(b, function (ok) {
+      if (!ok) { tryNext(); return; }
+      connectHost(b, genRawCode(b.id), createGameCore());
+    });
+  })();
+}
+
+/* 刷新后恢复房主：同一房间码、同一对局状态 */
+function restoreHost(saved) {
+  var b = brokerById(saved.rawCode[0]);
+  if (!b) { storeClear(); return; }
+  showBanner($("landingInfo"), "正在恢复上次对局…", "info");
+  probeBroker(b, function (ok) {
+    if (!ok) {
+      /* 通道暂时不通：保留存档，下次刷新再试，不清局 */
+      showBanner($("landingError"), "联机通道暂时连接不上，上次对局已保留在本机，稍后刷新页面会再次恢复。", "error");
+      return;
+    }
+    connectHost(b, saved.rawCode, createGameCore(saved.core));
+  });
+}
+
+function startGuest(raw, restoredView) {
+  rawCode = raw; broker = brokerById(raw[0]);
+  topicBase = "keyaluck/xinyoulingxi/v1/" + rawCode;
+  role = "b"; hostOnline = false; guestView = restoredView || null;
+  client = new MqttClient(broker.url, clientId("guest"), {
+    topic: topics().peer, payload: JSON.stringify({ online: false })
+  });
+  wireStatus();
+  client.onConnect = function () {
+    client.subscribe(topics().state);
+    client.publish(topics().peer, JSON.stringify({ online: true, ts: Date.now() }), true);
+    client.publish(topics().action, JSON.stringify({ type: "join" }), false);
+    render();
+  };
+  client.onMessage = function (topic, payload) {
+    if (topic !== topics().state) return;
+    var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (msg.type === "host-offline") { hostOnline = false; render(); return; }
+    if (msg.type === "room-closed") {
+      /* 房主清空了本局：本机存档一并清掉，回到入口 */
+      storeClear();
+      if (client) client.close();
+      role = null; guestView = null;
+      document.location.reload();
+      return;
+    }
+    if (msg.type === "view") {
+      var prevView = guestView;
+      hostOnline = true; guestView = msg.view;
+      /* 房主那边作废了一轮、我的锁定被清掉时，还原我刚填的内容 */
+      if (prevView && guestView.lastError && (!prevView.lastError || prevView.lastError.id !== guestView.lastError.id)) {
+        if (prevView.submittedLocked.b && !guestView.submittedLocked.b && lastMySubmit) pendingRestore = lastMySubmit;
+        if (prevView.initialLocked.b && !guestView.initialLocked.b) pendingRestoreInit = true;
+      }
+      /* 重启本轮后我的锁定被清掉时，同样还原 */
+      if (prevView && guestView.notice && (!prevView.notice || prevView.notice.id !== guestView.notice.id)) {
+        if (prevView.submittedLocked.b && !guestView.submittedLocked.b && lastMySubmit) pendingRestore = lastMySubmit;
+        if (prevView.initialLocked.b && !guestView.initialLocked.b) pendingRestoreInit = true;
+      }
+      /* 待确认动作的收尾：已锁定或收到针对我的新错误 -> 结束 pending */
+      if (guestPending && guestView) {
+        var locked = guestPending.kind === "initial" ? guestView.initialLocked.b : guestView.submittedLocked.b;
+        var err = guestView.lastError;
+        if (locked || (err && err.id !== guestPending.errorId && (err.player === "b" || err.player === ""))) guestPending = null;
+      }
+      saveSession();
+      render();
+    }
+  };
+  client.connect();
+  saveSession();
+  render();
+}
+
+function wireStatus() {
+  client.onStatus = function (s) {
+    var chip = $("connChip");
+    var map = { connecting: "连接：连接中…", online: "连接：已连接 · " + (broker ? broker.label : ""),
+                closed: "连接：已断开", reconnecting: "连接：重连中…" };
+    chip.textContent = map[s] || ("连接：" + s);
+    chip.className = "chip " + (s === "online" ? "on" : "off");
+  };
+}
+
+function sendAction(msg) { if (client) client.publish(topics().action, JSON.stringify(msg), false); }
+
+/* ---------- 渲染（A/B 共用同一套界面，按角色取值） ---------- */
+function render() {
+  if (!role) return;
+  $("landingSection").hidden = true;
+  $("roomSection").hidden = false;
+  $("historySection").hidden = false;
+  var me = role, other = role === "a" ? "b" : "a";
+  var view = currentView() || { phase: "lobby", round: 1, initialLocked: { a: false, b: false },
+    submittedLocked: { a: false, b: false }, previousRoundWords: [], history: [], lastReveal: null, result: null, lastError: null };
+
+  $("roundBadge").textContent = "第 " + view.round + " / " + MAX_ROUND + " 轮 · 联机版";
+  $("roomCodeText").textContent = formatCode(rawCode);
+  $("roleChip").textContent = "角色：玩家 " + me.toUpperCase() + (me === "a" ? "（房主）" : "");
+  document.querySelectorAll(".myRoleName").forEach(function (el) { el.textContent = me.toUpperCase(); });
+  document.querySelectorAll(".opRoleName").forEach(function (el) { el.textContent = other.toUpperCase(); });
+
+  var peerChip = $("peerChip");
+  if (me === "a") {
+    peerChip.textContent = "对方（B）：" + (peerOnline ? "在线" : "未加入 / 已离线");
+    peerChip.className = "chip " + (peerOnline ? "on" : "off");
+  } else {
+    peerChip.textContent = "房主（A）：" + (hostOnline ? "在线" : "离线 / 未同步");
+    peerChip.className = "chip " + (hostOnline ? "on" : "off");
+  }
+  $("copyBtn").textContent = me === "a" ? "复制房间码" : "复制房间码";
+
+  /* 错误与提示 */
+  if (view.lastError) { lastSeenErrorId = view.lastError.id; showBanner($("gameError"), view.lastError.text, "error"); }
+  else showBanner($("gameError"), "", "error");
+  var info = "";
+  if (me === "b" && !guestView) info = "正在等待房主同步对局…请确认房主页面保持打开。";
+  else if (view.phase === "lobby") info = "等待玩家 B 用上面的房间码加入。把这个文件和房间码一起发给对方即可。";
+  else if (view.phase === "setup") info = "双方正在各设自己的初始词，都设置完成才会公布第 1 轮。";
+  else if (view.phase === "waitingSubmit") info = "第 " + view.round + " 轮：根据上一轮双方的词联想新词。新词不能和上一轮任一词有 2 个及以上相同汉字，也不能和之前出现过的词重复。";
+  else if (view.phase === "readyReveal") info = "双方都已提交，点击「同时揭晓」公开本轮词语和心理活动。";
+  else if (view.phase === "roundResult") info = view.lastReveal && view.lastReveal.kind === "initial" ? "第 1 轮已公布，准备好就进入第 2 轮。" : "本轮已揭晓，准备好就进入下一轮。";
+  else if (view.phase === "gameOver") info = "对局结束。可以重新开始一局（房间码不变）。";
+  if (me === "a" && view.phase !== "lobby" && !peerOnline && role) info += "（注意：对方当前不在线，对方重连并重新输入房间码即可回到本局。）";
+  showBanner($("gameInfo"), info, "info");
+
+  /* 通知（重启本轮结果等） */
+  showBanner($("noticeBanner"), view.notice ? view.notice.text : "", "success");
+
+  /* 重启本轮：按钮与请求横幅 */
+  var rr = view.roundRestartRequest;
+  var rrPhaseOk = view.phase === "setup" || view.phase === "waitingSubmit" || view.phase === "readyReveal";
+  $("rrBtn").hidden = !rrPhaseOk || !!rr;
+  var banner = $("rrBanner");
+  if (rr && rrPhaseOk) {
+    banner.hidden = false;
+    banner.className = "banner show info";
+    if (rr.from === me) {
+      $("rrText").textContent = "你已发起「重启本轮」请求，等待对方同意…";
+      $("rrAgreeBtn").hidden = true; $("rrRefuseBtn").hidden = true; $("rrCancelBtn").hidden = false;
+    } else {
+      $("rrText").textContent = "对方请求重启本轮：本轮双方已填的内容将作废重来（之前的轮次不受影响）。是否同意？";
+      $("rrAgreeBtn").hidden = false; $("rrRefuseBtn").hidden = false; $("rrCancelBtn").hidden = true;
+    }
+  } else banner.hidden = true;
+
+  /* 初始词区 */
+  var inSetup = view.phase === "lobby" || view.phase === "setup";
+  $("setupSection").hidden = !inSetup;
+  if (inSetup) {
+    var myInitLocked = view.initialLocked[me] || (guestPending && guestPending.kind === "initial");
+    if (view.phase === "lobby") {
+      $("initForm").hidden = true; $("initLockedBox").hidden = false;
+      $("initLockedBox").textContent = "等待玩家 B 加入房间…";
+    } else {
+      $("initForm").hidden = !!myInitLocked;
+      $("initLockedBox").hidden = !myInitLocked;
+      $("initLockedBox").textContent = "✓ 你已设置初始词，等待对方设置";
+    }
+    if (pendingRestoreInit && !$("initForm").hidden) { $("initWord").value = lastMyInitial; pendingRestoreInit = false; }
+    $("initPeerStatus").textContent = "对方：" + (view.initialLocked[other] ? "已设置初始词" : "尚未设置");
+  }
+
+  /* 提交区 */
+  var inPlay = view.phase === "waitingSubmit" || view.phase === "readyReveal";
+  $("playSection").hidden = !inPlay;
+  if (inPlay) {
+    $("prevA").textContent = view.previousRoundWords[0] || "—";
+    $("prevB").textContent = view.previousRoundWords[1] || "—";
+    var myLocked = view.submittedLocked[me] || (guestPending && guestPending.kind === "submit");
+    if (pendingRestore && !myLocked) { $("myWord").value = pendingRestore.word; $("myThought").value = pendingRestore.thought; pendingRestore = null; }
+    $("wordForm").hidden = !!myLocked;
+    $("myLockedBox").hidden = !myLocked;
+    $("opStatusBox").textContent = view.submittedLocked[other] ? "✓ 对方已提交" :
+      (view.phase === "readyReveal" ? "✓ 对方已提交" : "等待对方提交…");
+    $("revealRow").hidden = view.phase !== "readyReveal";
+  }
+
+  /* 揭晓区 */
+  var inReveal = (view.phase === "roundResult" || view.phase === "gameOver") && view.lastReveal;
+  $("revealSection").hidden = !inReveal;
+  if (inReveal) {
+    var r = view.lastReveal;
+    $("revealTitle").textContent = r.kind === "initial" ? "第 1 轮 · 初始词" : "第 " + view.round + " 轮揭晓";
+    $("revealWordA").textContent = r.aWord; $("revealWordB").textContent = r.bWord;
+    $("revealThoughtA").textContent = r.aThought || ""; $("revealThoughtB").textContent = r.bThought || "";
+    var v = $("roundVerdict"); v.textContent = r.verdict;
+    v.className = "banner show " + (r.isSuccess ? "success" : "info");
+    $("nextRow").hidden = view.phase !== "roundResult";
+    $("nextBtn").textContent = "进入第 " + (view.round + 1) + " 轮";
+    $("resultArea").hidden = view.phase !== "gameOver";
+    if (view.phase === "gameOver" && view.result) {
+      $("resultText").textContent = view.result.text;
+      $("resultSub").textContent = view.result.sub || "";
+    }
+  }
+
+  renderHistory(view.history || []);
+}
+
+function renderHistory(history) {
+  var has = history.length > 0;
+  $("historyEmpty").hidden = has;
+  $("historyTable").hidden = !has;
+  $("historyBody").innerHTML = history.map(function (h) {
+    var tag;
+    if (!h.valid) tag = '<span class="tag bad">违规作废</span>';
+    else if (h.isSame) tag = '<span class="tag ok">相同 · 成功</span>';
+    else tag = '<span class="tag no">' + (h.round === 1 ? "初始轮" : "不相同") + "</span>";
+    var err = h.valid ? "" : '<div style="color:var(--err)">' + escapeHtml(h.error || "") + "</div>";
+    return "<tr><td>第 " + h.round + " 轮</td><td>" + escapeHtml(h.aWord) + "</td><td>" + escapeHtml(h.bWord) +
+      "</td><td>" + escapeHtml(h.aThought || "") + "</td><td>" + escapeHtml(h.bThought || "") + "</td><td>" + tag + err + "</td></tr>";
+  }).join("");
+}
+
+/* ---------- 本地动作 ---------- */
+function doSubmitInitial(word) {
+  lastMyInitial = word;
+  if (role === "a") { core.submitInitial("a", word); afterCoreChange(); }
+  else {
+    var v = currentView();
+    guestPending = { kind: "initial", errorId: v && v.lastError ? v.lastError.id : 0 };
+    sendAction({ type: "submitInitial", word: word });
+    render();
+  }
+}
+function doSubmit(word, thought) {
+  if (role === "a") { lastMySubmit = { word: word, thought: thought }; core.submit("a", word, thought); afterCoreChange(); if (!core.state.submitted.a.locked) { /* 违规：把输入还原方便修改 */ $("myWord").value = word; $("myThought").value = thought; } }
+  else {
+    lastMySubmit = { word: word, thought: thought };
+    var v = currentView();
+    guestPending = { kind: "submit", errorId: v && v.lastError ? v.lastError.id : 0 };
+    sendAction({ type: "submit", word: word, thought: thought });
+    render();
+  }
+}
+function doSimple(type) {
+  if (role === "a") {
+    if (type === "reveal") core.reveal(); else if (type === "next") core.next(); else if (type === "restart") core.restart();
+    afterCoreChange();
+  } else sendAction({ type: type });
+}
+
+/* ---------- 两级确认弹窗 ---------- */
+var cmState = null;
+function openTwoStepConfirm(opts) {
+  cmState = opts;
+  $("cmTitle").textContent = opts.title;
+  $("cmBody").textContent = opts.body1;
+  $("cmStep").textContent = "第 1 步（共 2 步确认）";
+  $("cmNextBtn").hidden = false;
+  $("cmNextBtn").textContent = opts.nextText || "继续";
+  $("cmFinalBtn").hidden = true;
+  $("confirmModal").hidden = false;
+}
+$("cmNextBtn").addEventListener("click", function () {
+  if (!cmState) return;
+  $("cmBody").textContent = cmState.body2;
+  $("cmStep").textContent = "第 2 步（共 2 步确认）：请再次确认，执行后无法撤销";
+  $("cmNextBtn").hidden = true;
+  $("cmFinalBtn").hidden = false;
+  $("cmFinalBtn").textContent = cmState.finalText || "确认执行";
+});
+$("cmFinalBtn").addEventListener("click", function () {
+  var cb = cmState && cmState.onConfirm;
+  cmState = null;
+  $("confirmModal").hidden = true;
+  if (cb) cb();
+});
+$("cmCancelBtn").addEventListener("click", function () {
+  cmState = null;
+  $("confirmModal").hidden = true;
+});
+
+/* ---------- 重启本轮 / 清空 ---------- */
+function doRRRequest() {
+  if (role === "a") { core.requestRoundRestart("a"); afterCoreChange(); }
+  else sendAction({ type: "rr-request" });
+}
+function doRRCancel() {
+  if (role === "a") { core.cancelRoundRestart("a"); afterCoreChange(); }
+  else sendAction({ type: "rr-cancel" });
+}
+function doRRResponse(agree) {
+  if (role === "a") { core.respondRoundRestart("a", agree); afterCoreChange(); }
+  else sendAction({ type: "rr-response", agree: agree });
+}
+function doClearPage() {
+  if (client && client.connected) {
+    if (role === "a") client.publish(topics().state, JSON.stringify({ type: "room-closed" }), true);
+    if (role === "b") client.publish(topics().peer, JSON.stringify({ online: false }), true);
+  }
+  storeClear();
+  if (client) client.close();
+  location.reload();
+}
+
+/* ---------- 事件绑定 ---------- */
+$("createBtn").addEventListener("click", startHost);
+$("joinBtn").addEventListener("click", function () {
+  var raw = parseCode($("joinCode").value);
+  if (!raw) { showBanner($("landingError"), "房间码不正确，请检查后重新输入（应形如 E-XXXX-XXXX-XXXX）。", "error"); return; }
+  showBanner($("landingError"), "", "error");
+  $("joinBtn").disabled = true;
+  startGuest(raw);
+});
+$("initForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var w = $("initWord").value;
+  doSubmitInitial(w);
+  if (role === "a" && !(currentView() && currentView().initialLocked.a)) { /* 未锁定（违规）：保留输入 */ }
+  else $("initWord").value = "";
+});
+$("wordForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var w = $("myWord").value, t = $("myThought").value.trim();
+  doSubmit(w, t);
+  if (role === "b" || (core && core.state.submitted.a.locked)) { $("myWord").value = ""; $("myThought").value = ""; }
+});
+$("revealBtn").addEventListener("click", function () { doSimple("reveal"); });
+$("nextBtn").addEventListener("click", function () { doSimple("next"); });
+$("restartBtn").addEventListener("click", function () { doSimple("restart"); });
+$("copyBtn").addEventListener("click", function () {
+  var code = formatCode(rawCode);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(function () { $("copyBtn").textContent = "已复制：" + code; },
+      function () { window.prompt("复制房间码：", code); });
+  } else window.prompt("复制房间码：", code);
+});
+$("leaveBtn").addEventListener("click", function () {
+  openTwoStepConfirm({
+    title: "清空本页并退出？",
+    body1: "这会结束当前对局并清掉本机存档" + (role === "a" ? "，对方的对局也会随之结束。" : "。"),
+    body2: "再次确认：清空后本局无法恢复，只能重新创建房间。普通的刷新页面不会清空，不要误点。",
+    finalText: "确认清空",
+    onConfirm: doClearPage
+  });
+});
+$("rrBtn").addEventListener("click", function () {
+  openTwoStepConfirm({
+    title: "发起重启本轮请求？",
+    body1: "本轮双方已填的内容将作废重来，轮次不变，之前的轮次不受影响。请求发出后还需要对方同意才会真正重启。",
+    body2: "再次确认：确定要向对方发起重启本轮请求吗？",
+    finalText: "确认发起请求",
+    onConfirm: doRRRequest
+  });
+});
+$("rrAgreeBtn").addEventListener("click", function () { doRRResponse(true); });
+$("rrRefuseBtn").addEventListener("click", function () { doRRResponse(false); });
+$("rrCancelBtn").addEventListener("click", function () { doRRCancel(); });
+
+/* 链接里带 #room=房间码 时自动填入；有存档时自动恢复对局（刷新不丢局） */
+(function () {
+  var m = /room=([A-Za-z0-9-]+)/.exec(location.hash || "");
+  if (m) { var raw = parseCode(m[1]); if (raw) { $("joinCode").value = formatCode(raw); return; } }
+  var saved = null;
+  try { saved = storeLoad(); } catch (e) {}
+  if (saved && saved.rawCode && parseCode(saved.rawCode)) {
+    if (saved.role === "a" && saved.core) restoreHost(saved);
+    else if (saved.role === "b") startGuest(saved.rawCode, saved.view || null);
+  }
+})();
+</script>
+</body>
+</html>

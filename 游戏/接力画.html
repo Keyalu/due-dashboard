@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>接力画 · 双人联机</title>
+<style>
+  :root {
+    --bg: #f2f7fb; --surface: #ffffff; --border: #dce8f2;
+    --text: #2f3644; --dim: #68707d; --bright: #0b1220;
+    --blue: #0284c7; --blue-bg: #e0f2fe; --green: #16a34a; --green-bg: #ecfdf3;
+    --red: #dc2626; --red-bg: #fef1f1; --yellow-bg: #fdf6e0; --yellow: #b97e06;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px 12px 44px; }
+  h1 { font-size: 20px; color: var(--bright); text-align: center; }
+  .subtitle { text-align: center; color: var(--dim); font-size: 12.5px; margin: 4px 0 14px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .panel h3 { font-size: 14.5px; color: var(--bright); margin-bottom: 6px; }
+  .hint { font-size: 12px; color: var(--dim); line-height: 1.6; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  button { border: 1px solid var(--blue); background: var(--blue); color: #fff; font-size: 13.5px; font-weight: 700; padding: 9px 16px; border-radius: 11px; cursor: pointer; font-family: inherit; }
+  button.secondary { background: var(--surface); color: var(--text); border-color: var(--border); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  input[type="text"] { border: 1px solid var(--border); border-radius: 11px; padding: 9px 12px; font-size: 14px; outline: none; width: 100%; color: var(--bright); background: var(--surface); }
+  input[type="text"]:focus { border-color: var(--blue); }
+  .banner { display: none; border-radius: 12px; padding: 10px 13px; font-size: 13px; margin-bottom: 10px; line-height: 1.6; }
+  .banner.show { display: block; }
+  .banner.error { background: var(--red-bg); color: var(--red); }
+  .banner.info { background: var(--blue-bg); color: var(--blue); }
+  .banner.success { background: var(--green-bg); color: var(--green); }
+  .room-code { font-size: 24px; font-weight: 800; letter-spacing: 1.5px; color: var(--bright); text-align: center; padding: 6px 0 2px; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+  .chip { font-size: 11.5px; padding: 3px 10px; border-radius: 99px; background: #eef4fa; color: var(--dim); }
+  .chip.on { background: var(--green-bg); color: var(--green); font-weight: 700; }
+  .chip.off { background: var(--red-bg); color: var(--red); }
+  .roundline { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .round-badge { font-size: 12px; font-weight: 700; color: var(--blue); background: var(--blue-bg); padding: 3px 11px; border-radius: 99px; white-space: nowrap; }
+  .timer { margin-left: auto; font-size: 19px; font-weight: 800; color: var(--bright); font-variant-numeric: tabular-nums; }
+  .timer.low { color: var(--red); }
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  @media (max-width: 560px) { .mode-grid { grid-template-columns: 1fr; } }
+  .mode-card { border: 1.5px solid var(--border); border-radius: 14px; padding: 13px 14px; cursor: pointer; background: #fbfdff; }
+  .mode-card:hover { border-color: var(--blue); }
+  .mode-card .mn { font-size: 15px; font-weight: 800; color: var(--bright); }
+  .mode-card .md { font-size: 12px; color: var(--dim); line-height: 1.6; margin-top: 3px; }
+  .canvas-box { position: relative; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: #fff; }
+  canvas { display: block; width: 100%; aspect-ratio: 4 / 3; touch-action: none; }
+  .cover { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, #eef4fa, #eef4fa 14px, #e3edf7 14px, #e3edf7 28px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 20px; }
+  .cover .ct { font-size: 16px; font-weight: 800; color: var(--bright); }
+  .cover .cd { font-size: 12.5px; color: var(--dim); line-height: 1.7; }
+  .guide-line { position: absolute; left: 0; right: 0; border-top: 2px dashed rgba(2,132,199,0.45); pointer-events: none; }
+  .guide-tag { position: absolute; right: 8px; font-size: 10.5px; color: var(--blue); background: rgba(255,255,255,0.85); padding: 1px 7px; border-radius: 99px; pointer-events: none; }
+  .tools { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .swatch { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid transparent; cursor: pointer; padding: 0; }
+  .swatch.active { border-color: var(--bright); transform: scale(1.12); }
+  .size-btn { border: 1px solid var(--border); background: var(--surface); color: var(--dim); border-radius: 99px; padding: 4px 11px; font-size: 12px; font-weight: 600; }
+  .size-btn.active { background: var(--blue-bg); color: var(--blue); border-color: var(--blue); }
+  .tool-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 99px; padding: 5px 13px; font-size: 12.5px; font-weight: 600; margin-left: auto; }
+  .guess-row { display: flex; gap: 8px; margin-top: 10px; }
+  .guess-row input { flex: 1; }
+  .big-result { text-align: center; font-size: 19px; font-weight: 800; color: var(--bright); padding: 8px 0 2px; }
+  .verdict { text-align: center; color: var(--dim); font-size: 13px; line-height: 1.7; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>接力画</h1>
+  <p class="subtitle">双人异地联机 · 一人一笔，接力画出一幅只属于你们的画</p>
+
+  <!-- 入口 -->
+  <div id="landingSection">
+    <div class="panel">
+      <h3>我是房主（玩家 A）</h3>
+      <p class="hint">创建房间后，把房间码发给对方。你的手机负责主持对局，请保持本页打开。</p>
+      <div class="btn-row"><button type="button" id="createBtn">创建房间</button></div>
+    </div>
+    <div class="panel">
+      <h3>我是玩家 B</h3>
+      <p class="hint">输入房主给你的房间码加入。</p>
+      <div class="guess-row" style="margin-top:8px">
+        <input type="text" id="joinCode" placeholder="房间码，如 E-XXXX-XXXX-XXXX" autocomplete="off">
+        <button type="button" id="joinBtn">加入房间</button>
+      </div>
+    </div>
+    <div class="banner error" id="landingError" role="alert"></div>
+    <div class="banner info" id="landingInfo" role="status"></div>
+    <p class="hint">两部手机打开同一个本页面即可，不需要在同一网络。刷新页面会自动恢复对局；只有点「清空本页并退出」才会真正清局。</p>
+  </div>
+
+  <!-- 房间与对局 -->
+  <div id="roomSection" hidden>
+    <div class="panel" style="padding-bottom:10px">
+      <div class="room-code" id="roomCodeText">—</div>
+      <div class="chips">
+        <span class="chip" id="roleChip">角色：—</span>
+        <span class="chip off" id="connChip">连接：未连接</span>
+        <span class="chip off" id="peerChip">对方：未加入</span>
+      </div>
+      <div class="btn-row" style="justify-content:center">
+        <button type="button" class="secondary" id="copyBtn">复制房间码</button>
+        <button type="button" class="secondary" id="leaveBtn">清空本页并退出</button>
+      </div>
+    </div>
+
+    <div class="banner error" id="gameError" role="alert"></div>
+    <div class="banner info" id="gameInfo" role="status"></div>
+    <div class="banner success" id="noticeBanner" role="status"></div>
+
+    <div class="panel">
+      <div class="roundline" style="margin-top:0">
+        <span class="round-badge" id="roundBadge">等待开始</span>
+        <span class="timer" id="timerText"></span>
+      </div>
+
+      <div id="modePick" hidden>
+        <p class="hint" id="modePickHint">房主选一个模式开始：</p>
+        <div class="mode-grid">
+          <div class="mode-card" id="modeRelay">
+            <div class="mn">接力共创</div>
+            <div class="md">两人轮流画，一次一笔，共 16 笔，一起把一幅画画完。全程互相看得见，适合慢慢合作。</div>
+          </div>
+          <div class="mode-card" id="modeCorpse">
+            <div class="mn">拼接怪物</div>
+            <div class="md">A 先画上半身，B 只能看到一小截衔接处再画下半身，谁也不知道对方画了啥，最后一起揭晓成品。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-box">
+        <canvas id="board" width="1000" height="750"></canvas>
+        <div class="guide-line" id="guideTop" hidden></div>
+        <div class="guide-tag" id="guideTopTag" hidden>上半身区域</div>
+        <div class="guide-line" id="guideBottom" hidden></div>
+        <div class="guide-tag" id="guideBottomTag" hidden>衔接处</div>
+        <div class="cover" id="coverBox" hidden>
+          <div class="ct" id="coverTitle">对方创作中…</div>
+          <div class="cd" id="coverDesc">这部分要保密，揭晓时一起看。</div>
+        </div>
+      </div>
+
+      <div class="tools" id="toolsBar" hidden>
+        <span id="swatches"></span>
+        <button type="button" class="size-btn" data-size="6">细</button>
+        <button type="button" class="size-btn active" data-size="12">中</button>
+        <button type="button" class="size-btn" data-size="22">粗</button>
+        <button type="button" class="tool-btn" id="clearBtn">清掉我这部分</button>
+      </div>
+
+      <div class="btn-row" id="stageDoneRow" hidden>
+        <button type="button" id="stageDoneBtn">我画完了</button>
+      </div>
+      <div class="btn-row" id="againRow" hidden>
+        <button type="button" id="againBtn">再来一幅</button>
+        <button type="button" class="secondary" id="saveBtn">保存这幅画</button>
+      </div>
+
+      <div class="big-result" id="resultText" hidden></div>
+      <div class="verdict" id="verdictText" hidden></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= 参数 ================= */
+var RELAY_TOTAL_STROKES = 16;
+var TURN_SECONDS = 60;
+var STAGE_SECONDS = 240;
+var CANVAS_H = 750;
+var BAND_TOP = 315, BAND_BOTTOM = 435;   /* 拼接模式衔接带（画布坐标，750 高）*/
+var STAGE1_LIMIT = 435;                  /* A 的笔迹区域下限 */
+var STAGE2_LIMIT = 315;                  /* B 的笔迹区域上限 */
+
+/* ================= 房主权威对局核心（DOM 无关） ================= */
+function createCore(saved) {
+  var S = saved || null;
+  var state = {
+    phase: "lobby",        // lobby | relay | stage1 | stage2 | done
+    mode: "",              // relay | corpse
+    turnOf: "a",
+    strokesLeft: 0,
+    endsAt: 0,
+    notice: "",
+    peerIn: false,
+    log: []                // 房主保存的完整笔迹 [{id, by, stage, color, w, pts:[[x,y],...]}]
+  };
+  if (S) { for (var k in S) state[k] = S[k]; }
+  function other(p) { return p === "a" ? "b" : "a"; }
+  function startRelay() {
+    state.mode = "relay"; state.phase = "relay";
+    state.turnOf = "a"; state.strokesLeft = RELAY_TOTAL_STROKES;
+    state.endsAt = Date.now() + TURN_SECONDS * 1000;
+    state.log = []; state.notice = "";
+  }
+  function startCorpse() {
+    state.mode = "corpse"; state.phase = "stage1";
+    state.endsAt = Date.now() + STAGE_SECONDS * 1000;
+    state.log = []; state.notice = "";
+  }
+  function painterNow() {
+    if (state.phase === "relay") return state.turnOf;
+    if (state.phase === "stage1") return "a";
+    if (state.phase === "stage2") return "b";
+    return "";
+  }
+  function strokeDone(player) {
+    if (state.phase !== "relay" || player !== state.turnOf) return false;
+    state.strokesLeft -= 1;
+    if (state.strokesLeft <= 0) { state.phase = "done"; state.notice = ""; return true; }
+    state.turnOf = other(state.turnOf);
+    state.endsAt = Date.now() + TURN_SECONDS * 1000;
+    return true;
+  }
+  function stageDone(player) {
+    if (state.phase === "stage1" && player === "a") {
+      state.phase = "stage2";
+      state.endsAt = Date.now() + STAGE_SECONDS * 1000;
+      return true;
+    }
+    if (state.phase === "stage2" && player === "b") {
+      state.phase = "done";
+      return true;
+    }
+    return false;
+  }
+  function tick() {
+    if (state.phase === "relay" && Date.now() >= state.endsAt) {
+      /* 超时自动过笔，也消耗一笔，避免卡局 */
+      state.strokesLeft -= 1;
+      state.notice = "上一笔超时，自动跳过";
+      if (state.strokesLeft <= 0) { state.phase = "done"; return true; }
+      state.turnOf = other(state.turnOf);
+      state.endsAt = Date.now() + TURN_SECONDS * 1000;
+      return true;
+    }
+    if ((state.phase === "stage1" || state.phase === "stage2") && Date.now() >= state.endsAt) {
+      return stageDone(painterNow());
+    }
+    return false;
+  }
+  function recordStroke(stroke) {
+    if (!stroke || !stroke.id) return;
+    for (var i = 0; i < state.log.length; i++) if (state.log[i].id === stroke.id) { state.log[i] = stroke; return; }
+    if (state.log.length < 500) state.log.push(stroke);
+  }
+  function clearScope(player) {
+    /* 接力共创只能清自己刚画的？规则：relay 清自己的全部笔迹太伤，改为仅 corpse 阶段内清本阶段 */
+    if (state.phase === "stage1" && player === "a") state.log = state.log.filter(function (s) { return s.stage !== 1; });
+    else if (state.phase === "stage2" && player === "b") state.log = state.log.filter(function (s) { return s.stage !== 2; });
+    else return false;
+    return true;
+  }
+  function viewFor(player) {
+    return {
+      phase: state.phase, mode: state.mode, turnOf: state.turnOf,
+      strokesLeft: state.strokesLeft, endsAt: state.endsAt,
+      painter: painterNow(), notice: state.notice, peerIn: state.peerIn,
+      strokeCount: state.log.length
+    };
+  }
+  return {
+    state: state, startRelay: startRelay, startCorpse: startCorpse,
+    strokeDone: strokeDone, stageDone: stageDone, tick: tick,
+    recordStroke: recordStroke, clearScope: clearScope,
+    guestJoin: function () { state.peerIn = true; },
+    guestLeave: function () { state.peerIn = false; },
+    viewFor: viewFor,
+    serialize: function () { var c = {}; for (var k in state) c[k] = state[k]; return c; }
+  };
+}
+
+
+/* ================= 极简 MQTT 客户端（原生 WebSocket，无外部库） =================
+ * 只实现本游戏用到的 MQTT 3.1.1 子集：CONNECT / SUBSCRIBE / PUBLISH(QoS0, retain)
+ * / PINGREQ / DISCONNECT，含遗嘱（Last Will）与自动重连。
+ */
+/* 只保留实测可用的公共通道：备用通道（HiveMQ / ConnectMQ / Mosquitto）
+ * 经同一客户端实测无法完成连接，故不启用，避免建房后对方连不进来。 */
+var BROKERS = [
+  { id: "E", label: "EMQX",    url: "wss://broker.emqx.io:8084/mqtt" }
+];
+function brokerById(id) { for (var i = 0; i < BROKERS.length; i++) if (BROKERS[i].id === id) return BROKERS[i]; return null; }
+
+function mqttEncodeString(s) {
+  var bytes = new TextEncoder().encode(s);
+  var out = new Uint8Array(2 + bytes.length);
+  out[0] = (bytes.length >> 8) & 0xff; out[1] = bytes.length & 0xff;
+  out.set(bytes, 2);
+  return out;
+}
+function mqttEncodeLength(len) {
+  var out = [];
+  do { var b = len % 128; len = Math.floor(len / 128); if (len > 0) b |= 0x80; out.push(b); } while (len > 0);
+  return new Uint8Array(out);
+}
+function mqttPacket(typeAndFlags, bodyParts) {
+  var bodyLen = 0, i;
+  for (i = 0; i < bodyParts.length; i++) bodyLen += bodyParts[i].length;
+  var head = mqttEncodeLength(bodyLen);
+  var packet = new Uint8Array(1 + head.length + bodyLen);
+  packet[0] = typeAndFlags; packet.set(head, 1);
+  var off = 1 + head.length;
+  for (i = 0; i < bodyParts.length; i++) { packet.set(bodyParts[i], off); off += bodyParts[i].length; }
+  return packet;
+}
+
+/* === MQTT client === */
+function MqttClient(url, clientId, will) {
+  this.url = url; this.clientId = clientId; this.will = will || null;
+  this.ws = null; this.connected = false; this.intentionalClose = false;
+  this.buffer = new Uint8Array(0); this.packetId = 1; this.pingTimer = null; this.reconnectTimer = null;
+  this.subscriptions = [];
+  this.onConnect = null; this.onMessage = null; this.onStatus = null;
+}
+MqttClient.prototype._status = function (s) { if (this.onStatus) this.onStatus(s); };
+MqttClient.prototype.connect = function () {
+  var self = this;
+  this.intentionalClose = false;
+  this._status("connecting");
+  var ws;
+  try { ws = new WebSocket(this.url, "mqtt"); } catch (e) { this._scheduleReconnect(); return; }
+  this.ws = ws; ws.binaryType = "arraybuffer";
+  ws.onopen = function () { self._sendConnect(); };
+  ws.onmessage = function (ev) { self._onData(new Uint8Array(ev.data)); };
+  ws.onclose = function () {
+    self.connected = false; self._stopPing(); self._status("closed");
+    if (!self.intentionalClose) self._scheduleReconnect();
+  };
+  ws.onerror = function () { try { ws.close(); } catch (e) {} };
+};
+MqttClient.prototype._scheduleReconnect = function () {
+  var self = this;
+  if (this.reconnectTimer || this.intentionalClose) return;
+  this._status("reconnecting");
+  this.reconnectTimer = setTimeout(function () { self.reconnectTimer = null; self.connect(); }, 3000);
+};
+MqttClient.prototype._sendConnect = function () {
+  var flags = 0x02; // clean session
+  var parts = [mqttEncodeString("MQTT"), new Uint8Array([4, 0, 0, 60]), mqttEncodeString(this.clientId)];
+  if (this.will) {
+    flags |= 0x04 | 0x20; // will flag + will retain (QoS 0)
+    parts[1][1] = flags;
+    parts.push(mqttEncodeString(this.will.topic));
+    parts.push(mqttEncodeString(this.will.payload));
+  } else { parts[1][1] = flags; }
+  // keepalive bytes are parts[1][2..3] = 0,60 已设置
+  this.ws.send(mqttPacket(0x10, parts));
+};
+MqttClient.prototype._onConnack = function () {
+  var self = this;
+  this.connected = true; this._status("online");
+  for (var i = 0; i < this.subscriptions.length; i++) this._sendSubscribe(this.subscriptions[i]);
+  this._stopPing();
+  this.pingTimer = setInterval(function () {
+    if (self.ws && self.ws.readyState === 1) self.ws.send(new Uint8Array([0xc0, 0x00]));
+  }, 30000);
+  if (this.onConnect) this.onConnect();
+};
+MqttClient.prototype._stopPing = function () { if (this.pingTimer) { clearInterval(this.pingTimer); this.pingTimer = null; } };
+MqttClient.prototype.subscribe = function (topic) {
+  if (this.subscriptions.indexOf(topic) < 0) this.subscriptions.push(topic);
+  if (this.connected) this._sendSubscribe(topic);
+};
+MqttClient.prototype._sendSubscribe = function (topic) {
+  var id = this.packetId++ & 0xffff; if (id === 0) id = this.packetId++ & 0xffff;
+  var body = [new Uint8Array([(id >> 8) & 0xff, id & 0xff]), mqttEncodeString(topic), new Uint8Array([0])];
+  this.ws.send(mqttPacket(0x82, body));
+};
+MqttClient.prototype.publish = function (topic, payload, retain) {
+  if (!this.connected || !this.ws || this.ws.readyState !== 1) return false;
+  var body = [mqttEncodeString(topic), new TextEncoder().encode(payload)];
+  this.ws.send(mqttPacket(retain ? 0x31 : 0x30, body));
+  return true;
+};
+MqttClient.prototype._onData = function (chunk) {
+  var merged = new Uint8Array(this.buffer.length + chunk.length);
+  merged.set(this.buffer); merged.set(chunk, this.buffer.length);
+  this.buffer = merged;
+  while (true) {
+    if (this.buffer.length < 2) return;
+    var multiplier = 1, remaining = 0, idx = 1, digit;
+    do {
+      if (idx >= this.buffer.length) return;
+      digit = this.buffer[idx++]; remaining += (digit & 0x7f) * multiplier; multiplier *= 128;
+    } while ((digit & 0x80) !== 0);
+    if (this.buffer.length < idx + remaining) return;
+    var packet = this.buffer.slice(idx, idx + remaining);
+    var type = this.buffer[0] >> 4;
+    this.buffer = this.buffer.slice(idx + remaining);
+    this._handlePacket(type, packet);
+  }
+};
+MqttClient.prototype._handlePacket = function (type, body) {
+  if (type === 2) { this._onConnack(); return; }           // CONNACK
+  if (type === 3) {                                          // PUBLISH
+    var tlen = (body[0] << 8) | body[1];
+    var topic = new TextDecoder().decode(body.slice(2, 2 + tlen));
+    var payload = body.slice(2 + tlen);
+    if (this.onMessage) this.onMessage(topic, new TextDecoder().decode(payload));
+    return;
+  }
+  // SUBACK / PINGRESP 等忽略
+};
+MqttClient.prototype.close = function () {
+  this.intentionalClose = true;
+  if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
+  this._stopPing();
+  if (this.ws) { try { this.ws.send(new Uint8Array([0xe0, 0x00])); this.ws.close(); } catch (e) {} }
+  this.connected = false;
+};
+/* === End MQTT client === */
+
+
+/* ================= 双端联机 glue + 画布 + 渲染 ================= */
+function $(id) { return document.getElementById(id); }
+function escapeHtml(str) {
+  return String(str == null ? "" : str).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function showBanner(el, text, kind) {
+  el.textContent = text || "";
+  el.className = "banner" + (text ? " show " + (kind || "info") : "");
+}
+
+var SESSION_KEY = "relaydraw-v1-session";
+var memoryStore = null;
+function storeSave(obj) {
+  memoryStore = obj;
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(obj)); } catch (e) {}
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function storeLoad() {
+  try { var v = localStorage.getItem(SESSION_KEY); if (v) return JSON.parse(v); } catch (e) {}
+  try { var v2 = sessionStorage.getItem(SESSION_KEY); if (v2) return JSON.parse(v2); } catch (e) {}
+  return memoryStore;
+}
+function storeClear() {
+  memoryStore = null;
+  try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+}
+function saveSession() {
+  if (!role || !rawCode) return;
+  if (role === "a" && core) storeSave({ role: "a", rawCode: rawCode, core: core.serialize() });
+  else if (role === "b") storeSave({ role: "b", rawCode: rawCode, view: guestView });
+}
+
+var CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+function genRawCode(brokerId) {
+  var rand = new Uint8Array(12);
+  if ((window.crypto || {}).getRandomValues) crypto.getRandomValues(rand);
+  else rand.forEach(function (v, i) { rand[i] = Math.floor(Math.random() * 256); });
+  var out = brokerId;
+  for (var i = 0; i < 12; i++) out += CODE_ALPHABET[rand[i] % CODE_ALPHABET.length];
+  return out;
+}
+function formatCode(raw) { return raw.slice(0, 1) + "-" + raw.slice(1, 5) + "-" + raw.slice(5, 9) + "-" + raw.slice(9, 13); }
+function parseCode(input) {
+  var raw = String(input || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (raw.length !== 13 || !brokerById(raw[0])) return null;
+  return raw;
+}
+
+var role = null, core = null, client = null;
+var rawCode = "", topicBase = "", broker = null;
+var peerOnline = false, hostOnline = false, guestView = null;
+var lastPhaseKey = "";
+
+function topics() {
+  return { state: topicBase + "/state", action: topicBase + "/action",
+           peer: topicBase + "/peer-b", draw: topicBase + "/draw" };
+}
+function clientId(prefix) {
+  return "rd-" + prefix + "-" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+}
+function probeBroker(b, done) {
+  var c = new MqttClient(b.url, clientId("probe"), null);
+  var finished = false;
+  var timer = setTimeout(function () { if (!finished) { finished = true; c.close(); done(false); } }, 8000);
+  c.onConnect = function () { if (!finished) { finished = true; clearTimeout(timer); c.close(); done(true); } };
+  c.connect();
+}
+function currentView() {
+  if (role === "a" && core) return core.viewFor("a");
+  if (role === "b") return guestView;
+  return null;
+}
+function afterCoreChange() {
+  if (role === "a" && core && client) {
+    client.publish(topics().state, JSON.stringify({ type: "view", view: core.viewFor("b"), ts: Date.now() }), true);
+  }
+  saveSession();
+  render();
+}
+/* 房主把完整笔迹日志分片同步给对方（加入/刷新恢复/揭晓时用） */
+function sendReplay() {
+  if (role !== "a" || !core || !client) return;
+  var log = core.state.log;
+  var CH = 20;
+  if (!log.length) { publishDraw({ t: "replay", mode: "reset", strokes: [] }); return; }
+  for (var i = 0; i < log.length; i += CH) {
+    publishDraw({ t: "replay", mode: i === 0 ? "reset" : "more", strokes: log.slice(i, i + CH) });
+  }
+}
+
+function connectHost(b, code, coreInstance) {
+  broker = b; rawCode = code;
+  topicBase = "keyaluck/relaydraw/v1/" + rawCode;
+  role = "a"; core = coreInstance;
+  client = new MqttClient(b.url, clientId("host"), {
+    topic: topics().state, payload: JSON.stringify({ type: "host-offline" })
+  });
+  wireStatus();
+  client.onConnect = function () {
+    client.subscribe(topics().action);
+    client.subscribe(topics().peer);
+    client.subscribe(topics().draw);
+    afterCoreChange();
+  };
+  client.onMessage = function (topic, payload) {
+    var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic === topics().peer) {
+      peerOnline = !!msg.online;
+      if (msg.online) core.guestJoin(); else core.guestLeave();
+      afterCoreChange(); return;
+    }
+    if (topic === topics().draw) { onDrawMessage(msg); return; }
+    if (topic === topics().action) {
+      if (msg.type === "join") { core.guestJoin(); sendReplay(); }
+      else if (msg.type === "stroke-done") { if (core.strokeDone("b")) afterCoreChange(); return; }
+      else if (msg.type === "stage-done") { if (core.stageDone("b")) { afterCoreChange(); if (core.state.phase === "done") sendReplay(); } return; }
+      else if (msg.type === "clear-scope") {
+        if (core.clearScope("b")) { publishDraw({ t: "clear", stage: 2, from: "host" }); afterCoreChange(); }
+        return;
+      }
+      else if (msg.type === "again") { core.state.phase = "lobby"; core.state.mode = ""; afterCoreChange(); return; }
+      afterCoreChange();
+    }
+  };
+  client.connect();
+  saveSession();
+  render();
+  startHostLoops();
+}
+
+function startHost() {
+  showBanner($("landingError"), "", "error");
+  showBanner($("landingInfo"), "正在连接联机通道…", "info");
+  $("createBtn").disabled = true;
+  var idx = 0;
+  (function tryNext() {
+    if (idx >= BROKERS.length) {
+      showBanner($("landingInfo"), "", "info");
+      showBanner($("landingError"), "联机通道暂时连接不上，请检查网络后重试。", "error");
+      $("createBtn").disabled = false;
+      return;
+    }
+    var b = BROKERS[idx++];
+    probeBroker(b, function (ok) {
+      if (!ok) { tryNext(); return; }
+      connectHost(b, genRawCode(b.id), createCore(null));
+    });
+  })();
+}
+
+function restoreHost(saved) {
+  var b = brokerById(saved.rawCode[0]);
+  if (!b) { storeClear(); return; }
+  showBanner($("landingInfo"), "正在恢复上次对局…", "info");
+  probeBroker(b, function (ok) {
+    if (!ok) {
+      showBanner($("landingError"), "联机通道暂时连接不上，上次对局已保留在本机，稍后刷新页面会再次恢复。", "error");
+      return;
+    }
+    var c = createCore(saved.core);
+    connectHost(b, saved.rawCode, c);
+    /* 恢复本地笔迹显示 */
+    localLog = (saved.core && saved.core.log) ? saved.core.log.slice() : [];
+    renderCanvas();
+  });
+}
+
+function startGuest(raw, restoredView) {
+  rawCode = raw; broker = brokerById(raw[0]);
+  topicBase = "keyaluck/relaydraw/v1/" + rawCode;
+  role = "b"; hostOnline = false; guestView = restoredView || null;
+  client = new MqttClient(broker.url, clientId("guest"), {
+    topic: topics().peer, payload: JSON.stringify({ online: false })
+  });
+  wireStatus();
+  client.onConnect = function () {
+    client.subscribe(topics().state);
+    client.subscribe(topics().draw);
+    client.publish(topics().peer, JSON.stringify({ online: true, ts: Date.now() }), true);
+    client.publish(topics().action, JSON.stringify({ type: "join" }), false);
+    render();
+  };
+  client.onMessage = function (topic, payload) {
+    var msg; try { msg = JSON.parse(payload); } catch (e) { return; }
+    if (topic === topics().draw) { onDrawMessage(msg); return; }
+    if (topic !== topics().state) return;
+    if (msg.type === "host-offline") { hostOnline = false; render(); return; }
+    if (msg.type === "room-closed") {
+      storeClear();
+      if (client) client.close();
+      role = null; guestView = null;
+      document.location.reload();
+      return;
+    }
+    if (msg.type === "view") {
+      hostOnline = true;
+      guestView = msg.view;
+      saveSession();
+      render();
+    }
+  };
+  client.connect();
+  saveSession();
+  render();
+}
+
+function wireStatus() {
+  client.onStatus = function (s) {
+    var chip = $("connChip");
+    var map = { connecting: "连接：连接中…", online: "连接：已连接 · " + (broker ? broker.label : ""),
+                closed: "连接：已断开", reconnecting: "连接：重连中…" };
+    chip.textContent = map[s] || ("连接：" + s);
+    chip.className = "chip " + (s === "online" ? "on" : "off");
+  };
+}
+function sendAction(msg) { if (client) client.publish(topics().action, JSON.stringify(msg), false); }
+
+var hostLoopsStarted = false;
+function startHostLoops() {
+  if (hostLoopsStarted) return;
+  hostLoopsStarted = true;
+  setInterval(function () {
+    if (role !== "a" || !core) return;
+    var wasPhase = core.state.phase;
+    if (core.tick()) {
+      afterCoreChange();
+      if (core.state.phase === "done" && wasPhase !== "done") sendReplay();
+    }
+  }, 500);
+}
+
+/* ================= 画布与笔迹日志 ================= */
+var canvas = $("board"), ctx = canvas.getContext("2d");
+var COLORS = ["#111827", "#dc2626", "#f97316", "#eab308", "#16a34a", "#0284c7", "#7c3aed"];
+var pen = { color: COLORS[0], width: 12 };
+var localLog = [];              // 本机保存的完整笔迹（渲染依据）
+var openStrokes = {};           // 正在进行中的笔迹 id -> stroke
+var strokeSeq = 0;
+var curStroke = null, curStrokeLast = null, pendingPts = [], flushTimer = null;
+
+function stageOf(view) {
+  if (!view) return 0;
+  if (view.mode === "relay") return 0;
+  if (view.phase === "stage1") return 1;
+  if (view.phase === "stage2") return 2;
+  return 0;
+}
+function strokeVisible(st, view) {
+  /* 返回 true 全可见 / 'band' 只见衔接带 / false 不可见 */
+  if (!view) return false;
+  if (view.phase === "done" || view.phase === "relay" || view.phase === "lobby") return true;
+  if (view.phase === "stage1") return role === "a";
+  if (view.phase === "stage2") {
+    if (role === "a") return false;
+    if (st.stage === 1) return "band";
+    return true;
+  }
+  return true;
+}
+function drawStrokePath(st, clipBand) {
+  if (!st.pts || !st.pts.length) return;
+  ctx.save();
+  if (clipBand) { ctx.beginPath(); ctx.rect(0, BAND_TOP, canvas.width, BAND_BOTTOM - BAND_TOP); ctx.clip(); }
+  ctx.strokeStyle = st.color; ctx.lineWidth = st.w; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  if (st.pts.length === 1) {
+    ctx.fillStyle = st.color;
+    ctx.beginPath(); ctx.arc(st.pts[0][0], st.pts[0][1], st.w / 2, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(st.pts[0][0], st.pts[0][1]);
+    for (var i = 1; i < st.pts.length; i++) ctx.lineTo(st.pts[i][0], st.pts[i][1]);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function renderCanvas() {
+  var view = currentView();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (var i = 0; i < localLog.length; i++) {
+    var vis = strokeVisible(localLog[i], view);
+    if (vis === true) drawStrokePath(localLog[i], false);
+    else if (vis === "band") drawStrokePath(localLog[i], true);
+  }
+  /* 进行中的远端笔迹按同样规则补画 */
+  for (var id in openStrokes) {
+    var st = openStrokes[id];
+    if (st.by === role) continue;
+    var v2 = strokeVisible(st, view);
+    if (v2 === true) drawStrokePath(st, false);
+    else if (v2 === "band") drawStrokePath(st, true);
+  }
+}
+function drawSegLive(x1, y1, x2, y2, color, width) {
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+}
+function publishDraw(msg) { if (client) client.publish(topics().draw, JSON.stringify(msg), false); }
+
+function onDrawMessage(msg) {
+  if (msg.t === "replay") {
+    if (msg.mode === "reset") localLog = msg.strokes || [];
+    else localLog = localLog.concat(msg.strokes || []);
+    renderCanvas();
+    return;
+  }
+  if (msg.t === "clear") {
+    localLog = localLog.filter(function (s) { return s.stage !== msg.stage; });
+    if (role === "a" && core) {
+      core.state.log = core.state.log.filter(function (s) { return s.stage !== msg.stage; });
+    }
+    renderCanvas();
+    return;
+  }
+  if (msg.from === role) return;   // 自己发的笔迹本地已处理（房主会收到自己的回声）
+  if (msg.t === "begin") {
+    openStrokes[msg.id] = { id: msg.id, by: msg.from, stage: msg.stage, color: msg.color, w: msg.w, pts: [], last: null };
+  } else if (msg.t === "pts") {
+    var st = openStrokes[msg.id];
+    if (!st) return;
+    var view = currentView();
+    for (var i = 0; i < msg.pts.length; i++) {
+      var p = msg.pts[i];
+      var vis = strokeVisible(st, view);
+      if (vis && st.last) {
+        if (vis === "band") { ctx.save(); ctx.beginPath(); ctx.rect(0, BAND_TOP, canvas.width, BAND_BOTTOM - BAND_TOP); ctx.clip(); drawSegLive(st.last[0], st.last[1], p[0], p[1], st.color, st.w); ctx.restore(); }
+        else drawSegLive(st.last[0], st.last[1], p[0], p[1], st.color, st.w);
+      }
+      st.pts.push(p); st.last = p;
+    }
+  } else if (msg.t === "end") {
+    var fin = openStrokes[msg.id];
+    if (fin) {
+      delete openStrokes[msg.id];
+      var doneStroke = { id: fin.id, by: fin.by, stage: fin.stage, color: fin.color, w: fin.w, pts: fin.pts };
+      localLog.push(doneStroke);
+      if (role === "a" && core) core.recordStroke(doneStroke);
+      renderCanvas();
+    }
+  }
+}
+
+function canvasPos(e) {
+  var r = canvas.getBoundingClientRect();
+  var x = (e.clientX - r.left) / r.width * canvas.width;
+  var y = (e.clientY - r.top) / r.height * canvas.height;
+  var view = currentView();
+  if (view && view.phase === "stage1") y = Math.min(y, STAGE1_LIMIT);
+  if (view && view.phase === "stage2") y = Math.max(y, STAGE2_LIMIT);
+  return [Math.round(x), Math.round(y)];
+}
+function iAmPainter(view) { return view && view.painter && view.painter === role; }
+function flushPts() {
+  if (!curStroke || !pendingPts.length) return;
+  publishDraw({ t: "pts", id: curStroke.id, from: role, pts: pendingPts });
+  pendingPts = [];
+}
+canvas.addEventListener("pointerdown", function (e) {
+  var view = currentView();
+  if (!view || !iAmPainter(view)) return;
+  if (view.phase !== "relay" && view.phase !== "stage1" && view.phase !== "stage2") return;
+  e.preventDefault();
+  canvas.setPointerCapture(e.pointerId);
+  var p = canvasPos(e);
+  curStroke = { id: role + "-" + (++strokeSeq) + "-" + Date.now().toString(36), by: role,
+                stage: stageOf(view), color: pen.color, w: pen.width, pts: [p] };
+  ctx.fillStyle = pen.color;
+  ctx.beginPath(); ctx.arc(p[0], p[1], pen.width / 2, 0, Math.PI * 2); ctx.fill();
+  publishDraw({ t: "begin", id: curStroke.id, from: role, stage: curStroke.stage, color: pen.color, w: pen.width });
+  publishDraw({ t: "pts", id: curStroke.id, from: role, pts: [p] });
+  curStrokeLast = p;
+  if (!flushTimer) flushTimer = setInterval(flushPts, 70);
+});
+canvas.addEventListener("pointermove", function (e) {
+  if (!curStroke) return;
+  var p = canvasPos(e);
+  if (curStrokeLast) drawSegLive(curStrokeLast[0], curStrokeLast[1], p[0], p[1], curStroke.color, curStroke.w);
+  curStrokeLast = p;
+  curStroke.pts.push(p);
+  pendingPts.push(p);
+  if (pendingPts.length >= 14) flushPts();
+});
+function endStroke() {
+  if (!curStroke) return;
+  flushPts();
+  publishDraw({ t: "end", id: curStroke.id, from: role });
+  var finished = curStroke;
+  curStroke = null; curStrokeLast = null;
+  if (flushTimer) { clearInterval(flushTimer); flushTimer = null; }
+  localLog.push(finished);
+  var view = currentView();
+  if (role === "a" && core) core.recordStroke(finished);
+  /* 接力模式：一笔结束就轮换 */
+  if (view && view.phase === "relay") {
+    if (role === "a" && core) { if (core.strokeDone("a")) { afterCoreChange(); if (core.state.phase === "done") sendReplay(); } }
+    else sendAction({ type: "stroke-done" });
+  }
+  renderCanvas();
+}
+canvas.addEventListener("pointerup", endStroke);
+canvas.addEventListener("pointercancel", endStroke);
+
+$("clearBtn").addEventListener("click", function () {
+  var view = currentView();
+  if (!view || !iAmPainter(view)) return;
+  var st = stageOf(view);
+  if (st !== 1 && st !== 2) return;
+  localLog = localLog.filter(function (s) { return s.stage !== st; });
+  renderCanvas();
+  if (role === "a" && core) {
+    if (core.clearScope("a")) { publishDraw({ t: "clear", stage: st, from: "host" }); afterCoreChange(); }
+  } else {
+    publishDraw({ t: "clear", stage: st, from: role });
+    sendAction({ type: "clear-scope" });
+  }
+});
+
+/* 颜色与粗细 */
+(function buildTools() {
+  var box = $("swatches");
+  COLORS.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "swatch" + (i === 0 ? " active" : "");
+    b.style.background = c; b.setAttribute("aria-label", "颜色 " + c);
+    b.addEventListener("click", function () {
+      pen.color = c;
+      box.querySelectorAll(".swatch").forEach(function (s) { s.classList.remove("active"); });
+      b.classList.add("active");
+    });
+    box.appendChild(b);
+  });
+  var er = document.createElement("button");
+  er.type = "button"; er.className = "swatch"; er.style.background = "#fff"; er.style.boxShadow = "inset 0 0 0 1px #cbd5e1";
+  er.setAttribute("aria-label", "橡皮（白色）");
+  er.addEventListener("click", function () {
+    pen.color = "#ffffff";
+    box.querySelectorAll(".swatch").forEach(function (s) { s.classList.remove("active"); });
+    er.classList.add("active");
+  });
+  box.appendChild(er);
+  document.querySelectorAll(".size-btn").forEach(function (b) {
+    b.addEventListener("click", function () {
+      pen.width = parseInt(b.getAttribute("data-size"), 10);
+      document.querySelectorAll(".size-btn").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+    });
+  });
+})();
+
+/* ================= 渲染 ================= */
+function render() {
+  if (!role) return;
+  $("landingSection").hidden = true;
+  $("roomSection").hidden = false;
+  var view = currentView();
+  var me = role;
+  $("roomCodeText").textContent = formatCode(rawCode);
+  $("roleChip").textContent = "角色：玩家 " + me.toUpperCase() + (me === "a" ? "（房主）" : "");
+  var peerChip = $("peerChip");
+  if (me === "a") {
+    peerChip.textContent = "对方（B）：" + (peerOnline ? "在线" : "未加入 / 已离线");
+    peerChip.className = "chip " + (peerOnline ? "on" : "off");
+  } else {
+    peerChip.textContent = "房主（A）：" + (hostOnline ? "在线" : "离线 / 未同步");
+    peerChip.className = "chip " + (hostOnline ? "on" : "off");
+  }
+  if (!view) { showBanner($("gameInfo"), "正在等待房主同步对局…请确认房主页面保持打开。", "info"); return; }
+
+  var phaseKey = view.phase + ":" + (view.mode || "") + ":" + (view.turnOf || "");
+  if (phaseKey !== lastPhaseKey) {
+    if (view.phase === "lobby") { localLog = []; }
+    renderCanvas();
+    lastPhaseKey = phaseKey;
+  }
+
+  var badge = $("roundBadge");
+  if (view.phase === "lobby") badge.textContent = "等待选模式";
+  else if (view.phase === "relay") badge.textContent = "接力共创 · 还剩 " + view.strokesLeft + " 笔 · " + (view.turnOf === me ? "轮到你画" : "对方在画");
+  else if (view.phase === "stage1") badge.textContent = "拼接怪物 · A 画上半身";
+  else if (view.phase === "stage2") badge.textContent = "拼接怪物 · B 画下半身";
+  else if (view.phase === "done") badge.textContent = view.mode === "corpse" ? "拼接完成 · 揭晓" : "共创完成";
+
+  $("modePick").hidden = view.phase !== "lobby";
+  $("modePickHint").textContent = me === "a" ? "选一个模式开始（对方加入后选也行，你定）： " : "等房主选一个模式开始：";
+  $("modeRelay").style.opacity = me === "a" ? "1" : "0.55";
+  $("modeCorpse").style.opacity = me === "a" ? "1" : "0.55";
+
+  var painter = iAmPainter(view);
+  var inDraw = view.phase === "relay" || view.phase === "stage1" || view.phase === "stage2";
+  $("toolsBar").hidden = !(inDraw && painter);
+  $("clearBtn").style.display = (view.phase === "stage1" || view.phase === "stage2") && painter ? "" : "none";
+  canvas.style.pointerEvents = inDraw && painter ? "auto" : "none";
+  canvas.style.cursor = inDraw && painter ? "crosshair" : "default";
+
+  /* 遮盖层：拼接模式下非当前阶段的观看方 */
+  var cover = $("coverBox");
+  if (view.phase === "stage1" && me === "b") {
+    cover.hidden = false;
+    $("coverTitle").textContent = "A 正在画上半身…";
+    $("coverDesc").textContent = "这部分要保密。等 A 画完，轮到你看衔接处画下半身。";
+  } else if (view.phase === "stage2" && me === "a") {
+    cover.hidden = false;
+    $("coverTitle").textContent = "B 正在画下半身…";
+    $("coverDesc").textContent = "马上就揭晓了，期待一下你们拼出来的成品。";
+  } else cover.hidden = true;
+
+  /* 参考线 */
+  var gT = $("guideTop"), gTT = $("guideTopTag"), gB = $("guideBottom"), gBT = $("guideBottomTag");
+  gT.hidden = gTT.hidden = gB.hidden = gBT.hidden = true;
+  if (view.phase === "stage1" && me === "a") {
+    gT.hidden = gTT.hidden = false;
+    gT.style.top = (STAGE1_LIMIT / CANVAS_H * 100) + "%";
+    gTT.style.top = "calc(" + (STAGE1_LIMIT / CANVAS_H * 100) + "% - 20px)";
+    gTT.textContent = "虚线以上是你的区域";
+  } else if (view.phase === "stage2" && me === "b") {
+    gT.hidden = gTT.hidden = false; gB.hidden = gBT.hidden = false;
+    gT.style.top = (BAND_TOP / CANVAS_H * 100) + "%";
+    gTT.style.top = "calc(" + (BAND_TOP / CANVAS_H * 100) + "% - 20px)";
+    gTT.textContent = "两条虚线之间是衔接处";
+    gB.style.top = (BAND_BOTTOM / CANVAS_H * 100) + "%";
+    gBT.style.top = "calc(" + (BAND_BOTTOM / CANVAS_H * 100) + "% + 3px)";
+    gBT.textContent = "从衔接处往下画";
+  }
+
+  $("stageDoneRow").hidden = !(painter && (view.phase === "stage1" || view.phase === "stage2"));
+  $("againRow").hidden = view.phase !== "done";
+
+  var rt = $("resultText"), vt = $("verdictText");
+  if (view.phase === "done") {
+    rt.hidden = false; vt.hidden = false;
+    rt.textContent = view.mode === "corpse" ? "揭晓！这就是你们拼出来的它" : "完成！这是你们一起画的";
+    vt.textContent = view.mode === "corpse"
+      ? "上半身和下半身对得上吗？对不上才对味。点「保存这幅画」留个纪念吧。"
+      : "一共 " + localLog.length + " 笔，你一笔我一笔，就是这个样子了。点「保存这幅画」留个纪念吧。";
+  } else { rt.hidden = true; vt.hidden = true; }
+
+  var info = "";
+  if (view.phase === "lobby") info = me === "a"
+    ? (peerOnline ? "对方已加入，选个模式开始吧。" : "等待玩家 B 用上面的房间码加入。把这个页面和房间码一起发给对方即可。")
+    : "已加入房间，等房主选模式。";
+  else if (view.phase === "relay") info = painter ? "轮到你：画一笔（按下到抬手算一笔），抬手自动轮到对方。每笔限时 60 秒。" : "对方在画这一笔，看着就好。";
+  else if (view.phase === "stage1") info = me === "a" ? "你先画上半身：头、身体画到虚线附近，腿先别画。画完点「我画完了」。" : "等 A 画上半身，你看不见，保密中。";
+  else if (view.phase === "stage2") info = me === "b" ? "轮到你画下半身：中间的衔接带是 A 留下的线索，对着它往下接。画完点「我画完了」。" : "等 B 画下半身，你看不见，马上揭晓。";
+  else if (view.phase === "done") info = "这一幅完成了。房主点「再来一幅」可以回大厅重选模式（任意一方点也会同步）。";
+  if (me === "a" && view.phase !== "lobby" && !peerOnline) info += "（注意：对方当前不在线，对方重连即可回到本局。）";
+  if (me === "b" && !hostOnline) info = "房主当前不在线，等对方回到页面后自动继续。";
+  showBanner($("gameInfo"), info, "info");
+  showBanner($("noticeBanner"), view.notice && view.phase === "relay" ? view.notice : "", "success");
+  showBanner($("gameError"), "", "error");
+  updateTimer(view);
+}
+
+function updateTimer(view) {
+  var t = $("timerText");
+  if (!view || !(view.phase === "relay" || view.phase === "stage1" || view.phase === "stage2")) { t.textContent = ""; t.className = "timer"; return; }
+  var left = Math.max(0, Math.round((view.endsAt - Date.now()) / 1000));
+  t.textContent = left + "s";
+  t.className = "timer" + (left <= 15 ? " low" : "");
+}
+setInterval(function () { var v = currentView(); if (v) updateTimer(v); }, 250);
+
+/* ================= 按钮与表单 ================= */
+$("createBtn").addEventListener("click", startHost);
+$("joinBtn").addEventListener("click", function () {
+  var raw = parseCode($("joinCode").value);
+  if (!raw) { showBanner($("landingError"), "房间码格式不对，请检查后重新输入。", "error"); return; }
+  showBanner($("landingError"), "", "error");
+  startGuest(raw, null);
+});
+$("modeRelay").addEventListener("click", function () {
+  if (role !== "a" || !core) return;
+  core.startRelay(); localLog = []; renderCanvas(); afterCoreChange();
+});
+$("modeCorpse").addEventListener("click", function () {
+  if (role !== "a" || !core) return;
+  core.startCorpse(); localLog = []; renderCanvas(); afterCoreChange();
+});
+$("stageDoneBtn").addEventListener("click", function () {
+  var view = currentView();
+  if (!view || !iAmPainter(view)) return;
+  if (role === "a" && core) { if (core.stageDone("a")) { afterCoreChange(); if (core.state.phase === "done") sendReplay(); } }
+  else sendAction({ type: "stage-done" });
+});
+$("againBtn").addEventListener("click", function () {
+  if (role === "a" && core) { core.state.phase = "lobby"; core.state.mode = ""; localLog = []; renderCanvas(); afterCoreChange(); }
+  else { localLog = []; renderCanvas(); sendAction({ type: "again" }); }
+});
+$("saveBtn").addEventListener("click", function () {
+  renderCanvas();
+  if (canvas.toBlob) {
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "接力画-" + new Date().toISOString().slice(0, 10) + ".png";
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+    });
+  }
+});
+$("copyBtn").addEventListener("click", function () {
+  var text = formatCode(rawCode);
+  function done() { $("copyBtn").textContent = "已复制"; setTimeout(function () { $("copyBtn").textContent = "复制房间码"; }, 1500); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+  else done();
+});
+$("leaveBtn").addEventListener("click", function () {
+  if (!confirm("确定要清空本页并退出吗？本局将结束，双方都要重新建房/加入。")) return;
+  if (!confirm("再确认一次：清空后无法恢复本局。")) return;
+  if (role === "a" && client) client.publish(topics().state, JSON.stringify({ type: "room-closed" }), true);
+  storeClear();
+  if (client) client.close();
+  document.location.reload();
+});
+
+/* ================= 启动：恢复会话或显示入口 ================= */
+(function boot() {
+  var saved = storeLoad();
+  if (saved && saved.rawCode) {
+    if (saved.role === "a" && saved.core) restoreHost(saved);
+    else if (saved.role === "b") startGuest(saved.rawCode, saved.view || null);
+  }
+})();
+</script>
+</body>
+</html>

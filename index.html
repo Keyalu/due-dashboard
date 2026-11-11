@@ -290,6 +290,7 @@
     <div class="drawer-tab" onclick="switchTab('wangdao')"><span class="icon">✉️</span>王道提交</div>
     <div class="drawer-tab" onclick="switchTab('daily')"><span class="icon">📝</span>每日记录</div>
     <div class="drawer-tab" onclick="switchTab('flashcard')"><span class="icon">📋</span>闪卡</div>
+    <div class="drawer-tab" onclick="switchTab('knowledge')"><span class="icon">📌</span>知识点</div>
   </div>
 </div>
 
@@ -863,8 +864,23 @@
     </div>
   </div>
 </div>
+<!-- ========== 知识点 ========== -->
+<div id="page-knowledge" class="page">
+  <div class="card" style="margin-bottom:12px;">
+    <div class="card-title-lg">未掌握知识点</div>
+    <div style="font-size:11px;color:var(--text-dim);line-height:1.7;margin-bottom:10px;">
+      按学科归档：每条记考点编号、考频、核心结论和重学链接，点「重学」直接从标记的时间点开始。<br>
+      数据在 <b>knowledge_data.js</b> 里手工维护，追加一条就会出现在这里，不用改页面。
+    </div>
+    <div id="knFilters" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    <div id="knUpdated" class="tip"></div>
+  </div>
+  <div id="knList"></div>
+</div>
+
 <script src="flashcards_en.js"></script>
 <script src="calendar_data.js"></script>
+<script src="knowledge_data.js"></script>
 <script>
 // ==== DATA:GENERATED-BEGIN（此区块由 生成看板.py 自动生成，勿手改） ====
 const DATA = {
@@ -8282,6 +8298,57 @@ document.querySelectorAll('.fc-filter-btn').forEach(btn=>{
     renderFlashcards(btn.dataset.sub);
   };
 });
+
+// ==== 知识点（数据驱动：knowledge_data.js，追加记录不用改这里） ====
+function knEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+function knStatusClass(s){ return ({'已掌握':'badge-green','重学中':'badge-yellow','未掌握':'badge-red'})[s] || 'badge-gray'; }
+function knowledgeSubjects(){
+  var d = window.KNOWLEDGE_DATA;
+  return (d && Array.isArray(d.subjects)) ? d.subjects : [];
+}
+function renderKnowledge(filter){
+  var subjects = knowledgeSubjects();
+  var listEl = document.getElementById('knList');
+  var filterEl = document.getElementById('knFilters');
+  if (!listEl || !filterEl) return;
+  var active = (typeof filter === 'string' && filter) ? filter : 'ALL';
+  var filled = subjects.filter(function(s){ return s && s.items && s.items.length; });
+  var total = filled.reduce(function(n,s){ return n + s.items.length; }, 0);
+  filterEl.innerHTML = '<div class="mk-filter' + (active === 'ALL' ? ' active' : '') + '" data-kn="ALL">全部 ' + total + '</div>' +
+    filled.map(function(s){
+      return '<div class="mk-filter' + (active === s.key ? ' active' : '') + '" data-kn="' + knEsc(s.key) + '">' + knEsc(s.name) + ' ' + s.items.length + '</div>';
+    }).join('');
+  filterEl.querySelectorAll('[data-kn]').forEach(function(el){
+    el.onclick = function(){ renderKnowledge(el.getAttribute('data-kn')); };
+  });
+  var shown = filled.filter(function(s){ return active === 'ALL' || s.key === active; });
+  var html = '';
+  shown.forEach(function(s){
+    html += '<div class="card" style="margin-bottom:12px;"><div class="card-title-lg">' + knEsc(s.name) + ' · ' + s.items.length + ' 条</div>';
+    s.items.forEach(function(it){
+      html += '<div class="mk-card" style="margin-bottom:10px;">' +
+        '<div class="mk-head"><span class="mk-title">' + knEsc(it.title) + '</span>' +
+        (it.point ? '<span class="badge-sm badge-cyan">' + knEsc(it.point) + '</span>' : '') +
+        '<span class="badge-sm ' + knStatusClass(it.status) + '">' + knEsc(it.status || '未掌握') + '</span>' +
+        (it.date ? '<span class="mk-count">记录 ' + knEsc(it.date) + '</span>' : '') +
+        '</div><div>' +
+        (it.chapter ? '<span class="mk-chip"><b>章节</b> ' + knEsc(it.chapter) + '</span>' : '') +
+        (it.exam ? '<span class="mk-chip"><b>考频</b> ' + knEsc(it.exam) + '</span>' : '') +
+        '</div>' +
+        (it.conclusion ? '<div class="mk-group"><span class="mk-group-name">核心结论</span> ' + knEsc(it.conclusion) + '</div>' : '') +
+        (it.link ? '<div style="margin-top:8px;font-size:11px;line-height:1.6;"><a href="' + knEsc(it.link) + '" target="_blank" rel="noopener" style="color:var(--blue);font-weight:600;text-decoration:none;">重学 →</a>' +
+          (it.linkNote ? '<span style="color:var(--text-dim);margin-left:8px;">' + knEsc(it.linkNote) + '</span>' : '') + '</div>' : '') +
+        '</div>';
+    });
+    html += '</div>';
+  });
+  if (!shown.length) html = '<div class="card"><div class="mk-empty">这一学科还没有记录。往 knowledge_data.js 对应学科里加一条，这里就会自动出现。</div></div>';
+  var emptyNames = subjects.filter(function(s){ return s && (!s.items || !s.items.length); }).map(function(s){ return knEsc(s.name); });
+  listEl.innerHTML = html + (emptyNames.length ? '<div class="tip" style="margin-top:2px;">待补充学科：' + emptyNames.join(' / ') + '</div>' : '');
+  var upd = document.getElementById('knUpdated');
+  if (upd && window.KNOWLEDGE_DATA && window.KNOWLEDGE_DATA.updated) upd.textContent = '最近更新 ' + window.KNOWLEDGE_DATA.updated;
+}
+renderKnowledge('ALL');
 
 function toggleDrawer() {
   document.getElementById('drawer').classList.toggle('active');

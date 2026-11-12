@@ -5,29 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>错题 005｜软链接（符号链接）特性辨析</title>
 <style>
-  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; color: #2f3644; line-height: 1.9; background: #f2f7fb; }
-  h1 { font-size: 22px; border-bottom: 2px solid #0ea5e9; padding-bottom: 10px; }
-  h2 { font-size: 18px; color: #0284c7; margin-top: 30px; }
-  h3 { font-size: 16px; color: #2f3644; margin-top: 22px; }
-  .meta { color: #68707d; font-size: 14px; }
-  .img-box { background: #fff; border: 1px solid #dce8f2; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; }
+  body { font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; color: #1a1b1c; line-height: 1.9; background: #fafaf9; }
+  h1 { font-size: 22px; border-bottom: 2px solid #d97757; padding-bottom: 10px; }
+  h2 { font-size: 18px; color: #b05a3a; margin-top: 30px; }
+  h3 { font-size: 16px; color: #1a1b1c; margin-top: 22px; }
+  .meta { color: #6b7280; font-size: 14px; }
+  .img-box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; }
   .img-box img { max-width: 100%; height: auto; display: inline-block; }
-  .box { background: #fff; border: 1px solid #dce8f2; border-radius: 8px; padding: 12px 16px; margin: 12px 0; overflow-x: auto; }
+  .box { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 16px; margin: 12px 0; overflow-x: auto; }
   .wrong { border-left: 4px solid #d64541; }
   .right { border-left: 4px solid #2e9e5b; }
-  .final { border-left: 4px solid #0ea5e9; }
-  .tip { background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 10px 14px; border-radius: 4px; margin: 14px 0; }
+  .final { border-left: 4px solid #d97757; }
+  .tip { background: #fdf3e7; border-left: 4px solid #d97757; padding: 10px 14px; border-radius: 4px; margin: 14px 0; }
   .err { color: #d64541; font-weight: 600; }
   .ok { color: #2e9e5b; font-weight: 600; }
   table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; }
-  th, td { border: 1px solid #dce8f2; padding: 8px 10px; font-size: 14px; }
-  th { background: #f0f9ff; }
+  th, td { border: 1px solid #e5e5e5; padding: 8px 10px; font-size: 14px; }
+  th { background: #f4f1ec; }
   .tags span { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-right: 8px; }
   .tag-type { background: #fdeaea; color: #c0392b; border: 1px solid #eec8c8; }
   .tag-status { background: #eef6ee; color: #2e7d32; border: 1px solid #c9e6c9; }
-  .tag-chapter { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
+  .tag-chapter { background: #eef3fb; color: #2c5da6; border: 1px solid #cdd9ef; }
   .back { margin-top: 30px; font-size: 14px; }
-  .back a { color: #0ea5e9; text-decoration: none; }
+  .back a { color: #d97757; text-decoration: none; }
   .back a:hover { text-decoration: underline; }
   mjx-container { overflow-x: auto; }
 </style>
@@ -76,66 +76,66 @@ A. I、II　B. II、III ✓　C. III　D. III、IV</div>
 <div style="display:flex;flex-wrap:wrap;gap:16px;box-sizing:border-box;font-family:'PingFang SC','Microsoft YaHei',sans-serif;">
 
 <div style="flex:1 1 330px;min-width:0;border:1px solid rgba(0,0,0,0.08);border-radius:14px;padding:12px;background:#fff;box-sizing:border-box;">
-  <div style="font-size:14px;font-weight:600;color:#2f3644;margin-bottom:6px;">硬链接 · <code>ln f1 f2</code></div>
+  <div style="font-size:14px;font-weight:600;color:#1A1B1C;margin-bottom:6px;">硬链接 · <code>ln f1 f2</code></div>
   <svg viewBox="0 0 460 270" width="100%" style="display:block;height:auto;">
     <defs>
       <marker id="arrH" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-        <path d="M0,0 L8,4 L0,8 z" fill="#2f3644"/>
+        <path d="M0,0 L8,4 L0,8 z" fill="#1A1B1C"/>
       </marker>
     </defs>
     <rect x="30" y="40" width="130" height="44" rx="8" fill="#FFFFFF" stroke="#9EACEA" stroke-width="1.5"/>
-    <text x="95" y="67" text-anchor="middle" font-size="13" fill="#2f3644">目录项 f1</text>
+    <text x="95" y="67" text-anchor="middle" font-size="13" fill="#1A1B1C">目录项 f1</text>
     <rect x="30" y="118" width="130" height="44" rx="8" fill="#FFFFFF" stroke="#9EACEA" stroke-width="1.5"/>
-    <text x="95" y="145" text-anchor="middle" font-size="13" fill="#2f3644">目录项 f2</text>
+    <text x="95" y="145" text-anchor="middle" font-size="13" fill="#1A1B1C">目录项 f2</text>
     <rect x="230" y="79" width="185" height="44" rx="8" fill="#E8F6E3" stroke="#52C41A" stroke-width="1.5"/>
-    <text x="322" y="97" text-anchor="middle" font-size="12" fill="#2f3644">inode</text>
+    <text x="322" y="97" text-anchor="middle" font-size="12" fill="#1A1B1C">inode</text>
     <text x="322" y="112" text-anchor="middle" font-size="11" fill="#52C41A">引用计数 = 2</text>
-    <rect x="230" y="160" width="185" height="44" rx="8" fill="#FFFFFF" stroke="#2f3644" stroke-width="1.2"/>
-    <text x="322" y="187" text-anchor="middle" font-size="12" fill="#2f3644">数据块（文件内容）</text>
-    <polyline points="160,62 195,62 195,95 228,95" fill="none" stroke="#2f3644" stroke-width="1.4" marker-end="url(#arrH)"/>
-    <polyline points="160,140 195,140 195,105 228,105" fill="none" stroke="#2f3644" stroke-width="1.4" marker-end="url(#arrH)"/>
-    <line x1="322" y1="123" x2="322" y2="158" stroke="#2f3644" stroke-width="1.4" marker-end="url(#arrH)"/>
-    <text x="322" y="68" text-anchor="middle" font-size="11" fill="#68707d">两个目录项 → 同一 inode</text>
-    <text x="230" y="235" font-size="12" fill="#2f3644">删除 f1：引用计数 2→1，</text>
+    <rect x="230" y="160" width="185" height="44" rx="8" fill="#FFFFFF" stroke="#1A1B1C" stroke-width="1.2"/>
+    <text x="322" y="187" text-anchor="middle" font-size="12" fill="#1A1B1C">数据块（文件内容）</text>
+    <polyline points="160,62 195,62 195,95 228,95" fill="none" stroke="#1A1B1C" stroke-width="1.4" marker-end="url(#arrH)"/>
+    <polyline points="160,140 195,140 195,105 228,105" fill="none" stroke="#1A1B1C" stroke-width="1.4" marker-end="url(#arrH)"/>
+    <line x1="322" y1="123" x2="322" y2="158" stroke="#1A1B1C" stroke-width="1.4" marker-end="url(#arrH)"/>
+    <text x="322" y="68" text-anchor="middle" font-size="11" fill="#6B7280">两个目录项 → 同一 inode</text>
+    <text x="230" y="235" font-size="12" fill="#1A1B1C">删除 f1：引用计数 2→1，</text>
     <text x="230" y="252" font-size="12" fill="#52C41A">inode 与数据块仍在 → f2 仍可访问 ✓</text>
   </svg>
 </div>
 
 <div style="flex:1 1 330px;min-width:0;border:1px solid rgba(0,0,0,0.08);border-radius:14px;padding:12px;background:#fff;box-sizing:border-box;">
-  <div style="font-size:14px;font-weight:600;color:#2f3644;margin-bottom:6px;">软链接 · <code>ln -s f1 f2</code></div>
+  <div style="font-size:14px;font-weight:600;color:#1A1B1C;margin-bottom:6px;">软链接 · <code>ln -s f1 f2</code></div>
   <svg viewBox="0 0 460 270" width="100%" style="display:block;height:auto;">
     <defs>
       <marker id="arrS" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-        <path d="M0,0 L8,4 L0,8 z" fill="#2f3644"/>
+        <path d="M0,0 L8,4 L0,8 z" fill="#1A1B1C"/>
       </marker>
       <marker id="arrD" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
         <path d="M0,0 L8,4 L0,8 z" fill="#EA6668"/>
       </marker>
     </defs>
     <rect x="30" y="30" width="130" height="40" rx="8" fill="#FFFFFF" stroke="#9EACEA" stroke-width="1.5"/>
-    <text x="95" y="55" text-anchor="middle" font-size="13" fill="#2f3644">目录项 f1</text>
+    <text x="95" y="55" text-anchor="middle" font-size="13" fill="#1A1B1C">目录项 f1</text>
     <rect x="230" y="30" width="185" height="40" rx="8" fill="#E8F6E3" stroke="#52C41A" stroke-width="1.5"/>
-    <text x="322" y="55" text-anchor="middle" font-size="12" fill="#2f3644">inode1</text>
-    <rect x="230" y="92" width="185" height="40" rx="8" fill="#FFFFFF" stroke="#2f3644" stroke-width="1.2"/>
-    <text x="322" y="117" text-anchor="middle" font-size="12" fill="#2f3644">数据块（文件内容）</text>
+    <text x="322" y="55" text-anchor="middle" font-size="12" fill="#1A1B1C">inode1</text>
+    <rect x="230" y="92" width="185" height="40" rx="8" fill="#FFFFFF" stroke="#1A1B1C" stroke-width="1.2"/>
+    <text x="322" y="117" text-anchor="middle" font-size="12" fill="#1A1B1C">数据块（文件内容）</text>
     <rect x="30" y="160" width="130" height="58" rx="8" fill="#FDF0F0" stroke="#EA6668" stroke-width="1.5"/>
-    <text x="95" y="182" text-anchor="middle" font-size="12" fill="#2f3644">目录项 f2</text>
+    <text x="95" y="182" text-anchor="middle" font-size="12" fill="#1A1B1C">目录项 f2</text>
     <text x="95" y="198" text-anchor="middle" font-size="11" fill="#EA6668">（软链接）内容 = 路径 'f1'</text>
     <rect x="230" y="160" width="185" height="40" rx="8" fill="#FDF0F0" stroke="#EA6668" stroke-width="1.5"/>
-    <text x="322" y="180" text-anchor="middle" font-size="11" fill="#2f3644">inode2</text>
+    <text x="322" y="180" text-anchor="middle" font-size="11" fill="#1A1B1C">inode2</text>
     <text x="322" y="194" text-anchor="middle" font-size="10" fill="#EA6668">存路径 'f1'</text>
-    <line x1="160" y1="50" x2="228" y2="50" stroke="#2f3644" stroke-width="1.4" marker-end="url(#arrS)"/>
-    <line x1="322" y1="70" x2="322" y2="90" stroke="#2f3644" stroke-width="1.4" marker-end="url(#arrS)"/>
-    <line x1="160" y1="180" x2="228" y2="180" stroke="#2f3644" stroke-width="1.4" marker-end="url(#arrS)"/>
+    <line x1="160" y1="50" x2="228" y2="50" stroke="#1A1B1C" stroke-width="1.4" marker-end="url(#arrS)"/>
+    <line x1="322" y1="70" x2="322" y2="90" stroke="#1A1B1C" stroke-width="1.4" marker-end="url(#arrS)"/>
+    <line x1="160" y1="180" x2="228" y2="180" stroke="#1A1B1C" stroke-width="1.4" marker-end="url(#arrS)"/>
     <polyline points="415,180 440,180 440,50 417,50" fill="none" stroke="#EA6668" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#arrD)"/>
     <text x="447" y="118" font-size="10" fill="#EA6668">解析</text>
-    <text x="30" y="248" font-size="12" fill="#2f3644">删除 f1：inode1 与数据块释放，</text>
+    <text x="30" y="248" font-size="12" fill="#1A1B1C">删除 f1：inode1 与数据块释放，</text>
     <text x="30" y="264" font-size="12" fill="#EA6668">f2 只剩路径名 → 悬空，无法访问 ✗</text>
   </svg>
 </div>
 
 </div>
-<div style="font-size:12px;color:#68707d;margin-top:8px;">阅读方向：目录项（目录中的文件名记录）→ inode（索引节点，存元数据）→ 数据块（文件实际内容）。</div>
+<div style="font-size:12px;color:#6B7280;margin-top:8px;">阅读方向：目录项（目录中的文件名记录）→ inode（索引节点，存元数据）→ 数据块（文件实际内容）。</div>
 </div>
 
 <h2>同类易错提醒</h2>
